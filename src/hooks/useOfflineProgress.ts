@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+﻿import { useState, useCallback } from 'react'
 import { useGameStore } from '@/store/gameStore'
 import { loadGameFromDb } from '@/db/saveManager'
 import { computeOfflineProgress } from '@/core/gameLoop'

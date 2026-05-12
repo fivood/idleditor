@@ -15,12 +15,12 @@ export const GENRE_LABELS: Record<Genre, string> = {
 }
 
 export const GENRE_ICONS: Record<Genre, string> = {
-  'sci-fi': '🚀',
-  mystery: '🔍',
-  suspense: '🕵️',
-  'social-science': '📊',
-  hybrid: '🔀',
-  'light-novel': '📱',
+  'sci-fi': '/icons/genre/sci-fi.svg',
+  mystery: '/icons/genre/mystery.svg',
+  suspense: '/icons/genre/suspense.svg',
+  'social-science': '/icons/genre/social-science.svg',
+  hybrid: '/icons/genre/hybrid.svg',
+  'light-novel': '/icons/genre/light-novel.svg',
 }
 
 // ──── Manuscript lifecycle ────

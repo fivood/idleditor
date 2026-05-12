@@ -1,4 +1,4 @@
-import type { Author, AuthorPersona, Department, EditorTrait, GameEvent, Genre, Manuscript, PermanentBonuses, TickResult, ToastMessage } from './types'
+﻿import type { Author, AuthorPersona, Department, EditorTrait, GameEvent, Genre, Manuscript, PermanentBonuses, TickResult, ToastMessage } from './types'
 import { GENRE_ICONS, GENRES } from './types'
 import { GENRE_COVER_COLORS } from './constants'
 import {
