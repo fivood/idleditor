@@ -156,6 +156,78 @@
     "filename": "无限循环与有限耐心.svg"
   },
   {
+    "title": "勉强还行新世界",
+    "genre": "sci-fi",
+    "slug": "勉强还行新世界",
+    "filename": "勉强还行新世界.svg"
+  },
+  {
+    "title": "华氏452",
+    "genre": "sci-fi",
+    "slug": "华氏452",
+    "filename": "华氏452.svg"
+  },
+  {
+    "title": "发条柚子",
+    "genre": "sci-fi",
+    "slug": "发条柚子",
+    "filename": "发条柚子.svg"
+  },
+  {
+    "title": "仿生人会发朋友圈吗",
+    "genre": "sci-fi",
+    "slug": "仿生人会发朋友圈吗",
+    "filename": "仿生人会发朋友圈吗.svg"
+  },
+  {
+    "title": "银河系搭车客生存手册",
+    "genre": "sci-fi",
+    "slug": "银河系搭车客生存手册",
+    "filename": "银河系搭车客生存手册.svg"
+  },
+  {
+    "title": "时间足够你摸鱼",
+    "genre": "sci-fi",
+    "slug": "时间足够你摸鱼",
+    "filename": "时间足够你摸鱼.svg"
+  },
+  {
+    "title": "与拉玛相看两厌",
+    "genre": "sci-fi",
+    "slug": "与拉玛相看两厌",
+    "filename": "与拉玛相看两厌.svg"
+  },
+  {
+    "title": "童年的终结（青少年版）",
+    "genre": "sci-fi",
+    "slug": "童年的终结青少年版",
+    "filename": "童年的终结青少年版.svg"
+  },
+  {
+    "title": "神们自己也不确定",
+    "genre": "sci-fi",
+    "slug": "神们自己也不确定",
+    "filename": "神们自己也不确定.svg"
+  },
+  {
+    "title": "永恒的终结·续",
+    "genre": "sci-fi",
+    "slug": "永恒的终结·续",
+    "filename": "永恒的终结·续.svg"
+  },
+  {
+    "title": "火星三部曲·第四部",
+    "genre": "sci-fi",
+    "slug": "火星三部曲·第四部",
+    "filename": "火星三部曲·第四部.svg"
+  },
+  {
+    "title": "你一生的故事（简写本）",
+    "genre": "sci-fi",
+    "slug": "你一生的故事简写本",
+    "filename": "你一生的故事简写本.svg"
+  },
+  {
     "title": "饼干盒疑案",
     "genre": "mystery",
     "slug": "饼干盒疑案",
@@ -300,6 +372,54 @@
     "filename": "巴斯克维尔的哈士奇.svg"
   },
   {
+    "title": "养活一只知更鸟",
+    "genre": "mystery",
+    "slug": "养活一只知更鸟",
+    "filename": "养活一只知更鸟.svg"
+  },
+  {
+    "title": "尼罗河上的惨案（邮轮版）",
+    "genre": "mystery",
+    "slug": "尼罗河上的惨案邮轮版",
+    "filename": "尼罗河上的惨案邮轮版.svg"
+  },
+  {
+    "title": "无人生还·修订版",
+    "genre": "mystery",
+    "slug": "无人生还·修订版",
+    "filename": "无人生还·修订版.svg"
+  },
+  {
+    "title": "ABC谋杀案·重启",
+    "genre": "mystery",
+    "slug": "ABC谋杀案·重启",
+    "filename": "ABC谋杀案·重启.svg"
+  },
+  {
+    "title": "帷幕之后还有一页",
+    "genre": "mystery",
+    "slug": "帷幕之后还有一页",
+    "filename": "帷幕之后还有一页.svg"
+  },
+  {
+    "title": "啤酒谋杀案",
+    "genre": "mystery",
+    "slug": "啤酒谋杀案",
+    "filename": "啤酒谋杀案.svg"
+  },
+  {
+    "title": "格林家杀人事件·物业版",
+    "genre": "mystery",
+    "slug": "格林家杀人事件·物业版",
+    "filename": "格林家杀人事件·物业版.svg"
+  },
+  {
+    "title": "占星术杀人魔法（已破解）",
+    "genre": "mystery",
+    "slug": "占星术杀人魔法已破解",
+    "filename": "占星术杀人魔法已破解.svg"
+  },
+  {
     "title": "知道太少的人",
     "genre": "suspense",
     "slug": "知道太少的人",
@@ -420,6 +540,42 @@
     "filename": "合同第七条附款小字.svg"
   },
   {
+    "title": "实习生沉默的方式",
+    "genre": "suspense",
+    "slug": "实习生沉默的方式",
+    "filename": "实习生沉默的方式.svg"
+  },
+  {
+    "title": "别相信任何人（包括作者）",
+    "genre": "suspense",
+    "slug": "别相信任何人包括作者",
+    "filename": "别相信任何人包括作者.svg"
+  },
+  {
+    "title": "独居的一年·邻居版",
+    "genre": "suspense",
+    "slug": "独居的一年·邻居版",
+    "filename": "独居的一年·邻居版.svg"
+  },
+  {
+    "title": "第22条军规",
+    "genre": "suspense",
+    "slug": "第22条军规",
+    "filename": "第22条军规.svg"
+  },
+  {
+    "title": "蝇王·蜂后篇",
+    "genre": "suspense",
+    "slug": "蝇王·蜂后篇",
+    "filename": "蝇王·蜂后篇.svg"
+  },
+  {
+    "title": "罪与改",
+    "genre": "suspense",
+    "slug": "罪与改",
+    "filename": "罪与改.svg"
+  },
+  {
     "title": "关于排队：一项田野调查",
     "genre": "social-science",
     "slug": "关于排队-一项田野调查",
@@ -528,6 +684,60 @@
     "filename": "表情包使用的代际差异.svg"
   },
   {
+    "title": "偏见与更偏见",
+    "genre": "social-science",
+    "slug": "偏见与更偏见",
+    "filename": "偏见与更偏见.svg"
+  },
+  {
+    "title": "存在与摆烂",
+    "genre": "social-science",
+    "slug": "存在与摆烂",
+    "filename": "存在与摆烂.svg"
+  },
+  {
+    "title": "局内人",
+    "genre": "social-science",
+    "slug": "局内人",
+    "filename": "局内人.svg"
+  },
+  {
+    "title": "瓦尔登湖景房",
+    "genre": "social-science",
+    "slug": "瓦尔登湖景房",
+    "filename": "瓦尔登湖景房.svg"
+  },
+  {
+    "title": "战争与还行",
+    "genre": "social-science",
+    "slug": "战争与还行",
+    "filename": "战争与还行.svg"
+  },
+  {
+    "title": "了不起的盖茨比（平装）",
+    "genre": "social-science",
+    "slug": "了不起的盖茨比平装",
+    "filename": "了不起的盖茨比平装.svg"
+  },
+  {
+    "title": "年轻人与泳池",
+    "genre": "social-science",
+    "slug": "年轻人与泳池",
+    "filename": "年轻人与泳池.svg"
+  },
+  {
+    "title": "太阳照常迟到",
+    "genre": "social-science",
+    "slug": "太阳照常迟到",
+    "filename": "太阳照常迟到.svg"
+  },
+  {
+    "title": "包法利夫人（双语注解版）",
+    "genre": "social-science",
+    "slug": "包法利夫人双语注解版",
+    "filename": "包法利夫人双语注解版.svg"
+  },
+  {
     "title": "AI刑警",
     "genre": "hybrid",
     "slug": "AI刑警",
@@ -622,5 +832,59 @@
     "genre": "hybrid",
     "slug": "巴别图书馆的安保系统",
     "filename": "巴别图书馆的安保系统.svg"
+  },
+  {
+    "title": "城堡（物业版）",
+    "genre": "hybrid",
+    "slug": "城堡物业版",
+    "filename": "城堡物业版.svg"
+  },
+  {
+    "title": "变形计（甲虫视角）",
+    "genre": "hybrid",
+    "slug": "变形计甲虫视角",
+    "filename": "变形计甲虫视角.svg"
+  },
+  {
+    "title": "绿楼梦",
+    "genre": "hybrid",
+    "slug": "绿楼梦",
+    "filename": "绿楼梦.svg"
+  },
+  {
+    "title": "四国演义",
+    "genre": "hybrid",
+    "slug": "四国演义",
+    "filename": "四国演义.svg"
+  },
+  {
+    "title": "东游记（高铁篇）",
+    "genre": "hybrid",
+    "slug": "东游记高铁篇",
+    "filename": "东游记高铁篇.svg"
+  },
+  {
+    "title": "聊斋志异（已科学解释）",
+    "genre": "hybrid",
+    "slug": "聊斋志异已科学解释",
+    "filename": "聊斋志异已科学解释.svg"
+  },
+  {
+    "title": "鲁滨逊隔离记",
+    "genre": "hybrid",
+    "slug": "鲁滨逊隔离记",
+    "filename": "鲁滨逊隔离记.svg"
+  },
+  {
+    "title": "洛丽塔（争议版）",
+    "genre": "hybrid",
+    "slug": "洛丽塔争议版",
+    "filename": "洛丽塔争议版.svg"
+  },
+  {
+    "title": "尤利西斯（注音版）",
+    "genre": "hybrid",
+    "slug": "尤利西斯注音版",
+    "filename": "尤利西斯注音版.svg"
   }
 ]

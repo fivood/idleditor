@@ -24,6 +24,7 @@ export function TopBar() {
     <header className="border-b-2 border-border-dark bg-cream-dark shrink-0">
       <div className="flex items-center justify-between px-3 md:px-4 h-8 md:h-12">
         <div className="flex items-center gap-2 md:gap-3">
+          <img src="/favicon.svg" alt="" className="w-5 h-5 md:w-6 md:h-6" />
           <h1 className="text-xs md:text-sm font-bold text-ink tracking-tight font-mono">
             永夜出版社
           </h1>

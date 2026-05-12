@@ -55,6 +55,7 @@ export function WelcomeView() {
     <div className="flex items-center justify-center h-dvh bg-cream">
       <div className="max-w-md w-full p-8">
         <div className="text-center mb-8">
+          <img src="/favicon.svg" alt="" className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-ink mb-2 font-mono">永夜出版社</h1>
           <p className="text-xs text-muted leading-relaxed font-mono">
             成立于1732年，创始人是一位活腻了的吸血鬼伯爵。

@@ -24,15 +24,11 @@ export function OfficeView() {
   const departments = useGameStore(s => s.departments)
   const currencies = useGameStore(s => s.currencies)
   const preferredGenres = useGameStore(s => s.preferredGenres)
-  const llmApiKey = useGameStore(s => s.llmApiKey)
-  const llmCallsRemaining = useGameStore(s => s.llmCallsRemaining)
-  const setLlmApiKey = useGameStore(s => s.setLlmApiKey)
   const createDepartment = useGameStore(s => s.createDepartment)
   const upgradeDepartment = useGameStore(s => s.upgradeDepartment)
   const setPreferredGenre = useGameStore(s => s.setPreferredGenre)
   const removePreferredGenre = useGameStore(s => s.removePreferredGenre)
   const [showChangelog, setShowChangelog] = useState(false)
-  const [showLlm, setShowLlm] = useState(false)
 
   const deptList = useMemo(() => [...departments.values()], [departments])
   const editingLevel = deptList.find(d => d.type === 'editing')?.level ?? 0
@@ -51,39 +47,6 @@ export function OfficeView() {
           开发日志
         </button>
       </div>
-
-      {/* LLM Settings */}
-      <details open={showLlm} className="bg-cream border-2 border-border-dark p-2 md:p-3">
-        <summary
-          onClick={(e) => { e.preventDefault(); setShowLlm(!showLlm) }}
-          className="text-xs md:text-sm font-bold text-ink font-mono cursor-pointer flex items-center gap-2"
-        >
-          🤖 LLM 设置 {llmApiKey ? <span className="text-[11px] text-progress font-normal">已配置 · 剩余{llmCallsRemaining}次</span> : <span className="text-[11px] text-muted font-normal">未配置</span>}
-        </summary>
-        <div className="mt-2">
-          <p className="text-[11px] md:text-[13px] text-muted mb-2 font-mono leading-relaxed">
-            填入 OpenAI API Key 后，系统会调用 GPT-4o-mini 生成更丰富、更不重复的书籍简介。
-            Key 仅存储在本地浏览器，不会上传服务器。每天限制30次调用。
-          </p>
-          <div className="flex gap-2">
-            <input
-              type="password"
-              value={llmApiKey}
-              onChange={e => setLlmApiKey(e.target.value)}
-              placeholder="sk-..."
-              className="flex-1 px-3 py-1.5 text-xs border-2 border-border-dark bg-card-inset text-ink placeholder:text-muted/50 font-mono focus:outline-none focus:border-progress"
-            />
-            {llmApiKey && (
-              <button
-                onClick={() => setLlmApiKey('')}
-                className="text-xs px-2 py-1 border-2 border-border-dark text-muted font-mono cursor-pointer bg-cream"
-              >
-                清除
-              </button>
-            )}
-          </div>
-        </div>
-      </details>
 
       <div>
         <h2 className="text-xs md:text-sm font-bold text-ink mb-2 md:mb-3 font-mono">部门管理</h2>

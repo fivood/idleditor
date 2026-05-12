@@ -11,7 +11,6 @@ export function ManuscriptCard({ manuscript }: Props) {
   const startReview = useGameStore(s => s.startReview)
   const rejectManuscript = useGameStore(s => s.rejectManuscript)
   const generateLlmSynopsis = useGameStore(s => s.generateLlmSynopsis)
-  const llmApiKey = useGameStore(s => s.llmApiKey)
   const llmCallsRemaining = useGameStore(s => s.llmCallsRemaining)
   const [llmLoading, setLlmLoading] = useState(false)
   const icon = GENRE_ICONS[manuscript.genre] ?? '📖'
@@ -40,7 +39,7 @@ export function ManuscriptCard({ manuscript }: Props) {
           <p className="text-[11px] md:text-[13px] text-muted mt-0.5 font-mono">
             {manuscript.genre} · {Math.round(manuscript.wordCount / 1000)}K字
           </p>
-          {llmApiKey && llmCallsRemaining > 0 && (
+          {llmCallsRemaining > 0 && (
             <button
               onClick={handleLlmSynopsis}
               disabled={llmLoading}

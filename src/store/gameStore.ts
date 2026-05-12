@@ -56,7 +56,6 @@ export interface GameStore extends GameWorldState {
   isRunning: boolean
   activeTab: 'desk' | 'shelf' | 'authors' | 'office'
   cloudSaveCode: string | null
-  llmApiKey: string
   llmCallsRemaining: number
 
   // Actions: lifecycle
@@ -90,7 +89,6 @@ export interface GameStore extends GameWorldState {
   setTrait: (trait: EditorTrait) => void
   setActiveTab: (tab: GameStore['activeTab']) => void
   setCloudSaveCode: (code: string) => void
-  setLlmApiKey: (key: string) => void
   generateLlmSynopsis: (id: string) => Promise<void>
   setPreferredGenre: (genre: string) => void
   removePreferredGenre: (genre: string) => void
@@ -106,7 +104,6 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   isRunning: false,
   activeTab: 'desk',
   cloudSaveCode: null,
-  llmApiKey: '',
   llmCallsRemaining: 30,
 
   // ──── Lifecycle ────
@@ -453,31 +450,29 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   // ──── Cloud save ────
   setCloudSaveCode: (code) => set({ cloudSaveCode: code }),
 
-  setLlmApiKey: (key) => set({ llmApiKey: key }),
-
-  generateLlmSynopsis: async (id) => {
+  generateLlmSynopsis: async (id: string) => {
     const state = get()
-    if (!state.llmApiKey || state.llmCallsRemaining <= 0) return
+    if (state.llmCallsRemaining <= 0) return
     const ms = state.manuscripts.get(id)
     if (!ms) return
 
-    const prompt = `书名：《${ms.title}》\n类型：${ms.genre}\n字数：${Math.round(ms.wordCount / 1000)}K\n品质预估：${ms.quality}/100\n请写一段简介。`
+    const prompt = `书名：《${ms.title}》\n类型：${ms.genre}\n字数：${Math.round(ms.wordCount / 1000)}K\n请写一段简介。`
     try {
       const res = await fetch('/api/llm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ apiKey: state.llmApiKey, prompt }),
+        body: JSON.stringify({ prompt }),
       })
       const data = await res.json()
       if (data.text) {
         ms.synopsis = data.text
         set({ manuscripts: new Map(state.manuscripts), llmCallsRemaining: state.llmCallsRemaining - 1 })
-        get().addToast({ id: nanoid(), text: `🤖 LLM 已生成《${ms.title}》的新简介。（剩余 ${state.llmCallsRemaining - 1} 次）`, type: 'info', createdAt: Date.now() })
+        get().addToast({ id: nanoid(), text: `🤖 AI 已生成新简介。（剩余 ${state.llmCallsRemaining - 1} 次）`, type: 'info', createdAt: Date.now() })
       } else if (data.error) {
-        get().addToast({ id: nanoid(), text: `LLM 调用失败：${data.error}`, type: 'info', createdAt: Date.now() })
+        get().addToast({ id: nanoid(), text: `LLM：${data.error}`, type: 'info', createdAt: Date.now() })
       }
     } catch {
-      get().addToast({ id: nanoid(), text: 'LLM 调用超时，请检查网络。', type: 'info', createdAt: Date.now() })
+      get().addToast({ id: nanoid(), text: 'LLM 调用超时', type: 'info', createdAt: Date.now() })
     }
   },
 
