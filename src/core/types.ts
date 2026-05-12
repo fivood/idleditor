@@ -73,6 +73,9 @@ export interface Manuscript {
   salesCount: number
   awards: string[]
   cover: BookCover
+  synopsis: string
+  isUnsuitable: boolean
+  rejectionReason: string
 }
 
 export interface BookCover {

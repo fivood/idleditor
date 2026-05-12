@@ -28,6 +28,7 @@ import {
 import { nanoid } from '../utils/id'
 import { pick, rangeInt, roll } from '../utils/random'
 import { generateToast } from './humor/generator'
+import { generateSynopsis, generateRejectionReason, isClearlyUnsuitable } from './humor/synopsis'
 
 // ──── State that the game loop reads/mutates ────
 export interface GameWorldState {
@@ -318,6 +319,9 @@ function createManuscript(world: GameWorldState): Manuscript {
     salesCount: 0,
     awards: [],
     cover: generatePlaceholderCover(title, genre),
+    synopsis: generateSynopsis(genre),
+    isUnsuitable: isClearlyUnsuitable(quality),
+    rejectionReason: isClearlyUnsuitable(quality) ? generateRejectionReason() : '',
   }
 }
 
@@ -342,6 +346,9 @@ function createManuscriptForAuthor(world: GameWorldState, author: Author): Manus
     salesCount: 0,
     awards: [],
     cover: generatePlaceholderCover(title, author.genre),
+    synopsis: generateSynopsis(author.genre),
+    isUnsuitable: isClearlyUnsuitable(quality),
+    rejectionReason: isClearlyUnsuitable(quality) ? generateRejectionReason() : '',
   }
 }
 
@@ -350,18 +357,18 @@ function createRandomAuthor(_world: GameWorldState): Author {
   const personaList = ['retired-professor', 'basement-scifi-geek', 'ex-intelligence-officer', 'sociology-phd', 'anxious-debut'] as const
   const persona = pick([...personaList] as unknown as string[]) as AuthorPersona
   const names: Record<string, string[]> = {
-    'retired-professor': ['Alistair Finch', 'Margaret Harlow', 'Edmund Cross', 'Beatrice Wren'],
-    'basement-scifi-geek': ['Zane Kepler', 'Luna Quark', 'Rex Nebula', 'Nova Chen'],
-    'ex-intelligence-officer': ['Charles Grey', 'Victoria Hale', 'Marcus Stone'],
-    'sociology-phd': ['Dr. Priya Nair', 'Dr. Oliver Banks', 'Dr. Simone Webb'],
-    'anxious-debut': ['Penny Wodehouse', 'Theo Ashworth', 'Clara Minton', 'Felix Timid'],
+    'retired-professor': ['沈默然', '林怀瑾', '顾知秋', '苏砚清'],
+    'basement-scifi-geek': ['星野零', '陆星辰', '方代码', '季银河'],
+    'ex-intelligence-officer': ['陈深', '秦墨', '韩隐', '洛铮'],
+    'sociology-phd': ['周知行博士', '温如言博士', '许观澜博士'],
+    'anxious-debut': ['小透明', '宋迟迟', '姜未名', '沈惴惴'],
   }
   const phrases: Record<string, string[]> = {
-    'retired-professor': ['"Deadlines are, at best, a suggestion."', '"I shall submit when ready."'],
-    'basement-scifi-geek': ['"The science checks out. I think."', '"Sleep is overrated."'],
-    'ex-intelligence-officer': ['"It\'s fiction. Probably."', '"I could tell you more, but..."'],
-    'sociology-phd': ['"The footnotes are 40 pages. You\'re welcome."', '"I surveyed 2,000 people. They were unhelpful."'],
-    'anxious-debut': ['"It\'s not very good. Sorry."', '"Please don\'t hate it. Or do. I\'ll understand."'],
+    'retired-professor': ['"截稿日期，说到底，只是一种建议。"', '"急什么。"'],
+    'basement-scifi-geek': ['"量子力学部分应该没算错……吧。"', '"睡眠被高估了。"'],
+    'ex-intelligence-officer': ['"这只是小说。大概。"', '"我可以告诉你更多，但……"'],
+    'sociology-phd': ['"光是脚注就写了四十页，不客气。"', '"我调研了两千人。他们帮不上什么忙。"'],
+    'anxious-debut': ['"写得不好。抱歉。"', '"嫌弃也行，我理解。"'],
   }
 
   return {
