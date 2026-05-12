@@ -1,15 +1,21 @@
 import { useGameStore } from '@/store/gameStore'
 import { ManuscriptCard } from './ManuscriptCard'
+import { useMemo } from 'react'
 
 export function DeskView() {
-  const submitted = useGameStore(s => s.getSubmittedManuscripts())
-  const inProgress = useGameStore(s => s.getInProgressManuscripts())
-  const isRunning = useGameStore(s => s.isRunning)
+  const manuscripts = useGameStore(s => s.manuscripts)
   const currencies = useGameStore(s => s.currencies)
+  const isRunning = useGameStore(s => s.isRunning)
+
+  const all = useMemo(() => [...manuscripts.values()], [manuscripts])
+  const submitted = useMemo(() => all.filter(m => m.status === 'submitted'), [all])
+  const inProgress = useMemo(
+    () => all.filter(m => ['reviewing', 'editing', 'proofing', 'publishing'].includes(m.status)),
+    [all],
+  )
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Stats row */}
       <div className="flex items-center gap-4 text-xs text-muted">
         <span>{submitted.length} manuscript{submitted.length !== 1 ? 's' : ''} waiting</span>
         <span>{inProgress.length} in progress</span>
@@ -18,7 +24,6 @@ export function DeskView() {
         )}
       </div>
 
-      {/* New player hint */}
       {currencies.revisionPoints === 0 && submitted.length === 0 && (
         <div className="bg-green-bg border border-green-border rounded-lg p-4 text-sm text-ink">
           <p className="font-medium text-green mb-1">Welcome to Idle Editor.</p>
@@ -29,7 +34,6 @@ export function DeskView() {
         </div>
       )}
 
-      {/* Submitted manuscripts */}
       {submitted.length > 0 && (
         <section>
           <h2 className="text-sm font-medium text-ink mb-2">Slush Pile</h2>
@@ -41,7 +45,6 @@ export function DeskView() {
         </section>
       )}
 
-      {/* In-progress manuscripts */}
       {inProgress.length > 0 && (
         <section>
           <h2 className="text-sm font-medium text-ink mb-2">In Progress</h2>
@@ -67,7 +70,6 @@ export function DeskView() {
         </section>
       )}
 
-      {/* Empty state */}
       {submitted.length === 0 && inProgress.length === 0 && currencies.revisionPoints > 0 && (
         <div className="text-center py-8 text-muted text-sm">
           <p>The slush pile is empty.</p>

@@ -1,11 +1,15 @@
+import { useMemo } from 'react'
 import { useGameStore } from '@/store/gameStore'
 import { GENRE_ICONS } from '@/core/types'
 
 export function AuthorView() {
-  const authors = [...useGameStore(s => s.authors.values())]
+  const authors = useGameStore(s => s.authors)
+  const playTicks = useGameStore(s => s.playTicks)
   const signAuthor = useGameStore(s => s.signAuthor)
 
-  if (authors.length === 0) {
+  const list = useMemo(() => [...authors.values()], [authors, playTicks])
+
+  if (list.length === 0) {
     return (
       <div className="text-center py-12">
         <p className="text-muted text-sm">No authors discovered yet.</p>
@@ -14,12 +18,12 @@ export function AuthorView() {
     )
   }
 
-  const tierOrder = { idol: 0, known: 1, signed: 2, new: 3 }
-  const sorted = [...authors].sort((a, b) => (tierOrder[a.tier] ?? 9) - (tierOrder[b.tier] ?? 9))
+  const tierOrder: Record<string, number> = { idol: 0, known: 1, signed: 2, new: 3 }
+  const sorted = [...list].sort((a, b) => (tierOrder[a.tier] ?? 9) - (tierOrder[b.tier] ?? 9))
 
   return (
     <div>
-      <h2 className="text-sm font-medium text-ink mb-3">{authors.length} author{authors.length !== 1 ? 's' : ''}</h2>
+      <h2 className="text-sm font-medium text-ink mb-3">{list.length} author{list.length !== 1 ? 's' : ''}</h2>
       <div className="grid gap-2">
         {sorted.map(author => (
           <div
@@ -38,7 +42,7 @@ export function AuthorView() {
               </p>
               <p className="text-xs text-muted mt-0.5">
                 {GENRE_ICONS[author.genre]} {author.genre} · Talent {author.talent} · Fame {author.fame}
-                {author.cooldownUntil !== null && (
+                {author.cooldownUntil !== null && author.cooldownUntil !== undefined && author.cooldownUntil > 0 && (
                   <span className="text-gold ml-1">· Resting ({author.cooldownUntil}s)</span>
                 )}
               </p>

@@ -1,9 +1,16 @@
 import { useGameStore } from '@/store/gameStore'
 import type { Manuscript } from '@/core/types'
 import { GENRE_ICONS } from '@/core/types'
+import { useMemo } from 'react'
 
 export function ShelfView() {
-  const books = useGameStore(s => s.getPublishedBooks())
+  const manuscripts = useGameStore(s => s.manuscripts)
+  const playTicks = useGameStore(s => s.playTicks)
+
+  const books = useMemo(
+    () => [...manuscripts.values()].filter(m => m.status === 'published'),
+    [manuscripts, playTicks],
+  )
 
   if (books.length === 0) {
     return (

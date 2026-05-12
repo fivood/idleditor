@@ -1,5 +1,6 @@
 import { useGameStore } from '@/store/gameStore'
 import type { DepartmentType } from '@/core/types'
+import { useMemo } from 'react'
 
 const DEPT_INFO: Record<DepartmentType, { label: string; icon: string; desc: string }> = {
   editing: { label: 'Editorial', icon: '✍️', desc: 'Speeds up reviewing, editing, and proofing.' },
@@ -9,17 +10,19 @@ const DEPT_INFO: Record<DepartmentType, { label: string; icon: string; desc: str
 }
 
 export function OfficeView() {
-  const departments = [...useGameStore(s => s.departments.values())]
+  const departments = useGameStore(s => s.departments)
   const currencies = useGameStore(s => s.currencies)
   const createDepartment = useGameStore(s => s.createDepartment)
   const upgradeDepartment = useGameStore(s => s.upgradeDepartment)
+
+  const deptList = useMemo(() => [...departments.values()], [departments])
 
   return (
     <div>
       <h2 className="text-sm font-medium text-ink mb-3">Departments</h2>
       <div className="grid gap-2">
         {Object.entries(DEPT_INFO).map(([type, info]) => {
-          const dept = departments.find(d => d.type === type)
+          const dept = deptList.find(d => d.type === type)
           return (
             <div
               key={type}
