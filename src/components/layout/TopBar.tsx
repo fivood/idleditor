@@ -100,10 +100,11 @@ function StatueDisplay({ count }: { count: number }) {
 function RebirthModal({ onConfirm, onCancel, bonuses, statues }: {
   onConfirm: () => void
   onCancel: () => void
-  bonuses: { manuscriptQualityBonus: number; editingSpeedBonus: number; royaltyMultiplier: number; authorTalentBoost: number }
+  bonuses: { manuscriptQualityBonus: number; editingSpeedBonus: number; royaltyMultiplier: number; authorTalentBoost: number; bossYears: number }
   statues: number
 }) {
   const nextCount = statues + 1
+  const nextBossYears = Math.max(0, bonuses.bossYears - 1)
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-cream border-2 border-border-dark w-[400px] p-6 shadow-[6px_6px_0_#4a3728]">
@@ -119,6 +120,10 @@ function RebirthModal({ onConfirm, onCancel, bonuses, statues }: {
             <p>⚡ 编辑速度 +5%（当前：+{Math.round(bonuses.editingSpeedBonus * 100)}%）</p>
             <p>💰 版税加成 +10%（当前：+{Math.round((bonuses.royaltyMultiplier - 1) * 100)}%）</p>
             <p>✍️ 作者才华 +1（当前：+{bonuses.authorTalentBoost}）</p>
+            <p className="text-copper-dark mt-1">🦇 伯爵剩余年数：{bonuses.bossYears} → {nextBossYears}</p>
+            {nextBossYears === 0 && (
+              <p className="text-copper font-bold mt-1">🏆 伯爵将退休，你将成为永夜出版社的新主人！</p>
+            )}
             <p className="text-copper-dark font-bold mt-1">⚠ 所有进度将重置。铜像效果永久保留。</p>
           </div>
         </div>

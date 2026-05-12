@@ -126,6 +126,7 @@ export interface PermanentBonuses {
   royaltyMultiplier: number
   authorTalentBoost: number
   spawnRateBonus: number
+  bossYears: number
 }
 
 export interface PlayerState {

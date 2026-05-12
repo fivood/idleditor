@@ -16,6 +16,7 @@ export interface SavedGame {
     royaltyMultiplier: number
     authorTalentBoost: number
     spawnRateBonus: number
+    bossYears: number
   }
   trait: string | null
   playerName: string

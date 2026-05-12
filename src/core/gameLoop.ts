@@ -1,4 +1,4 @@
-import type { Author, AuthorPersona, Department, EditorTrait, GameEvent, Manuscript, PermanentBonuses, TickResult, ToastMessage } from './types'
+import type { Author, AuthorPersona, Department, EditorTrait, GameEvent, Genre, Manuscript, PermanentBonuses, TickResult, ToastMessage } from './types'
 import { GENRE_ICONS, GENRES } from './types'
 import { GENRE_COVER_COLORS } from './constants'
 import {
@@ -7,7 +7,10 @@ import {
   AUTHOR_FAME_PER_PUBLISH,
   AUTHOR_TIER_THRESHOLDS,
   BESTSELLER_SALES,
+  BOSS_START_YEARS,
   EDITOR_TRAIT_BONUSES,
+  GENRE_PREFERENCE_QUALITY_BONUS,
+  GENRE_PREFERENCE_SALES_BONUS,
   MAX_SUBMITTED_QUEUE,
   MILESTONES,
 } from './constants'
@@ -59,6 +62,7 @@ export interface GameWorldState {
   triggeredMilestones: Set<number>
   activeDateEvent: DateEvent | null
   coversManifest: Record<string, string> | null
+  preferredGenres: Genre[]
 }
 
 // ──── Title generation ────
@@ -101,6 +105,7 @@ export function createInitialWorld(): GameWorldState {
       royaltyMultiplier: 1,
       authorTalentBoost: 0,
       spawnRateBonus: 0,
+      bossYears: BOSS_START_YEARS,
     },
     trait: null,
     playerName: '',
@@ -111,6 +116,7 @@ export function createInitialWorld(): GameWorldState {
     triggeredMilestones: new Set(),
     activeDateEvent: null,
     coversManifest: null,
+    preferredGenres: [],
   }
 }
 
@@ -278,7 +284,8 @@ export function tick(world: GameWorldState): TickResult {
     world.currencies.royalties += royalty
     result.royaltiesEarned += royalty
     const hasGenreBuff = world.activeDateEvent && (world.activeDateEvent.genre === null || world.activeDateEvent.genre === m.genre)
-    m.salesCount += salesPerTick(marketingEfficiency, m.quality) * (hasGenreBuff ? salesMult : 1)
+    const prefSalesBonus = 1 + world.preferredGenres.filter(g => g === m.genre).length * GENRE_PREFERENCE_SALES_BONUS
+    m.salesCount += salesPerTick(marketingEfficiency, m.quality) * (hasGenreBuff ? salesMult : 1) * prefSalesBonus
 
     // Check bestseller
     if (!m.isBestseller && m.salesCount >= BESTSELLER_SALES) {
@@ -336,8 +343,10 @@ export function tick(world: GameWorldState): TickResult {
 // ──── Manuscript creation ────
 function createManuscript(world: GameWorldState): Manuscript {
   const traitQBonus = world.trait ? EDITOR_TRAIT_BONUSES[world.trait].qualityBonus : 0
-  const quality = rollQuality() + world.permanentBonuses.manuscriptQualityBonus + traitQBonus
   const genre = pick(GENRES)
+  const prefCount = world.preferredGenres.filter(g => g === genre).length
+  const prefQBonus = prefCount * GENRE_PREFERENCE_QUALITY_BONUS
+  const quality = rollQuality() + world.permanentBonuses.manuscriptQualityBonus + traitQBonus + prefQBonus
   const title = generateTitle(genre)
 
   // Chance to create a new author
@@ -382,7 +391,9 @@ function createManuscript(world: GameWorldState): Manuscript {
 function createManuscriptForAuthor(world: GameWorldState, author: Author): Manuscript {
   const baseQuality = rollQuality() + authorQualityBoost(author)
   const traitQBonus = world.trait ? EDITOR_TRAIT_BONUSES[world.trait].qualityBonus : 0
-  const quality = Math.min(100, effectiveQuality(baseQuality, author.talent + world.permanentBonuses.authorTalentBoost, world.permanentBonuses) + traitQBonus)
+  const prefCount = world.preferredGenres.filter(g => g === author.genre).length
+  const prefQBonus = prefCount * GENRE_PREFERENCE_QUALITY_BONUS
+  const quality = Math.min(100, effectiveQuality(baseQuality, author.talent + world.permanentBonuses.authorTalentBoost, world.permanentBonuses) + traitQBonus + prefQBonus)
   const title = generateTitle(author.genre)
 
   return {

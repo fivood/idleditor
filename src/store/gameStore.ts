@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { Department, EditorTrait, Manuscript, PermanentBonuses, ToastMessage } from '@/core/types'
+import { GENRE_PREFERENCE_THRESHOLDS } from '@/core/constants'
 import { createInitialWorld, tick } from '@/core/gameLoop'
 import type { TickResult } from '@/core/types'
 import type { GameWorldState } from '@/core/gameLoop'
@@ -8,6 +9,14 @@ import { nanoid } from '@/utils/id'
 
 function serializeMapForDb(map: Map<unknown, unknown>): string {
   return JSON.stringify([...map.entries()])
+}
+
+export function getPreferenceSlots(prestige: number): number {
+  let slots = 0
+  for (const t of GENRE_PREFERENCE_THRESHOLDS) {
+    if (prestige >= t) slots++
+  }
+  return slots
 }
 
 async function syncToCloudImpl(state: GameStore): Promise<boolean> {
@@ -78,6 +87,8 @@ export interface GameStore extends GameWorldState {
   setTrait: (trait: EditorTrait) => void
   setActiveTab: (tab: GameStore['activeTab']) => void
   setCloudSaveCode: (code: string) => void
+  setPreferredGenre: (genre: string) => void
+  removePreferredGenre: (genre: string) => void
   dismissToast: (id: string) => void
   addToast: (toast: ToastMessage) => void
 }
@@ -158,6 +169,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       triggeredMilestones: state.triggeredMilestones,
       activeDateEvent: state.activeDateEvent,
       coversManifest: state.coversManifest,
+      preferredGenres: state.preferredGenres,
     }
     const result = tick(world)
 
@@ -216,6 +228,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       royaltyMultiplier: state.permanentBonuses.royaltyMultiplier + 0.1,
       authorTalentBoost: state.permanentBonuses.authorTalentBoost + 1,
       spawnRateBonus: state.permanentBonuses.spawnRateBonus + 0.03,
+      bossYears: Math.max(0, state.permanentBonuses.bossYears - 1),
     }
     set({
       ...createInitialWorld(),
@@ -234,6 +247,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         type: 'milestone' as const,
         createdAt: Date.now(),
       }],
+      cloudSaveCode: state.cloudSaveCode,
+      coversManifest: state.coversManifest,
     })
   },
 
@@ -385,6 +400,19 @@ export const useGameStore = create<GameStore>()((set, get) => ({
 
   // ──── Cloud save ────
   setCloudSaveCode: (code) => set({ cloudSaveCode: code }),
+
+  setPreferredGenre: (genre) => {
+    const state = get()
+    const maxSlots = getPreferenceSlots(state.currencies.prestige)
+    if (state.preferredGenres.length >= maxSlots) return
+    set({ preferredGenres: [...state.preferredGenres, genre as never] })
+  },
+
+  removePreferredGenre: (genre) => {
+    set(state => ({
+      preferredGenres: state.preferredGenres.filter(g => g !== genre),
+    }))
+  },
 
   syncToCloud: async () => {
     return syncToCloudImpl(get())

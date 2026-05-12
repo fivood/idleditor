@@ -49,6 +49,11 @@ export const AUTHOR_TIER_THRESHOLDS: Record<string, number> = {
   idol: 500,  // known → idol: ~50 books
 }
 
+// ──── Genre preference ────
+export const GENRE_PREFERENCE_THRESHOLDS = [50, 200, 800, 2000]
+export const GENRE_PREFERENCE_QUALITY_BONUS = 5
+export const GENRE_PREFERENCE_SALES_BONUS = 0.1
+
 // ──── Author persona names ────
 export const AUTHOR_PERSONA_NAMES: Record<AuthorPersona, string[]> = {
   'retired-professor': ['沈默然', '林怀瑾', '顾知秋', '苏砚清'],
@@ -90,6 +95,8 @@ export const REBIRTH_STATUE_BONUSES = {
   talentPerStatue: 1,
   spawnPerStatue: 0.03,
 }
+
+export const BOSS_START_YEARS = 10
 
 // ──── Milestones (playTicks) ────
 export const MILESTONES = [
