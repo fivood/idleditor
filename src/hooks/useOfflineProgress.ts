@@ -39,6 +39,7 @@ export function useOfflineProgress() {
       activeDateEvent: null,
       coversManifest: null,
       preferredGenres: [],
+      booksPublishedThisMonth: saved.booksPublishedThisMonth ?? 0,
     }
 
     for (const [id, ms] of saved.manuscripts) world.manuscripts.set(id, ms)

@@ -106,6 +106,7 @@ export const BOSS_START_YEARS = 10
 export const AUTO_REVIEW_DEPT_LEVEL = 3   // editing dept level >=3 unlocks auto-review
 export const AUTO_COVER_PRESTIGE = 100     // prestige >=100 unlocks auto-cover (placeholder)
 export const AUTO_REJECT_PRESTIGE = 200    // prestige >=200 + level 5 editing unlocks auto-reject unsuitable
+export const PUBLISHING_QUOTA_PER_MONTH = 10
 
 // ──── Milestones (playTicks) ────
 export const MILESTONES = [

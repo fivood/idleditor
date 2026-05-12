@@ -177,6 +177,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       activeDateEvent: state.activeDateEvent,
       coversManifest: state.coversManifest,
       preferredGenres: state.preferredGenres,
+      booksPublishedThisMonth: state.booksPublishedThisMonth,
     }
     const result = tick(world)
 
@@ -193,6 +194,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       trendTimer: world.trendTimer,
       triggeredMilestones: new Set(world.triggeredMilestones),
       activeDateEvent: world.activeDateEvent,
+      booksPublishedThisMonth: world.booksPublishedThisMonth,
       toasts: [...state.toasts, ...result.toasts].slice(-100),
     })
 
@@ -208,6 +210,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         totalPublished: world.totalPublished,
         totalBestsellers: world.totalBestsellers,
         totalRejections: world.totalRejections,
+        booksPublishedThisMonth: world.booksPublishedThisMonth,
         triggeredMilestones: world.triggeredMilestones,
         manuscripts: world.manuscripts,
         authors: world.authors,
@@ -354,6 +357,15 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     const state = get()
     const ms = state.manuscripts.get(id)
     if (!ms || ms.status !== 'cover_select') return
+    if (state.booksPublishedThisMonth >= 10) {
+      state.addToast({
+        id: nanoid(),
+        text: '本月出版额度已用完！下个月再来吧。',
+        type: 'info',
+        createdAt: Date.now(),
+      })
+      return
+    }
     ms.status = 'publishing'
     ms.editingProgress = 0
     set({ manuscripts: new Map(state.manuscripts) })

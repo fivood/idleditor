@@ -12,6 +12,7 @@ export function TopBar() {
   const startLoop = useGameStore(s => s.startLoop)
   const stopLoop = useGameStore(s => s.stopLoop)
   const cloudSaveCode = useGameStore(s => s.cloudSaveCode)
+  const booksPublishedThisMonth = useGameStore(s => s.booksPublishedThisMonth)
   const totalBestsellers = useGameStore(s => s.totalBestsellers)
   const permanentBonuses = useGameStore(s => s.permanentBonuses)
   const reborn = useGameStore(s => s.reborn)
@@ -36,6 +37,9 @@ export function TopBar() {
           <CurrencyBadge label="声" value={currencies.prestige} />
           <CurrencyBadge label="税" value={currencies.royalties} />
           <StatueDisplay count={currencies.statues} />
+          <span className="text-[11px] md:text-xs text-muted font-mono">
+            📚 {booksPublishedThisMonth}/10
+          </span>
         </div>
 
         <div className="flex items-center gap-1.5 md:gap-3">

@@ -16,6 +16,7 @@ import {
   GENRE_PREFERENCE_SALES_BONUS,
   MAX_SUBMITTED_QUEUE,
   MILESTONES,
+  PUBLISHING_QUOTA_PER_MONTH,
 } from './constants'
 import {
   authorQualityBoost,
@@ -66,6 +67,7 @@ export interface GameWorldState {
   activeDateEvent: DateEvent | null
   coversManifest: Record<string, string> | null
   preferredGenres: Genre[]
+  booksPublishedThisMonth: number
 }
 
 // ──── Title generation ────
@@ -120,6 +122,7 @@ export function createInitialWorld(): GameWorldState {
     activeDateEvent: null,
     coversManifest: null,
     preferredGenres: [],
+    booksPublishedThisMonth: 0,
   }
 }
 
@@ -143,7 +146,12 @@ export function tick(world: GameWorldState): TickResult {
 
   // Advance calendar every TICKS_PER_DAY ticks
   if (world.playTicks % TICKS_PER_DAY === 0) {
+    const prevMonth = world.calendar.month
     advanceCalendar(world.calendar)
+    // Reset publishing quota on month change
+    if (world.calendar.month !== prevMonth) {
+      world.booksPublishedThisMonth = 0
+    }
     // Tick down active date event duration
     if (world.activeDateEvent) {
       world.activeDateEvent = {
@@ -249,12 +257,13 @@ export function tick(world: GameWorldState): TickResult {
       m.editingProgress = 0
       world.totalPublished++
       world.currencies.revisionPoints += rpPerPublish(m.quality, 0)
-      const pubPrestige = m.isUnsuitable ? 2 : 10
+      const pubPrestige = m.isUnsuitable ? -10 : 10
       world.currencies.prestige += pubPrestige
+      world.booksPublishedThisMonth++
       result.publishedBooks.push(m)
       if (m.isUnsuitable) {
         result.toasts.push(createToast(
-          `📘 《${m.title}》出版了。读者评价：还行吧。（品质过低，仅 +2 声誉）`, 'info'))
+          `📘 《${m.title}》勉强出版。读者评价：浪费纸张。声望 -10`, 'info'))
       } else {
         result.toasts.push(createToast(generateToast('bookPublished', {
           title: m.title,
@@ -354,7 +363,7 @@ export function tick(world: GameWorldState): TickResult {
   }
 
   // Auto-cover: prestige >= 100
-  if (prestige >= AUTO_COVER_PRESTIGE) {
+  if (prestige >= AUTO_COVER_PRESTIGE && world.booksPublishedThisMonth < PUBLISHING_QUOTA_PER_MONTH) {
     const awaitingCover = [...world.manuscripts.values()].filter(m => m.status === 'cover_select')
     if (awaitingCover.length > 0) {
       const ms = awaitingCover[0]
