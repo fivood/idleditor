@@ -13,6 +13,7 @@ export function ManuscriptCard({ manuscript }: Props) {
   const generateLlmSynopsis = useGameStore(s => s.generateLlmSynopsis)
   const llmCallsRemaining = useGameStore(s => s.llmCallsRemaining)
   const [llmLoading, setLlmLoading] = useState(false)
+  const [expanded, setExpanded] = useState(false)
   const icon = GENRE_ICONS[manuscript.genre] ?? '📖'
 
   async function handleLlmSynopsis() {
@@ -50,7 +51,15 @@ export function ManuscriptCard({ manuscript }: Props) {
           )}
         </div>
         {manuscript.synopsis && (
-          <p className="text-[14px] md:text-[16px] text-muted mt-1 leading-relaxed line-clamp-2">{manuscript.synopsis}</p>
+          <p
+            onClick={() => setExpanded(!expanded)}
+            className={`text-[14px] md:text-[16px] text-muted mt-1 leading-relaxed cursor-pointer hover:text-ink-light transition-colors ${expanded ? '' : 'line-clamp-2'}`}
+          >
+            {manuscript.synopsis}
+            {!expanded && manuscript.synopsis.length > 60 && (
+              <span className="text-progress ml-0.5">[...]</span>
+            )}
+          </p>
         )}
       </div>
       <div className="flex flex-col gap-1 flex-shrink-0">
