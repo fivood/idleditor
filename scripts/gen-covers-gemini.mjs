@@ -1,27 +1,35 @@
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs'
+import { readFileSync, writeFileSync, existsSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { config } from 'dotenv'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
+config({ path: join(__dirname, '..', '.env') })
 
-// ─── Config ───
-const API_KEY = process.env.GEMINI_API_KEY
-if (!API_KEY) {
-  console.error('请设置环境变量 GEMINI_API_KEY')
-  console.error('获取: https://aistudio.google.com/apikey')
+// ─── Provider config ───
+// GEMINI_API_KEY  → 用 Gemini
+// DEEPSEEK_API_KEY → 用 DeepSeek (https://api.deepseek.com)
+// KIMI_API_KEY     → 用 Kimi (https://api.moonshot.cn/v1)
+
+const providers = {
+  gemini:   { key: process.env.GEMINI_API_KEY,   base: 'https://generativelanguage.googleapis.com', isGemini: true },
+  deepseek: { key: process.env.DEEPSEEK_API_KEY,  base: 'https://api.deepseek.com',                 model: 'deepseek-chat' },
+  kimi:     { key: process.env.KIMI_API_KEY,      base: 'https://api.moonshot.cn/v1',               model: 'moonshot-v1-8k' },
+}
+
+const active = Object.entries(providers).find(([, p]) => p.key)
+if (!active) {
+  console.error('请在 .env 中设置 GEMINI_API_KEY / DEEPSEEK_API_KEY / KIMI_API_KEY 之一')
+  console.error('获取: https://platform.deepseek.com 或 https://platform.moonshot.cn')
   process.exit(1)
 }
 
+const [providerName, provider] = active
+console.log(`🤖 使用 ${providerName.toUpperCase()} (${provider.model || 'gemini-2.0-flash'})`)
+
 const DRY_RUN = process.argv.includes('--dry-run')
-const BATCH_SIZE = 5    // per run to avoid rate limits
+const BATCH_SIZE = 10
 const START_INDEX = parseInt(process.argv.find(a => a.startsWith('--start='))?.split('=')[1] || '0')
-
-const genAI = new GoogleGenerativeAI(API_KEY)
-const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
-
-// ─── Utilities ───
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)) }
 
 const GENRE_THEMES = {
   'sci-fi': 'futuristic space station, neon cyberpunk, scientific laboratory, distant planets, alien technology',
@@ -33,14 +41,38 @@ const GENRE_THEMES = {
 
 const MANIFEST_PATH = join(__dirname, '..', 'public', 'covers', 'manifest.json')
 const PROMPTS_PATH  = join(__dirname, '..', 'public', 'covers', 'prompts.json')
-const OUT_DIR       = join(__dirname, '..', 'public', 'covers')
 
-// ─── Main ───
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)) }
+
+async function callGemini(model, prompt) {
+  const { GoogleGenerativeAI } = await import('@google/generative-ai')
+  const genAI = new GoogleGenerativeAI(provider.key)
+  const m = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+  const result = await m.generateContent(prompt)
+  return result.response.text().trim()
+}
+
+async function callOpenAI(prompt) {
+  const res = await fetch(`${provider.base}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${provider.key}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: provider.model,
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 200,
+      temperature: 0.9,
+    }),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.error?.message || `${res.status}`)
+  return data.choices[0].message.content.trim()
+}
+
 async function main() {
-  console.log('📚 读取封面清单...')
   const entries = JSON.parse(readFileSync(MANIFEST_PATH, 'utf-8'))
-
-  // Load existing prompts if any
   let prompts = {}
   if (existsSync(PROMPTS_PATH)) {
     prompts = JSON.parse(readFileSync(PROMPTS_PATH, 'utf-8'))
@@ -49,56 +81,48 @@ async function main() {
   const batch = entries.slice(START_INDEX, START_INDEX + BATCH_SIZE)
   console.log(`处理 ${START_INDEX + 1}-${Math.min(START_INDEX + BATCH_SIZE, entries.length)} / ${entries.length}`)
 
-  for (let i = 0; i < batch.length; i++) {
-    const entry = batch[i]
+  let success = 0
+  for (const entry of batch) {
     const slug = entry.slug
 
     if (prompts[slug]) {
-      console.log(`  ⏭  ${entry.title} (已有提示词)`)
+      console.log(`  ⏭  ${entry.title}`)
       continue
     }
 
     const theme = GENRE_THEMES[entry.genre] || 'elegant minimalist editorial'
-
-    const systemPrompt = `You are a book cover designer. Given a Chinese book title and genre, write a detailed English image prompt for generating a 400x560 book cover illustration.
-
-Style: minimalist editorial design, neo-skeuomorphic, "New York Review of Books" aesthetic with subtle surreal or retro elements. No text on the cover. Use the theme keywords as inspiration.
+    const systemPrompt = `You are a book cover designer. Given a Chinese book title, write a detailed English image prompt for generating a 400x560 book cover illustration. Style: minimalist editorial, neo-skeuomorphic, "New York Review of Books" aesthetic with subtle surreal elements. No text on cover.
 
 Book: "${entry.title}"
-Genre keywords: ${theme}
-Author style: literary, subtle, editorial
+Genre: ${theme}
 
-Output ONLY the image prompt (2-3 sentences max). No explanations.`
+Output ONLY the prompt (2-3 sentences).`
 
     try {
-      console.log(`  🎨 ${entry.title} (${entry.genre})...`)
-      const result = await model.generateContent(systemPrompt)
-      const text = result.response.text().trim()
+      const text = provider.isGemini
+        ? await callGemini(systemPrompt)
+        : await callOpenAI(systemPrompt)
 
       prompts[slug] = text
-      console.log(`     → ${text.slice(0, 80)}...`)
-
-      // Save after each to avoid losing progress
+      success++
+      console.log(`  ✅ ${entry.title} → ${text.slice(0, 80)}...`)
       writeFileSync(PROMPTS_PATH, JSON.stringify(prompts, null, 2), 'utf-8')
 
-      // Sleep to avoid rate limits
-      await sleep(1500)
+      if (!provider.isGemini) await sleep(200) // OpenAI-compatible rate limits are usually looser
     } catch (err) {
-      console.error(`  ❌ ${entry.title} 失败:`, err.message)
+      console.error(`  ❌ ${entry.title}: ${err.message}`)
       if (err.message?.includes('429') || err.message?.includes('rate')) {
-        console.log('  等待30秒避免限流...')
-        await sleep(30000)
+        console.log('  等待10秒...')
+        await sleep(10000)
       }
     }
   }
 
-  console.log(`\n✅ 提示词已保存到 ${PROMPTS_PATH}`)
-  console.log(`共 ${Object.keys(prompts).length}/${entries.length} 条`)
-  console.log(`\n下一步运行: node scripts/gen-covers-gemini.mjs --start=${START_INDEX + BATCH_SIZE}`)
-  console.log(`或: node scripts/gen-covers-gemini.mjs --dry-run 查看进度`)
+  const total = Object.keys(prompts).length
+  console.log(`\n✅ ${success} new  |  📝 ${total}/${entries.length} total → ${PROMPTS_PATH}`)
+  if (total < entries.length) {
+    console.log(`下一步: node scripts/gen-covers-gemini.mjs --start=${START_INDEX + BATCH_SIZE}`)
+  }
 }
 
-main().catch(err => {
-  console.error('脚本失败:', err)
-  process.exit(1)
-})
+main().catch(err => { console.error('失败:', err); process.exit(1) })
