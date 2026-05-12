@@ -1,7 +1,12 @@
-import { Shell } from "@/components/layout/Shell"
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
+import { Shell } from '@/components/layout/Shell'
 
 function App() {
-  return <Shell />
+  return (
+    <ErrorBoundary>
+      <Shell />
+    </ErrorBoundary>
+  )
 }
 
 export default App

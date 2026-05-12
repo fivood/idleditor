@@ -51,19 +51,27 @@ export const useGameStore = create<GameStore>()((set, get) => ({
 
   // ──── Lifecycle ────
   initialize: async () => {
-    const existing = await hasExistingSave()
-    if (existing) {
-      const saved = await loadGameFromDb()
-      if (saved) {
-        set({
-          ...createInitialWorld(),
-          ...saved,
-          trait: (saved.trait as EditorTrait) ?? null,
-          isInitialized: true,
-        })
-        return
+    // Safety: always mark initialized even if DB fails
+    const safetyTimeout = setTimeout(() => set({ isInitialized: true }), 3000)
+    try {
+      const existing = await hasExistingSave()
+      if (existing) {
+        const saved = await loadGameFromDb()
+        if (saved) {
+          clearTimeout(safetyTimeout)
+          set({
+            ...createInitialWorld(),
+            ...saved,
+            trait: (saved.trait as EditorTrait) ?? null,
+            isInitialized: true,
+          })
+          return
+        }
       }
+    } catch {
+      // IndexedDB unavailable or corrupted, start fresh
     }
+    clearTimeout(safetyTimeout)
     set({ isInitialized: true })
   },
 
@@ -95,40 +103,42 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       triggeredMilestones: state.triggeredMilestones,
     }
     const result = tick(world)
-    get().applyTickResult(result)
-  },
 
-  applyTickResult: (result: TickResult) => {
-    const state = get()
+    // Pull mutated primitives back from world
     set({
-      playTicks: state.playTicks,
-      manuscripts: state.manuscripts,
-      authors: new Map(state.authors),
-      currencies: {
-        ...state.currencies,
-        royalties: state.currencies.royalties + result.royaltiesEarned,
-      },
+      playTicks: world.playTicks,
+      totalPublished: world.totalPublished,
+      totalBestsellers: world.totalBestsellers,
+      totalRejections: world.totalRejections,
+      currencies: { ...world.currencies },
+      spawnTimer: world.spawnTimer,
+      awardTimer: world.awardTimer,
+      trendTimer: world.trendTimer,
+      triggeredMilestones: new Set(world.triggeredMilestones),
       toasts: [...state.toasts, ...result.toasts].slice(-20),
     })
 
     // Auto-save every 60 ticks (1 minute)
-    if (state.playTicks % 60 === 0) {
-      const current = get()
+    if (world.playTicks % 60 === 0) {
       saveGameToDb({
-        playTicks: current.playTicks,
-        currencies: current.currencies,
-        permanentBonuses: current.permanentBonuses,
-        trait: current.trait,
-        totalPublished: current.totalPublished,
-        totalBestsellers: current.totalBestsellers,
-        totalRejections: current.totalRejections,
-        triggeredMilestones: current.triggeredMilestones,
-        manuscripts: current.manuscripts,
-        authors: current.authors,
-        departments: current.departments,
-        events: current.events,
+        playTicks: world.playTicks,
+        currencies: world.currencies,
+        permanentBonuses: world.permanentBonuses,
+        trait: world.trait,
+        totalPublished: world.totalPublished,
+        totalBestsellers: world.totalBestsellers,
+        totalRejections: world.totalRejections,
+        triggeredMilestones: world.triggeredMilestones,
+        manuscripts: world.manuscripts,
+        authors: world.authors,
+        departments: world.departments,
+        events: world.events,
       }).catch(() => {})
     }
+  },
+
+  applyTickResult: (_result: TickResult) => {
+    // No-op, logic moved into tick() above
   },
 
   reborn: () => {
