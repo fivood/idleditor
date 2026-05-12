@@ -1,16 +1,64 @@
 import { pick, rangeInt } from '../../utils/random'
 import type { Genre } from '../types'
 
-// ──── Slots ────
+// ──── Expanded Slots ────
 
-const CHARACTERS = ['林远', '苏晚', '陈深', '白露', '沈默', '方舟', '温晴', '顾野', '洛星河', '季晚', '何夕', '姜不言']
-const PROFESSIONS = ['刑警', '教授', '黑客', '记者', 'AI工程师', '书店老板', '时间管理员', '社会学家', '前图书管理员', '退休编辑', '外卖骑手', '独立出版人']
-const LOCATIONS = ['一座雾中的小城', '地下研究所', '废弃图书馆', '太空站第三层', '某个小镇的咖啡店', '深海实验室', '一家快倒闭的书店', '全是猫的公寓', '永远下雨的城市', '一间没有窗户的校对室']
-const DISCOVERIES = ['一台能预知截稿日期的机器', '一具无法辨认身份的尸体', '一段被删除的记忆', '一本全是空白的小说', '一个来自未来的退稿信', '一封署名"M"的约稿函', '一本在多个平行宇宙同时出版的畅销书', '一页永远翻不过去的手稿']
-const PROBLEMS = ['时间线开始自我折叠', '所有的线索都指向同一个不存在的人', '作者本人似乎也卷入了事件', '这根本就不是小说——它是真的', '主角发现自己的原型是编辑的前任', '书中的事件开始在现实中同步发生']
-const EVENTS = ['一封信件打破了平静', '主角发现自己的日记被别人提前写了', '一颗行星突然改变了轨道', '一家出版社收到了一份不可能存在的投稿', '茶水间的咖啡机开始打印预言']
-const STAKES = ['整个太阳系的命运悬于一线', '一个百年疑案即将被揭开', '真相可能比谎言更危险', '出版社的声誉取决于此', '再不出好书就要被伯爵骂了']
-const TWISTS = ['凶手是所有人中看起来最不可能的那一个', '主线情节其实是个巨大的误会', '结局是开放式的——因为作者也没想好', '最后一章只有一行字："未完待续"', '真正的幕后黑手是出版社的实习生', '所有受害者最后发现都没死——只是躲债去了']
+const CHARACTERS = [
+  '林远', '苏晚', '陈深', '白露', '沈默', '方舟', '温晴', '顾野', '洛星河', '季晚',
+  '何夕', '姜不言', '余烬', '唐霜', '楚吟', '萧燃', '柳未央', '裴无咎',
+]
+const MINOR_CHARS = ['邻居住着一个{profession}', '死者的前任', '最后一个见到她的人', '一个从不出门的房东', '总是准时出现的送奶工', '那个卖旧书的女人']
+const PROFESSIONS = [
+  '刑警', '教授', '黑客', '记者', 'AI工程师', '书店老板', '时间管理员', '社会学家',
+  '前图书管理员', '退休编辑', '外卖骑手', '独立出版人', '考古学家', '基因剪辑师',
+  '梦境分析师', '宇宙殡葬师', '语言考古学家', '星际快递员', '记忆修复师',
+]
+const LOCATIONS = [
+  '一座雾中的小城', '地下研究所', '废弃图书馆', '太空站第三层', '某个小镇的咖啡店',
+  '深海实验室', '一家快倒闭的书店', '全是猫的公寓', '永远下雨的城市',
+  '一间没有窗户的校对室', '一辆不停行驶的列车', '沙漠中央的档案馆',
+  '一座每天晚上变换房间布局的酒店', '被藤蔓吞没的大学校园', '建在瀑布后面的审讯室',
+  '南极冰层下的科考站', '第38层永远没人按的电梯', '一座只有三个居民的岛',
+]
+const DISCOVERIES = [
+  '一台能预知截稿日期的机器', '一具无法辨认身份的尸体', '一段被删除的记忆',
+  '一本全是空白的小说', '一个来自未来的退稿信', '一封署名"M"的约稿函',
+  '一本在多个平行宇宙同时出版的畅销书', '一页永远翻不过去的手稿',
+  '一个写着"别打开"的U盘', '一本扉页被人撕掉的书', '一张1947年的照片——上面有她',
+  '一件沾着陌生血迹的外套', '一把没有锁孔的钥匙', '一份用密码写的出勤表',
+]
+const OBJECTS = [
+  '一把生锈的剪刀', '一只永远停在3:17的怀表', '一封没有邮票的信', '一台只能拨打一个号码的电话',
+  '一本每页都印着不同名字的护照', '一枚没有刻字的婚戒', '一把无法被拍照的椅子',
+]
+const PROBLEMS = [
+  '时间线开始自我折叠', '所有的线索都指向同一个不存在的人', '作者本人似乎也卷入了事件',
+  '这根本就不是小说——它是真的', '主角发现自己的原型是编辑的前任', '书中的事件开始在现实中同步发生',
+  '人们开始遗忘同一个词——而这个词恰好是故事的标题', '主角每睡一觉就会换一种语言',
+  '死者生前的最后一条社交媒体动态写着"别信任何人"——发自死后第三天',
+  '这座城市的所有地图都少了同一条街', '证据在每一次被检查时都会微妙地改变',
+]
+const EVENTS = [
+  '一封信件打破了平静', '主角发现自己的日记被别人提前写了', '一颗行星突然改变了轨道',
+  '一家出版社收到了一份不可能存在的投稿', '茶水间的咖啡机开始打印预言',
+  '一场暴雨之后，所有的井都开始播放古典音乐', '全国所有的自动售货机在同一天吐出了相同的纸条',
+  '一个消失了三十年的人突然出现在超市收银台前排队', '午夜时分，手机同时收到一条没有发件人的消息',
+]
+const STAKES = [
+  '整个太阳系的命运悬于一线', '一个百年疑案即将被揭开', '真相可能比谎言更危险',
+  '出版社的声誉取决于此', '再不出好书就要被伯爵骂了', '如果不在四十八小时内找到答案，所有人都会忘记那个秘密',
+  '这关系到人类是否还能再有新的梦', '输掉的一方将永远不能再打字',
+]
+const TWISTS = [
+  '凶手是所有人中看起来最不可能的那一个', '主线情节其实是个巨大的误会',
+  '结局是开放式的——因为作者也没想好', '最后一章只有一行字："未完待续"',
+  '真正的幕后黑手是出版社的实习生', '所有受害者最后发现都没死——只是躲债去了',
+  '凶器根本就不存在——或者说，它存在于每一页纸张的纤维里',
+  '书的最后五十页其实是倒着印的。不是印刷错误。',
+  '所有线索里最明显的那条是凶手自己留下的。他在测试警察会不会认真读。',
+  '叙述者从头到尾都在撒谎。包括他说"叙述者从头到尾都在撒谎"这句话。',
+]
+const EMOTIONS = ['绝望', '疲惫的温柔', '难以置信的平静', '一种谁也没法定义的感受', '愤怒——但对象不明', '冰冷的兴奋']
 const SCHOLARLY = [
   '基于对{number}名被试的长达七年的跟踪研究',
   '从社会学的角度重新审视了排队这一日常行为',
@@ -18,10 +66,15 @@ const SCHOLARLY = [
   '将茶歇中的对话进行了严密的分类学分析',
   '统计了{number}张外卖小票后得出颠覆性结论',
   '引用了他自己写的其他十七本书（但别人都没怎么引用他）',
+  '将{number}场面试录音逐字分析后，发现了现代职场中一种未被命名的话语暴力',
+  '设计了一个巧妙的实验：让两组人同时用筷子吃薯片，观察胜负欲的演变',
 ]
-const SOCIAL_TOPICS = ['外卖骑手的日常生活', '奶茶店排队的人类学观察', '城市噪音对社交行为的影响', '社交媒体上的道歉行为研究', '表情包的话语权分析', '豆瓣评分与自我认同']
-
-// ──── Subtitle / editor commentary (appended to some synopses) ────
+const SOCIAL_TOPICS = [
+  '外卖骑手的日常生活', '奶茶店排队的人类学观察', '城市噪音对社交行为的影响',
+  '社交媒体上的道歉行为研究', '表情包的话语权分析', '豆瓣评分与自我认同',
+  '地铁上让座行为的阶级分析', '深夜便利店的陌生人对话模式', '婚礼敬酒词中的权力关系',
+  '共享单车停放位置与道德水平的相关性研究',
+]
 
 const EDITOR_NOTES = [
   '（编辑注：第三稿。前两稿我们也收到了。写得差不多。）',
@@ -32,9 +85,13 @@ const EDITOR_NOTES = [
   '（编辑注：结局炸掉了出版社大楼。感觉作者对出版流程有些意见。）',
   '（编辑注：情节可用。错别字数量令人困惑——"宇宙"一词写了七种拼法。）',
   '（编辑注：这应该算是小说。字面意思上——每个词都是"这"和"那"的排列重组。）',
+  '（编辑注：第223页有一整段用emoji写的对白。不是翻译问题——原稿就这样。）',
+  '（编辑注：审完这篇稿子的编辑请了半天假。说是要"想想宇宙"。）',
+  '（编辑注：推荐阅读。但不要在睡前读。我们认真的。）',
+  '（编辑注：如果这本书被改编成电影，字幕组可能需要一个哲学学位。）',
 ]
 
-// ──── Genre templates ────
+// ──── Genre templates (20 per genre) ────
 
 const SCI_FI_TEMPLATES = [
   '公元{year}年，{profession}{character}在一次例行工作中发现：{discovery}。但问题是——{problem}。',
@@ -42,7 +99,23 @@ const SCI_FI_TEMPLATES = [
   '这是一个关于{character}的故事。作为{profession}，他与{discovery}不期而遇。{stakes}。',
   '当{discovery}时，没人当真。直到{event}发生。{character}不得不面对一个事实：{problem}。',
   '人类发明了{discovery}，然后立刻后悔了。{character}——一个{profession}——负责解决这份后悔。{stakes}。',
-  '{character}在{location}捡到{discovery}。三天后，她/他发现宇宙并不如教科书说的那般稳固。',
+  '{character}在{location}捡到{discovery}。三天后，他发现宇宙并不如教科书说的那般稳固。',
+  '公元{year}年，{character}被分配到一项任务：找到{object}。上级没说为什么。上级从来不——说为什么。',
+  '这是一本关于{character}的日记。写于{year}年。问题是——根据碳定年法，这本日记已有两千年的历史。',
+  '{character}发明了一种能翻译{emotion}的语言。结果发现整个星系都在用这种语言——只是人类一直把它当噪音。',
+  '{profession}{character}在{location}发现了一条来自未来的备忘录。内容只有一行字：\"别让{problem}发生。\"落款是他自己。',
+  '{character}的职责是维护一台预言机。机器每出错一次，就得手动修正一条历史。他开始怀疑：最后一次正确的预言是什么时候？',
+  '在{location}，{character}遇到一个声称自己来自公元{year}年的人。那人对当代的评价是：\"空气不错，阅读品味很差。\"',
+  '{character}在一个废弃的卫星上找到{discovery}。打开后发现里面写满了他从未体验过的记忆。',
+  '人类第一次与外星文明接触的方式不是战争，不是外交——是一本书。外星人寄来的稿子被{character}在投稿池里放了三个月。',
+  '公元{year}年，{location}的所有居民在同一天开始做同一个梦。{character}——唯一的例外——必须查明为什么。',
+  '{character}的{object}突然开始说话。它声称自己是人类进化的下一阶段。{character}只想知道它能不能帮忙付房租。',
+  '科学家发现{discovery}的瞬间，整个物理学的教科书变成了空白。{character}——一个{profession}——是唯一记得旧公式的人。',
+  '{character}在{location}发现了一个通向平行宇宙的门。那一边的一切都和这边一样——除了所有的书都是{character}写的。',
+  '公元{year}年之后，人类放弃了写作，全部交给AI。{character}是最后一个还在用笔的人。出版社寄来的合同上写着：\"活下去。\"',
+  '{character}签署了一份前往{location}的单程票。他的任务是研究{discovery}。任务的真正目的是——他自己也不太清楚了。',
+  '{profession}{character}在检查{object}时发现了一个微处理器——而{object}理论上不该存在，因为它的历史可以追溯到商朝。',
+  '{character}收到一个包裹，里面只有{object}和一张纸条：\"你十年前已经打开过一次了。别再打开了。\"问题是他从来不记得自己十年前打开过。',
 ]
 
 const MYSTERY_TEMPLATES = [
@@ -52,15 +125,47 @@ const MYSTERY_TEMPLATES = [
   '这本该是一桩简单的案子。但{profession}{character}在{location}发现：{problem}。{twist}。',
   '案件其实早就破了。问题是，{character}不确定哪个答案是真的。三个目击者给出了三种完全不同的口供——且每个人都不是在撒谎。',
   '{character}在{location}的纸箱里找到{discovery}。这打开了一个本该永远封存的案子。{twist}。',
+  '{profession}{character}被叫去调查一起没有尸体的谋杀案。唯一的证物是{object}——和一首写在收据背面的诗。',
+  '死者被认为是自杀。直到{character}注意到一个细节：死者的书桌上有一杯还温热的茶——而他已经死了三天。',
+  '{location}的一家书店连续三个月每天卖出同一本书。每一本都翻到第{number}页。{character}决定：自己读读看。',
+  '{character}被请去调查一个不可能的情况：{location}的所有钟每天凌晨三点零七分都会统一慢三秒。没人知道为什么。',
+  '一个匿名举报人告诉{character}：\"{problem}只是表面。真正的秘密在一本书的第{number}页。\"然后挂断了电话。从此再也没打来。',
+  '一本名为《{character}》的书出现在{location}的图书馆里。书的内容精确描述了{character}接下来三天会经历的所有事情。',
+  '{profession}{character}收到了{discovery}作为匿名礼物。附了张纸条：\"你调查的第{number}个案子——答案就在这里面。\"',
+  '关于{event}，警方的记录只有一行：\"不予立案。\"{character}读了那行字，然后决定不需要被允许。',
+  '{character}在{location}发现了一个只有三集录音的播客。听完第三集后，她/他意识到：播客里的人在讨论自己的死亡。',
+  '死者的日记写得很清楚：\"如果我不在了，不要相信{profession}说的话。\"问题是{character}就是那个{profession}。',
+  '凶器出现在一个根本不存在的房间里。{character}找到了这扇房间的门——在{location}的一面没有任何门的墙上。',
+  '一个老太太在{location}报案说有人偷了她的名字。{character}把这当成老年糊涂的个案——直到第二天他自己也忘了自己的名字。',
+  '这起案件没有任何物证。唯一的痕迹是{emotion}——是的，{emotion}。在这个世界，情绪可以留下指纹。',
+  '死者有六十个不在场证明。准确地说，六十个证实他在死亡时间正在做其他事情的人。但尸体就是他的。',
+  '{character}被叫到{location}。一个死去的人留下了一份遗嘱——其中唯一的内容是一本书的ISBN号。',
+  '作案手法无可挑剔。唯一的问题是：犯人留下的唯一线索是一份退稿信。上面写着："写得不够好"。',
 ]
 
 const SUSPENSE_TEMPLATES = [
-  '{character}收到了一条消息："{problem}"。发件人已注销。事情从这一刻开始变得不对劲。',
+  '{character}收到了一条消息：\"{problem}\"。发件人已注销。事情从这一刻开始变得不对劲。',
   '住在{location}的{character}并不知道，{event}将会改变一切。因为{discovery}，{stakes}。',
   '每当{character}闭上眼睛，就会看到同一个画面：{discovery}。{profession}说这是幻觉。{character}知道不是。',
   '所有人都告诉{character}{event}从未发生。但他有一份证据：{discovery}。{twist}。',
   '办公室的门打不开了。不只是{character}的——整栋楼所有人的。手机信号正常但没人打电话求助。因为每个人都在等人先问。',
   '{character}收到了一本书，封面印着自己的照片，书名就是她的名字。她翻开看到第37页时决定不再往下读。{twist}。',
+  '每天晚上十一点，{character}的{object}会发出一种频率。只有他能听见。他开始记录——已经记了{number}天。还没告诉任何人。',
+  '{character}的新邻居搬来时只带了一件行李：{object}。搬来的第一天晚上，邻居问他：\"你知道1979年这里发生了什么吗？\"',
+  '这是一次普通的航班。直到{character}在座位前方的屏幕上看到一条消息——只有三个字——而且没有发件人。{emotion}。',
+  '监控录像里，{character}在凌晨三点走出家门。但他清楚地记得自己整个晚上都在睡觉。这是第{number}段这样的录像。',
+  '{character}在{location}参加了一个匿名互助小组。第三周时他发现：每个成员都在描述同一件事——{event}。只是没人意识到。',
+  '一条推文在发布后三秒被删除。{character}截了图。截图里的内容让她的手机在接下来的五分钟内接到了七个没有来电显示的电话。',
+  '这个小镇没有名字。{character}只是想在这里住一个周末。然后他发现：小镇里所有的表都在往回走。',
+  '{character}的手机每天会收到一张照片——拍摄时间戳显示是明天。照片的内容总是和当天将要发生的某件事有关。',
+  '{character}在{location}签约了一份工作。合同上有一行小字：\"雇员需放弃对第{number}周记忆的所有知情权。\"他签了。',
+  '这是一个关于等待的故事。{character}在等一个人。那个人已经死了。但她/他知道——等待是唯一正确的反应。{twist}。',
+  '城市开始扩建地铁第七号线。{character}——一个{profession}——注意到规划图上有一个站的名字从来没人能念出来。',
+  '{character}的同事突然开始用一种她听不懂的语言和他说话。更奇怪的是：他能听懂每一个词，只是不能确定说话的人是谁。',
+  '冰箱里多了一样东西。{character}没放进去的。不是食物。是一个U盘。上面贴着一张标签：\"看完第三段后你会后悔。\"',
+  '公司要求所有员工每周做一次心理评估。{character}发现他的评估结果每次都完全一样——一个字都不差。他开始怀疑评估根本不是在测他。',
+  '{character}在{location}发现了一个电话号码。下面写着一行字：\"只在紧急情况下拨打。\"旁边一行更小的字：\"接电话的人不一定是你认识的。\"',
+  '这是一条关于{object}的故事。它不是武器，不是证据，不是任何你已经想到的东西。它是{emotion}——凝结成的实体。',
 ]
 
 const SOCIAL_TEMPLATES = [
@@ -70,6 +175,22 @@ const SOCIAL_TEMPLATES = [
   '{profession}{character}的新作将目光投向了{SocialTopic}。书中提出了一个令人坐立不安的观点：{twist}。',
   '{character}用整整一本书来论证一个点：{problem}。剩下的四百页全是脚注。',
   '如果你觉得{SocialTopic}没什么好研究的——{character}会证明你错了。用六百多页的篇幅。',
+  '一项长达{number}年的跟踪研究显示：{SocialTopic}与{emotion}之间存在统计学显著的关联。{character}拒绝简化这个结论。',
+  '为什么互联网上所有人都在用省略号？{character}的答案是：因为句号太确定。本书详细论证了三个点状标点的社会语言学革命。',
+  '{character}走访了{number}个城市的{location}，记录了超过{number}段对话。核心发现：人们最常撒的谎是"我马上到"。',
+  '这本关于{SocialTopic}的著作遭到了一群{profession}的集体批评。{character}在第二版序言里把每个人的名字都写出来了。',
+  '{character}提出了一个概念：\"{emotion}劳动\"。在你没有意识到的情况下，你每天都在为别人做{emotion}。定价：一个月{number}元。',
+  '当代人最恐怖的噩梦不是死亡——是{SocialTopic}。{character}用结构主义的方法证明了这个命题，然后开始怀疑他到底是在研究社会还是在写自己的日记。',
+  '这是第一本把{SocialTopic}和量子力学放进同一句话里的书。也是最后一本。出版社被骂得很惨，但{character}一点都不在乎。',
+  '{character}试图回答一个前无古人的问题：{SocialTopic}是如何改变了我们对待宠物的方式的？答案是：用一种你不一定喜欢的方式。',
+  '如果你在{location}排队，花一点时间看看前面的人。{character}分析了他/她们——结论是：你永远不需要知道这么多。',
+  '这本书一共{number}页。前{number}页是理论，后{number}页是附录。附录里最长的条目是\"白了他一眼\"——一部口述史。',
+  '{SocialTopic}的秘密历史。{character}翻遍了从{year}年起的档案，从中复原了一套已经灭绝的社交礼仪。',
+  '五年前，{character}在{location}发了一条帖子问：\"有没有人觉得{SocialTopic}很荒谬？\"下面的回帖至今还在更新。这本书就是那帖子。',
+  '{character}的研究指出：人们在{SocialTopic}上的行为表现，实际上可以由婴儿时期的睡眠模式预测。婴儿们对此未置可否。',
+  '{character}用一本书的篇幅论证了一个激进的命题：{problem}。他的同事们说这是胡说八道。他自己也不太确定。但书已经出版了。',
+  '{character}认为{SocialTopic}是资本主义社会最后一种没有被标价的亲密形式。于是他把书写成了——一本大概意义上的账本。',
+  '我们在{location}所做的一切——{character}写道——其实都是{SocialTopic}的一个注脚。而注脚本身——才是正文。',
 ]
 
 const HYBRID_TEMPLATES = [
@@ -78,7 +199,70 @@ const HYBRID_TEMPLATES = [
   '一个{profession}在{location}写小说。然后小说里的人物开始在现实中留下脚印。{problem}。',
   '这是一本关于一本正在被写的书中的一本书的书。{character}在第三层读到自己——然后发现自己也在被写。{twist}。',
   '{character}发明了{discovery}，本意是解决{SocialTopic}的问题。结果是{problem}——谁也没想到{twist}。',
+  '公元{year}年，一项科技发明彻底改变了人类的睡眠。{character}——{profession}兼业余{profession}——发现这项发明有个致命的副作用：它让你睡觉时在另一个世界写作。',
+  '{character}在{location}调查一起失踪案。失踪者是一个想法。不是一个具体的人。一个想法从全人类的记忆中消失了——{character}是唯一还记得它的人。',
+  '这本小说的每一页都夹着一页非虚构。关于{SocialTopic}的学术论文。{character}在两种文体之间穿梭——读者永远不知道下一秒是故事还是事实。',
+  '{character}的工作是记录{event}。每次记录都必须用不同的文体——因为每次{event}都改变了语言的规则。今天，{character}只能用十四行诗写作。',
+  '故事中的{object}拥有自己的视角。{character}通过它观察世界——而{object}通过{character}理解什么是"存在"。这是一场没有对话的双重叙事。',
+  '{character}在{location}创办了一所学院，专门研究{SocialTopic}。第一堂课上，他/她问学生：\"你们中有多少人此刻在想别的事？\"所有人都举了手。这就是整个课程的起点。',
+  '一个记忆可以像{object}一样被交易的世界。{character}专门追查非法记忆——直到他接到一个案子：有人盗卖了他自己的第{number}个生日。',
+  '这是{character}写给{discovery}的情书。字面意义上——这本书就是一个{profession}与一个{object}之间的超长通信。{twist}。',
+  '{character}在{location}发现了一种新情绪。不是词语上的新——是神经学上的：一种人类此前从未体验过的感受。他试着描述它。这本书就是那种描述。',
+  '故事发生在一个只有{number}个人的小镇。一场{event}之后，镇上开始出现第{number}+1个人。没人认识她——包括她自己。',
+  '{character}同时在做三件事：写一本书、调查一起案件、准备退休。三件事在{event}发生时合并成了一件。',
+  '本书的叙述者是一个{profession}。问题是——叙述者的回忆录里出现了{character}，而{character}坚称自己从来没有见过这个叙述者。',
+  '{character}收到一笔匿名汇款，附言：\"写一本关于{SocialTopic}的书。\"她/他写了。出版之后，第二笔汇款到了。附言只有两个字：\"重写。\"',
+  '这本书没有页码。或者说，每次打开页码都不一样。{character}发现这和{event}有关——而{event}每次重述都会被改变。',
+  '这是一本回忆录——如果不是{character}的。不是任何人的。是一个城市的。{location}的过去被压缩成了一个声音，而{character}负责把那个声音写下来。',
+  '{character}在研究{discovery}的过程中发现了一些不该存在的事实。她/他的选择是：出版。后果是：{problem}。读者是：你最不期待的人。',
+  '一个{profession}在一个只有他自己知道的地方写了一本书。书里的每一个字都是真的——所以没有出版社愿意出版。直到{character}在垃圾桶里翻到了手稿。',
 ]
+
+// ──── Generator ────
+
+function fillSlots(template: string): string {
+  return template
+    .replace(/\{character\}/g, () => pick(CHARACTERS))
+    .replace(/\{minor_char\}/g, () => fillSlots(pick(MINOR_CHARS)))
+    .replace(/\{profession\}/g, () => pick(PROFESSIONS))
+    .replace(/\{location\}/g, () => pick(LOCATIONS))
+    .replace(/\{discovery\}/g, () => pick(DISCOVERIES))
+    .replace(/\{problem\}/g, () => pick(PROBLEMS))
+    .replace(/\{event\}/g, () => pick(EVENTS))
+    .replace(/\{stakes\}/g, () => pick(STAKES))
+    .replace(/\{twist\}/g, () => pick(TWISTS))
+    .replace(/\{emotion\}/g, () => pick(EMOTIONS))
+    .replace(/\{object\}/g, () => pick(OBJECTS))
+    .replace(/\{scholarly\}/g, () => fillSlots(pick(SCHOLARLY)))
+    .replace(/\{SocialTopic\}/g, () => pick(SOCIAL_TOPICS))
+    .replace(/\{year\}/g, () => String(rangeInt(2080, 2542)))
+    .replace(/\{number\}/g, () => String(rangeInt(2, 9999)))
+}
+
+const GENRE_TEMPLATES: Record<Genre, string[]> = {
+  'sci-fi': SCI_FI_TEMPLATES,
+  mystery: MYSTERY_TEMPLATES,
+  suspense: SUSPENSE_TEMPLATES,
+  'social-science': SOCIAL_TEMPLATES,
+  hybrid: HYBRID_TEMPLATES,
+}
+
+export function generateSynopsis(genre: Genre): string {
+  const templates = GENRE_TEMPLATES[genre] ?? HYBRID_TEMPLATES
+  let synopsis = fillSlots(pick(templates))
+  if (Math.random() < 0.3) {
+    synopsis += ' ' + pick(EDITOR_NOTES)
+  }
+  return synopsis
+}
+
+export function generateRejectionReason(): string {
+  return pick(UNSUITABLE_REASONS)
+}
+
+export function isClearlyUnsuitable(quality: number): boolean {
+  return quality < 28
+}
 
 const UNSUITABLE_REASONS = [
   '这似乎是一本食谱，而非小说。',
@@ -100,47 +284,3 @@ const UNSUITABLE_REASONS = [
   '稿件里的反派叫做"永夜出版社全体编辑"。大写加粗的。我们觉得这不太合适。',
   '纸张闻起来像火锅底料。很难专心审稿。',
 ]
-
-// ──── Generator ────
-
-function fillSlots(template: string): string {
-  return template
-    .replace(/\{character\}/g, () => pick(CHARACTERS))
-    .replace(/\{profession\}/g, () => pick(PROFESSIONS))
-    .replace(/\{location\}/g, () => pick(LOCATIONS))
-    .replace(/\{discovery\}/g, () => pick(DISCOVERIES))
-    .replace(/\{problem\}/g, () => pick(PROBLEMS))
-    .replace(/\{event\}/g, () => pick(EVENTS))
-    .replace(/\{stakes\}/g, () => pick(STAKES))
-    .replace(/\{twist\}/g, () => pick(TWISTS))
-    .replace(/\{scholarly\}/g, () => fillSlots(pick(SCHOLARLY)))
-    .replace(/\{SocialTopic\}/g, () => pick(SOCIAL_TOPICS))
-    .replace(/\{year\}/g, () => String(rangeInt(2080, 2542)))
-    .replace(/\{number\}/g, () => String(rangeInt(200, 9999)))
-}
-
-const GENRE_TEMPLATES: Record<Genre, string[]> = {
-  'sci-fi': SCI_FI_TEMPLATES,
-  mystery: MYSTERY_TEMPLATES,
-  suspense: SUSPENSE_TEMPLATES,
-  'social-science': SOCIAL_TEMPLATES,
-  hybrid: HYBRID_TEMPLATES,
-}
-
-export function generateSynopsis(genre: Genre): string {
-  const templates = GENRE_TEMPLATES[genre] ?? HYBRID_TEMPLATES
-  let synopsis = fillSlots(pick(templates))
-  // ~30% chance to append an editor note
-  if (Math.random() < 0.3) {
-    synopsis += ' ' + pick(EDITOR_NOTES)
-  }
-  return synopsis
-}
-
-export function generateRejectionReason(): string {
-  return pick(UNSUITABLE_REASONS)
-}
-
-export function isClearlyUnsuitable(quality: number): boolean {
-  return quality < 28
-}
