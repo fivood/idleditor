@@ -15,12 +15,12 @@ export function ToastContainer() {
   if (toasts.length === 0) return null
 
   return (
-    <div className="fixed top-14 right-4 z-50 flex flex-col gap-2 max-w-sm">
+    <div className="fixed top-10 md:top-14 right-2 md:right-4 z-50 flex flex-col gap-1.5 md:gap-2 max-w-[260px] md:max-w-sm">
       {toasts.slice(-3).map(toast => (
         <div
           key={toast.id}
           onClick={() => dismissToast(toast.id)}
-          className={`border-2 p-3 text-xs cursor-pointer transition-all animate-in shadow-[3px_3px_0_#4a3728] font-mono ${
+          className={`border-2 p-2 md:p-3 text-[10px] md:text-xs cursor-pointer transition-all animate-in shadow-[3px_3px_0_#4a3728] font-mono ${
             toast.type === 'milestone'
               ? 'bg-cream border-copper'
               : toast.type === 'award'
