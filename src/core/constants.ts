@@ -144,6 +144,7 @@ export const GENRE_COVER_COLORS: Record<Genre, string> = {
   suspense: '#1a1a1a',
   'social-science': '#2e1a1a',
   hybrid: '#1a2e2d',
+  'light-novel': '#2a1a3e',
 }
 
 // ──── Author persona signature phrases ────

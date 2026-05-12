@@ -1,7 +1,9 @@
 // ──── Genres ────
-export type Genre = 'sci-fi' | 'mystery' | 'suspense' | 'social-science' | 'hybrid'
+export type Genre = 'sci-fi' | 'mystery' | 'suspense'   | 'social-science'
+  | 'hybrid'
+  | 'light-novel'
 
-export const GENRES: Genre[] = ['sci-fi', 'mystery', 'suspense', 'social-science', 'hybrid']
+export const GENRES: Genre[] = ['sci-fi', 'mystery', 'suspense', 'social-science', 'hybrid', 'light-novel']
 
 export const GENRE_LABELS: Record<Genre, string> = {
   'sci-fi': '科幻',
@@ -9,6 +11,7 @@ export const GENRE_LABELS: Record<Genre, string> = {
   suspense: '悬疑',
   'social-science': '社科',
   hybrid: '混血',
+  'light-novel': '轻小说',
 }
 
 export const GENRE_ICONS: Record<Genre, string> = {
@@ -17,6 +20,7 @@ export const GENRE_ICONS: Record<Genre, string> = {
   suspense: '🕵️',
   'social-science': '📊',
   hybrid: '🔀',
+  'light-novel': '📱',
 }
 
 // ──── Manuscript lifecycle ────

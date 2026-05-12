@@ -297,12 +297,38 @@ function fillSlots(template: string): string {
     .replace(/\{number\}/g, () => String(rangeInt(2, 9999)))
 }
 
+const LIGHT_NOVEL_TEMPLATES = [
+  '{character}是个普通{profession}，直到有一天{event}。现在她/他必须在{stakes}之前适应新生活。{twist}。',
+  '在{location}，{character}意外发现{discovery}。这个世界的一切都和原来不同——包括截稿日期。{problem}。',
+  '{character}被召唤到异世界。不是当勇者——是当编辑。{profession}的前辈告诉ta："{problem}。"{twist}。',
+  '这是一所特殊的学校。{character}加入了编辑部，每天放学后处理{discovery}。直到{event}那天。{twist}。',
+  '{character}的异能很弱——只能让截稿日期自动延后三天。这个能力在{location}意外地珍贵。因为{problem}。',
+  '转生到异世界的{character}发现，这个世界没有出版社。ta决定改变这一切。{stakes}。',
+  '{character}的日常被打乱了——{event}发生的时候，她/他正在{location}，手里只有{object}。{twist}。',
+  '魔法学院的学生{character}在诅咒事故后获得能力：能看到每本书需要修改多少处。被{profession}招募了。{problem}。',
+  '在异世界，{character}经营着出版社。今天的稿子里有一篇来自魔王本人。内容是{discovery}。{stakes}。',
+  '{character}是精灵族唯一的编辑。{event}发生时，ta必须说服人族、魔族和矮人族共同出版一本书。{twist}。',
+  '勇者打败魔王之后做什么？{character}选择了出版业。但很快发现{problem}——勇者的自传被退稿了。',
+  '在{location}，所有书都会在满月之夜自己重写。《{character}》的作者发现这个现象后，每晚都睡在出版社。{twist}。',
+  '{character}是普通人——没有魔力，没有剑术，只有一本截稿日历。在异世界，这成了最珍贵的技能。因为{problem}。',
+  '在{location}，恋爱和出版有着相似的规律：都需要时间、耐心和一份好的编辑。{character}正在同时处理两者。{twist}。',
+  '《转生后我在异世界当编辑》——{character}在日记本写下这个标题，然后发现日记内容会在第二天变成现实。{problem}。',
+  '{character}永远不会忘记{event}那天——那天ta收到了自己的第一份退稿信。在{location}，退稿信是用魔法传送的。{stakes}。',
+  '召唤术出故障了。{character}被召唤到异世界，但国王只想让ta审稿——因为"你上辈子是出版社的编辑"。{problem}。',
+  '学园祭即将到来。{character}所在的编辑部必须在48小时内完成{discovery}的出版。但{problem}。{twist}。',
+  '在{location}，{character}捡到了一本会自己写作的书。问题是——书在写ta的人生。而下一章标题是"死亡"。{twist}。',
+  '妖怪、幽灵、编辑。{character}在{location}的日常就是处理超自然稿件。但今天的稿子极其无聊。{problem}。',
+  '{character}被分配到{location}出版社实习。老板是魔王，同事是史莱姆，作者是一条龙。{twist}。',
+  '异世界有七大王国。{character}的目标是让每个王国都有出版社。目前开到第三个——被第四个拒绝了。因为{problem}。',
+]
+
 const GENRE_TEMPLATES: Record<Genre, string[]> = {
   'sci-fi': SCI_FI_TEMPLATES,
   mystery: MYSTERY_TEMPLATES,
   suspense: SUSPENSE_TEMPLATES,
   'social-science': SOCIAL_TEMPLATES,
   hybrid: HYBRID_TEMPLATES,
+  'light-novel': LIGHT_NOVEL_TEMPLATES,
 }
 
 export function generateSynopsis(genre: Genre): string {

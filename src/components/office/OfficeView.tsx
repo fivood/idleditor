@@ -15,10 +15,10 @@ const DEPT_INFO: Record<DepartmentType, { label: string; icon: string; desc: str
 
 const GENRE_LABELS: Record<string, string> = {
   'sci-fi': '科幻', mystery: '推理', suspense: '悬疑',
-  'social-science': '社科', hybrid: '混合',
+  'social-science': '社科', hybrid: '混合', 'light-novel': '轻小说',
 }
 
-const ALL_GENRES: Genre[] = ['sci-fi', 'mystery', 'suspense', 'social-science', 'hybrid']
+const ALL_GENRES: Genre[] = ['sci-fi', 'mystery', 'suspense', 'social-science', 'hybrid', 'light-novel']
 
 export function OfficeView() {
   const departments = useGameStore(s => s.departments)

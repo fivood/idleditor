@@ -13,6 +13,7 @@ const GENRE_PALETTES = {
   suspense:    { bg: '#121212', fg: '#cf6679', accent: '#ef9a9a' },
   'social-science': { bg: '#1a1212', fg: '#a5d6a7', accent: '#c8e6c9' },
   hybrid:      { bg: '#121a1a', fg: '#ce93d8', accent: '#e1bee7' },
+  'light-novel': { bg: '#1a1230', fg: '#f8bbd0', accent: '#f48fb1' },
 }
 
 function hashString(str) {
