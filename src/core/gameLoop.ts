@@ -75,13 +75,23 @@ export interface GameWorldState {
   coversManifest: Record<string, string> | null
   preferredGenres: Genre[]
   booksPublishedThisMonth: number
+  publishedTitles: Set<string>
 }
 
 // ──── Title generation ────
-function generateTitle(genre: string): string {
+function generateTitle(genre: string, world: GameWorldState): string {
   const pool = TITLE_POOLS[genre] ?? TITLE_POOLS['hybrid']
   const suffixes = ['（修订版）', '（未删节）', '（长篇）', '（完整版，大概）', '（作者恳请再版）', '（第二版，第一版印错了）', '（豪华版，送书签）', '']
-  return pool[Math.floor(Math.random() * pool.length)] + (Math.random() < 0.35 ? ` ${pick(suffixes)}` : '')
+  let title = ''
+  for (let i = 0; i < 10; i++) {
+    const candidate = pool[Math.floor(Math.random() * pool.length)]
+    if (!world.publishedTitles.has(candidate)) {
+      title = candidate
+      break
+    }
+  }
+  if (!title) title = pool[Math.floor(Math.random() * pool.length)]
+  return title + (Math.random() < 0.35 ? ` ${pick(suffixes)}` : '')
 }
 
 function generateCover(title: string, genre: string, coversManifest: Record<string, string> | null): Manuscript['cover'] {
@@ -132,6 +142,7 @@ export function createInitialWorld(): GameWorldState {
     coversManifest: null,
     preferredGenres: [],
     booksPublishedThisMonth: 0,
+    publishedTitles: new Set(),
   }
 }
 
@@ -269,6 +280,7 @@ export function tick(world: GameWorldState): TickResult {
       const pubPrestige = m.isUnsuitable ? -10 : 10
       world.currencies.prestige += pubPrestige
       world.booksPublishedThisMonth++
+      world.publishedTitles.add(m.title)
       result.publishedBooks.push(m)
       if (m.isUnsuitable) {
         result.toasts.push(createToast(
@@ -431,7 +443,7 @@ function createManuscript(world: GameWorldState): Manuscript {
   const prefCount = world.preferredGenres.filter(g => g === genre).length
   const prefQBonus = prefCount * GENRE_PREFERENCE_QUALITY_BONUS
   const quality = rollQuality() + world.permanentBonuses.manuscriptQualityBonus + traitQBonus + prefQBonus
-  const title = generateTitle(genre)
+  const title = generateTitle(genre, world)
 
   // Chance to create a new author
   let authorId: string
@@ -479,7 +491,7 @@ function createManuscriptForAuthor(world: GameWorldState, author: Author): Manus
   const prefCount = world.preferredGenres.filter(g => g === author.genre).length
   const prefQBonus = prefCount * GENRE_PREFERENCE_QUALITY_BONUS
   const quality = Math.min(100, effectiveQuality(baseQuality, author.talent + world.permanentBonuses.authorTalentBoost, world.permanentBonuses) + traitQBonus + prefQBonus)
-  const title = generateTitle(author.genre)
+  const title = generateTitle(author.genre, world)
 
   return {
     id: nanoid(10),

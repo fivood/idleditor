@@ -230,6 +230,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       coversManifest: state.coversManifest,
       preferredGenres: state.preferredGenres,
       booksPublishedThisMonth: state.booksPublishedThisMonth,
+      publishedTitles: state.publishedTitles,
     }
     const result = tick(world)
 
@@ -247,6 +248,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       triggeredMilestones: new Set(world.triggeredMilestones),
       activeDateEvent: world.activeDateEvent,
       booksPublishedThisMonth: world.booksPublishedThisMonth,
+      publishedTitles: new Set(world.publishedTitles),
       decisionCooldown: Math.max(0, state.decisionCooldown - 1),
       toasts: [...state.toasts, ...result.toasts].slice(-100),
     })
