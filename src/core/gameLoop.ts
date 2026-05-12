@@ -81,8 +81,8 @@ function generateCover(title: string, genre: string, coversManifest: Record<stri
   const baseTitle = getBaseTitle(title)
   const slug = titleToSlug(baseTitle)
   const entry = coversManifest?.[slug]
-  // Support both PNG and SVG formats
-  const localSrc = entry ? `/covers/${entry}` : null
+  // Prefer PNG if available, fall back to SVG
+  const localSrc = entry ? `/covers/${entry.replace('.svg', '.png')}` : null
   return {
     type: 'generated',
     src: localSrc,
