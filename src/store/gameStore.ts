@@ -75,6 +75,7 @@ export interface GameStore extends GameWorldState {
 
   // Actions: UI
   setPlayerName: (name: string) => void
+  setTrait: (trait: EditorTrait) => void
   setActiveTab: (tab: GameStore['activeTab']) => void
   setCloudSaveCode: (code: string) => void
   dismissToast: (id: string) => void
@@ -373,6 +374,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
 
   // ──── UI actions ────
   setPlayerName: (name) => set({ playerName: name }),
+  setTrait: (trait) => set({ trait }),
   setActiveTab: (tab) => set({ activeTab: tab }),
   dismissToast: (id) => {
     set(state => ({ toasts: state.toasts.filter(t => t.id !== id) }))

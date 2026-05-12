@@ -7,6 +7,7 @@ import {
   AUTHOR_FAME_PER_PUBLISH,
   AUTHOR_TIER_THRESHOLDS,
   BESTSELLER_SALES,
+  EDITOR_TRAIT_BONUSES,
   MAX_SUBMITTED_QUEUE,
   MILESTONES,
 } from './constants'
@@ -126,6 +127,11 @@ export function tick(world: GameWorldState): TickResult {
 
   world.playTicks++
 
+  // Trait & permanent bonuses
+  const trait = world.trait ? EDITOR_TRAIT_BONUSES[world.trait] : { rpBonus: 0, qualityBonus: 0, speedBonus: 0 }
+  const effSpeedBonus = world.permanentBonuses.editingSpeedBonus + trait.speedBonus
+  const effRpBonus = trait.rpBonus
+
   // Advance calendar every TICKS_PER_DAY ticks
   if (world.playTicks % TICKS_PER_DAY === 0) {
     advanceCalendar(world.calendar)
@@ -177,12 +183,12 @@ export function tick(world: GameWorldState): TickResult {
     if (m.status !== 'reviewing') continue
     const editEfficiency = getDeptEfficiency(world, 'editing')
     const needed = reviewTicks(editEfficiency)
-    const speedMult = 1 + world.permanentBonuses.editingSpeedBonus
+    const speedMult = 1 + effSpeedBonus
     m.editingProgress += (1 / needed) * speedMult
     if (m.editingProgress >= 1) {
       m.status = 'editing'
       m.editingProgress = 0
-      world.currencies.revisionPoints += rpPerReview(world.permanentBonuses.editingSpeedBonus)
+      world.currencies.revisionPoints += rpPerReview(effSpeedBonus + effRpBonus)
       result.toasts.push(createToast(generateToast('reviewComplete', {
         title: m.title,
         genre: m.genre,
@@ -198,12 +204,12 @@ export function tick(world: GameWorldState): TickResult {
     if (m.status !== 'editing') continue
     const editEfficiency = getDeptEfficiency(world, 'editing')
     const needed = editingTicks(m.wordCount, editEfficiency)
-    const speedMult = 1 + world.permanentBonuses.editingSpeedBonus
+    const speedMult = 1 + effSpeedBonus
     m.editingProgress += (1 / needed) * speedMult
     if (m.editingProgress >= 1) {
       m.status = 'proofing'
       m.editingProgress = 0
-      world.currencies.revisionPoints += rpPerEdit(world.permanentBonuses.editingSpeedBonus)
+      world.currencies.revisionPoints += rpPerEdit(effSpeedBonus + effRpBonus)
     }
   }
 
@@ -212,12 +218,12 @@ export function tick(world: GameWorldState): TickResult {
     if (m.status !== 'proofing') continue
     const editEfficiency = getDeptEfficiency(world, 'editing')
     const needed = proofingTicks(editEfficiency)
-    const speedMult = 1 + world.permanentBonuses.editingSpeedBonus
+    const speedMult = 1 + effSpeedBonus
     m.editingProgress += (1 / needed) * speedMult
     if (m.editingProgress >= 1) {
       m.status = 'cover_select'
       m.editingProgress = 0
-      world.currencies.revisionPoints += rpPerProof(world.permanentBonuses.editingSpeedBonus)
+      world.currencies.revisionPoints += rpPerProof(effSpeedBonus + effRpBonus)
     }
   }
 
@@ -226,7 +232,7 @@ export function tick(world: GameWorldState): TickResult {
     if (m.status !== 'publishing') continue
     const editEfficiency = getDeptEfficiency(world, 'editing')
     const needed = publishingTicks(editEfficiency)
-    const speedMult = 1 + world.permanentBonuses.editingSpeedBonus
+    const speedMult = 1 + effSpeedBonus
     m.editingProgress += (1 / needed) * speedMult
     if (m.editingProgress >= 1) {
       m.status = 'published'
@@ -329,7 +335,8 @@ export function tick(world: GameWorldState): TickResult {
 
 // ──── Manuscript creation ────
 function createManuscript(world: GameWorldState): Manuscript {
-  const quality = rollQuality() + world.permanentBonuses.manuscriptQualityBonus
+  const traitQBonus = world.trait ? EDITOR_TRAIT_BONUSES[world.trait].qualityBonus : 0
+  const quality = rollQuality() + world.permanentBonuses.manuscriptQualityBonus + traitQBonus
   const genre = pick(GENRES)
   const title = generateTitle(genre)
 
@@ -374,7 +381,8 @@ function createManuscript(world: GameWorldState): Manuscript {
 
 function createManuscriptForAuthor(world: GameWorldState, author: Author): Manuscript {
   const baseQuality = rollQuality() + authorQualityBoost(author)
-  const quality = effectiveQuality(baseQuality, author.talent + world.permanentBonuses.authorTalentBoost, world.permanentBonuses)
+  const traitQBonus = world.trait ? EDITOR_TRAIT_BONUSES[world.trait].qualityBonus : 0
+  const quality = Math.min(100, effectiveQuality(baseQuality, author.talent + world.permanentBonuses.authorTalentBoost, world.permanentBonuses) + traitQBonus)
   const title = generateTitle(author.genre)
 
   return {
