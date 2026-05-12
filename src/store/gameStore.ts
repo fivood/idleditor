@@ -6,12 +6,47 @@ import type { GameWorldState } from '@/core/gameLoop'
 import { saveGameToDb, loadGameFromDb, hasExistingSave } from '@/db/saveManager'
 import { nanoid } from '@/utils/id'
 
+function serializeMapForDb(map: Map<unknown, unknown>): string {
+  return JSON.stringify([...map.entries()])
+}
+
+async function syncToCloudImpl(state: GameStore): Promise<boolean> {
+  if (!state.cloudSaveCode) return false
+  try {
+    const res = await fetch('/api/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code: state.cloudSaveCode,
+        data: {
+          playerName: state.playerName,
+          playTicks: state.playTicks,
+          totalPublished: state.totalPublished,
+          totalBestsellers: state.totalBestsellers,
+          totalRejections: state.totalRejections,
+          currencies: state.currencies,
+          permanentBonuses: state.permanentBonuses,
+          calendar: state.calendar,
+          triggeredMilestones: [...state.triggeredMilestones],
+          manuscriptsJson: serializeMapForDb(state.manuscripts),
+          authorsJson: serializeMapForDb(state.authors),
+          departmentsJson: serializeMapForDb(state.departments),
+        },
+      }),
+    })
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
 export interface GameStore extends GameWorldState {
   // UI state
   toasts: ToastMessage[]
   isInitialized: boolean
   isRunning: boolean
   activeTab: 'desk' | 'shelf' | 'authors' | 'office'
+  cloudSaveCode: string | null
 
   // Actions: lifecycle
   initialize: () => Promise<void>
@@ -20,6 +55,8 @@ export interface GameStore extends GameWorldState {
   tick: () => void
   applyTickResult: (result: TickResult) => void
   reborn: () => void
+  syncToCloud: () => Promise<boolean>
+  loadFromCloud: (code: string) => Promise<boolean>
 
   // Actions: manuscript
   startReview: (id: string) => void
@@ -39,6 +76,7 @@ export interface GameStore extends GameWorldState {
   // Actions: UI
   setPlayerName: (name: string) => void
   setActiveTab: (tab: GameStore['activeTab']) => void
+  setCloudSaveCode: (code: string) => void
   dismissToast: (id: string) => void
   addToast: (toast: ToastMessage) => void
 }
@@ -50,6 +88,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   isInitialized: false,
   isRunning: false,
   activeTab: 'desk',
+  cloudSaveCode: null,
 
   // ──── Lifecycle ────
   initialize: async () => {
@@ -155,6 +194,11 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         departments: world.departments,
         events: world.events,
       }).catch(() => {})
+    }
+
+    // Cloud sync every 300 ticks (5 min)
+    if (state.cloudSaveCode && world.playTicks % 300 === 0) {
+      syncToCloudImpl(get()).catch(() => {})
     }
   },
 
@@ -335,5 +379,58 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   },
   addToast: (toast) => {
     set(state => ({ toasts: [...state.toasts, toast].slice(-100) }))
+  },
+
+  // ──── Cloud save ────
+  setCloudSaveCode: (code) => set({ cloudSaveCode: code }),
+
+  syncToCloud: async () => {
+    return syncToCloudImpl(get())
+  },
+
+  loadFromCloud: async (code) => {
+    try {
+      const res = await fetch(`/api/load?code=${encodeURIComponent(code)}`)
+      if (!res.ok) return false
+      const data = await res.json()
+      if (!data) return false
+      // Restore from cloud data
+      set({
+        ...createInitialWorld(),
+        playerName: data.playerName ?? '',
+        playTicks: data.playTicks ?? 0,
+        totalPublished: data.totalPublished ?? 0,
+        totalBestsellers: data.totalBestsellers ?? 0,
+        totalRejections: data.totalRejections ?? 0,
+        currencies: data.currencies ?? { revisionPoints: 0, prestige: 0, royalties: 0, statues: 0 },
+        permanentBonuses: data.permanentBonuses ?? createInitialWorld().permanentBonuses,
+        calendar: data.calendar ?? createInitialWorld().calendar,
+        triggeredMilestones: new Set(data.triggeredMilestones ?? []),
+        cloudSaveCode: code,
+        isInitialized: true,
+      })
+      // Load maps
+      if (data.manuscriptsJson) {
+        try {
+          const entries = JSON.parse(data.manuscriptsJson) as [string, unknown][]
+          set(s => { entries.forEach(([k, v]) => s.manuscripts.set(k, v as never)); return {} })
+        } catch {}
+      }
+      if (data.authorsJson) {
+        try {
+          const entries = JSON.parse(data.authorsJson) as [string, unknown][]
+          set(s => { entries.forEach(([k, v]) => s.authors.set(k, v as never)); return {} })
+        } catch {}
+      }
+      if (data.departmentsJson) {
+        try {
+          const entries = JSON.parse(data.departmentsJson) as [string, unknown][]
+          set(s => { entries.forEach(([k, v]) => s.departments.set(k, v as never)); return {} })
+        } catch {}
+      }
+      return true
+    } catch {
+      return false
+    }
   },
 }))

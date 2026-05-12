@@ -10,6 +10,7 @@ export function TopBar() {
   const calendar = useGameStore(s => s.calendar)
   const startLoop = useGameStore(s => s.startLoop)
   const stopLoop = useGameStore(s => s.stopLoop)
+  const cloudSaveCode = useGameStore(s => s.cloudSaveCode)
 
   return (
     <header className="h-12 border-b-2 border-border-dark bg-cream-dark flex items-center justify-between px-4 shrink-0">
@@ -31,6 +32,11 @@ export function TopBar() {
 
       <div className="flex items-center gap-3">
         <span className="text-[10px] text-muted font-mono">{playerName}</span>
+        {cloudSaveCode && (
+          <span className="text-[10px] text-muted font-mono" title={`云存档：${cloudSaveCode}`}>
+            ☁️
+          </span>
+        )}
         {isInitialized && (
           <button
             onClick={() => isRunning ? stopLoop() : startLoop()}
