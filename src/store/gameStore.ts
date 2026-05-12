@@ -184,6 +184,16 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     const ms = state.manuscripts.get(id)
     if (!ms || ms.status !== 'submitted') return
     ms.status = 'rejected'
+
+    const wasUnsuitable = ms.isUnsuitable
+    let rpReward = 0
+    let prestigeReward = 0
+
+    if (wasUnsuitable) {
+      rpReward = 8
+      prestigeReward = 3
+    }
+
     const author = state.authors.get(ms.authorId)
     if (author) {
       author.rejectedCount++
@@ -193,14 +203,28 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       manuscripts: new Map(state.manuscripts),
       authors: new Map(state.authors),
       totalRejections: state.totalRejections + 1,
+      currencies: {
+        ...state.currencies,
+        revisionPoints: state.currencies.revisionPoints + rpReward,
+        prestige: state.currencies.prestige + prestigeReward,
+      },
     })
     const state2 = get()
-    state2.addToast({
-      id: nanoid(),
-      text: `"${ms.title}" 已被退回。作者会缓过来的。大概。`,
-      type: 'rejection',
-      createdAt: Date.now(),
-    })
+    if (wasUnsuitable) {
+      state2.addToast({
+        id: nanoid(),
+        text: `"${ms.title}" 被果断退回。编辑的眼光又救了一次出版社。+${rpReward} 修订点 +${prestigeReward} 声誉`,
+        type: 'info',
+        createdAt: Date.now(),
+      })
+    } else {
+      state2.addToast({
+        id: nanoid(),
+        text: `"${ms.title}" 已被退回。作者会缓过来的。大概。`,
+        type: 'rejection',
+        createdAt: Date.now(),
+      })
+    }
   },
 
   getSubmittedManuscripts: () => {
