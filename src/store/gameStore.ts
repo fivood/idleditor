@@ -24,6 +24,7 @@ export interface GameStore extends GameWorldState {
   // Actions: manuscript
   startReview: (id: string) => void
   rejectManuscript: (id: string) => void
+  confirmCover: (id: string) => void
   getSubmittedManuscripts: () => Manuscript[]
   getPublishedBooks: () => Manuscript[]
   getInProgressManuscripts: () => Manuscript[]
@@ -227,6 +228,15 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     }
   },
 
+  confirmCover: (id: string) => {
+    const state = get()
+    const ms = state.manuscripts.get(id)
+    if (!ms || ms.status !== 'cover_select') return
+    ms.status = 'publishing'
+    ms.editingProgress = 0
+    set({ manuscripts: new Map(state.manuscripts) })
+  },
+
   getSubmittedManuscripts: () => {
     return [...get().manuscripts.values()].filter(m => m.status === 'submitted')
   },
@@ -238,7 +248,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   getInProgressManuscripts: () => {
     const state = get()
     return [...state.manuscripts.values()].filter(
-      m => ['reviewing', 'editing', 'proofing', 'publishing'].includes(m.status)
+      m => ['reviewing', 'editing', 'proofing', 'cover_select', 'publishing'].includes(m.status)
     )
   },
 

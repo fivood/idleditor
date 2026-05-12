@@ -190,7 +190,7 @@ export function tick(world: GameWorldState): TickResult {
     const speedMult = 1 + world.permanentBonuses.editingSpeedBonus
     m.editingProgress += (1 / needed) * speedMult
     if (m.editingProgress >= 1) {
-      m.status = 'publishing'
+      m.status = 'cover_select'
       m.editingProgress = 0
       world.currencies.revisionPoints += rpPerProof(world.permanentBonuses.editingSpeedBonus)
     }

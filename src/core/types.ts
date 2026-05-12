@@ -25,6 +25,7 @@ export type ManuscriptStatus =
   | 'reviewing'
   | 'editing'
   | 'proofing'
+  | 'cover_select'
   | 'publishing'
   | 'published'
   | 'rejected'
