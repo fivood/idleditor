@@ -14,7 +14,7 @@ export function ShelfView() {
 
   if (books.length === 0) {
     return (
-      <div className="text-center py-12">
+      <div className="h-full overflow-y-auto p-4">
         <p className="text-muted text-sm">还没有出版过任何书。</p>
         <p className="text-muted text-xs mt-1">在桌面上审稿，出版你的第一本书。</p>
       </div>
@@ -22,7 +22,7 @@ export function ShelfView() {
   }
 
   return (
-    <div>
+    <div className="h-full overflow-y-auto p-4">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-medium text-ink">{books.length} 本书已出版</h2>
       </div>

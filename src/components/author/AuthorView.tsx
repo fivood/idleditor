@@ -11,7 +11,7 @@ export function AuthorView() {
 
   if (list.length === 0) {
     return (
-      <div className="text-center py-12">
+      <div className="h-full overflow-y-auto p-4 text-center py-12">
         <p className="text-muted text-sm">还未发现任何作者。</p>
         <p className="text-muted text-xs mt-1">当稿件出现在你的桌面上时，你会遇到作者。</p>
       </div>
@@ -23,7 +23,7 @@ export function AuthorView() {
   const sorted = [...list].sort((a, b) => (tierOrder[a.tier] ?? 9) - (tierOrder[b.tier] ?? 9))
 
   return (
-    <div>
+    <div className="h-full overflow-y-auto p-4">
       <h2 className="text-sm font-medium text-ink mb-3">{list.length} 位作者</h2>
       <div className="grid gap-2">
         {sorted.map(author => (

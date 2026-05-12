@@ -20,7 +20,7 @@
 @layer base {
   body {
     margin: 0;
-    background: var(--color-paper);
+    background: #e8e5df;
     color: var(--color-ink);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
@@ -32,8 +32,35 @@
   }
 
   #root {
-    min-height: 100dvh;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ──── Scrollbar ──── */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #d4d0c8;
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #b0aca4;
+  }
+
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #d4d0c8 transparent;
   }
 }
