@@ -19,10 +19,10 @@
   --color-card-raised: #f0ece4;
   --color-card-inset: #d4cfc7;
 
-  /* Fonts */
+  /* Fonts — system pixel-friendly mono stacks */
   --font-sans: "Inter", system-ui, sans-serif;
-  --font-mono: "VT323", "Courier New", monospace;
-  --font-pixel: "Press Start 2P", "VT323", "Courier New", monospace;
+  --font-mono: "Courier New", "SimHei", "Microsoft YaHei", monospace;
+  --font-pixel: "Courier New", "SimHei", monospace;
 }
 
 @layer base {
