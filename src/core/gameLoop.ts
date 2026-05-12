@@ -6,6 +6,9 @@ import {
   AUTHOR_TALENT_RANGE,
   AUTHOR_FAME_PER_PUBLISH,
   AUTHOR_TIER_THRESHOLDS,
+  AUTO_COVER_PRESTIGE,
+  AUTO_REJECT_PRESTIGE,
+  AUTO_REVIEW_DEPT_LEVEL,
   BESTSELLER_SALES,
   BOSS_START_YEARS,
   EDITOR_TRAIT_BONUSES,
@@ -329,7 +332,51 @@ export function tick(world: GameWorldState): TickResult {
     }
   }
 
-  // 9. Check milestones
+  // 9. Automation perks
+  const editingDeptLevel = getDeptLevel(world, 'editing')
+  const prestige = world.currencies.prestige
+
+  // Auto-review: editing dept >= 3
+  if (editingDeptLevel >= AUTO_REVIEW_DEPT_LEVEL) {
+    const submitted = [...world.manuscripts.values()].filter(m => m.status === 'submitted')
+    if (submitted.length > 0) {
+      const ms = submitted[0]
+      ms.status = 'reviewing'
+      ms.editingProgress = 0
+      result.toasts.push(createToast(`🤖 自动审稿：《${ms.title}》`, 'info'))
+    }
+  }
+
+  // Auto-cover: prestige >= 100
+  if (prestige >= AUTO_COVER_PRESTIGE) {
+    const awaitingCover = [...world.manuscripts.values()].filter(m => m.status === 'cover_select')
+    if (awaitingCover.length > 0) {
+      const ms = awaitingCover[0]
+      ms.status = 'publishing'
+      ms.editingProgress = 0
+      result.toasts.push(createToast(`🤖 自动出版：《${ms.title}》`, 'info'))
+    }
+  }
+
+  // Auto-reject unsuitable: prestige >= 200 && editing dept >= 5
+  if (prestige >= AUTO_REJECT_PRESTIGE && editingDeptLevel >= 5) {
+    const unsuitable = [...world.manuscripts.values()].filter(m => m.status === 'submitted' && m.isUnsuitable)
+    for (const ms of unsuitable) {
+      ms.status = 'rejected'
+      world.totalRejections++
+      world.currencies.revisionPoints += 8
+      world.currencies.prestige += 3
+      // Trigger author cooldown
+      const author = world.authors.get(ms.authorId)
+      if (author) {
+        author.rejectedCount++
+        author.cooldownUntil = 1800 + author.rejectedCount * 300
+      }
+      result.toasts.push(createToast(`🤖 自动退稿：《${ms.title}》——不值得人类编辑的注意力。`, 'info'))
+    }
+  }
+
+  // 10. Check milestones
   for (const ms of MILESTONES) {
     if (!world.triggeredMilestones.has(ms.ticks) && world.playTicks >= ms.ticks) {
       world.triggeredMilestones.add(ms.ticks)
@@ -456,8 +503,15 @@ function createRandomAuthor(_world: GameWorldState): Author {
 function getDeptEfficiency(world: GameWorldState, type: string): number {
   for (const dept of world.departments.values()) {
     if (dept.type === type) {
-      return 0.5 * dept.level / 10 // simplified
+      return 0.5 * dept.level / 10
     }
+  }
+  return 0
+}
+
+function getDeptLevel(world: GameWorldState, type: string): number {
+  for (const dept of world.departments.values()) {
+    if (dept.type === type) return dept.level
   }
   return 0
 }

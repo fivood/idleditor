@@ -2,7 +2,7 @@ import { useGameStore } from '@/store/gameStore'
 import { getPreferenceSlots } from '@/store/gameStore'
 import type { DepartmentType, Genre } from '@/core/types'
 import { GENRE_ICONS } from '@/core/types'
-import { GENRE_PREFERENCE_THRESHOLDS } from '@/core/constants'
+import { GENRE_PREFERENCE_THRESHOLDS, AUTO_REVIEW_DEPT_LEVEL, AUTO_COVER_PRESTIGE, AUTO_REJECT_PRESTIGE } from '@/core/constants'
 import { useMemo, useState } from 'react'
 import { ChangelogModal } from './ChangelogModal'
 
@@ -31,6 +31,7 @@ export function OfficeView() {
   const [showChangelog, setShowChangelog] = useState(false)
 
   const deptList = useMemo(() => [...departments.values()], [departments])
+  const editingLevel = deptList.find(d => d.type === 'editing')?.level ?? 0
   const maxSlots = getPreferenceSlots(currencies.prestige)
   const usedSlots = preferredGenres.length
   const nextThreshold = GENRE_PREFERENCE_THRESHOLDS.find(t => currencies.prestige < t)
@@ -147,7 +148,62 @@ export function OfficeView() {
         </div>
       </div>
 
+      {/* Automation Perks */}
+      <div>
+        <h2 className="text-xs md:text-sm font-bold text-ink mb-1 font-mono">编辑特权</h2>
+        <p className="text-[8px] md:text-[10px] text-muted mb-2 md:mb-3 font-mono">
+          随着你在出版社的资历增长，一些枯燥的工作会自动化——毕竟活了两个多世纪，有些事该交给系统了。
+        </p>
+        <div className="grid gap-1.5 md:gap-2">
+          <PerkCard
+            icon="🤖"
+            label="自动审稿"
+            desc="编辑部自动受理投稿池里的稿件。"
+            req={`编辑部 Lv.${AUTO_REVIEW_DEPT_LEVEL}`}
+            unlocked={editingLevel >= AUTO_REVIEW_DEPT_LEVEL}
+          />
+          <PerkCard
+            icon="🎨"
+            label="自动出版"
+            desc="封面待选的稿件自动使用占位封面出版。"
+            req={`声望 ${AUTO_COVER_PRESTIGE}`}
+            unlocked={currencies.prestige >= AUTO_COVER_PRESTIGE}
+          />
+          <PerkCard
+            icon="🗑️"
+            label="自动退稿"
+            desc="一眼看出就不行的稿件不用你亲自动手退了。"
+            req={`声望 ${AUTO_REJECT_PRESTIGE} + 编辑部 Lv.5`}
+            unlocked={currencies.prestige >= AUTO_REJECT_PRESTIGE && editingLevel >= 5}
+          />
+        </div>
+      </div>
+
       {showChangelog && <ChangelogModal onClose={() => setShowChangelog(false)} />}
+    </div>
+  )
+}
+
+function PerkCard({ icon, label, desc, req, unlocked }: {
+  icon: string; label: string; desc: string; req: string; unlocked: boolean
+}) {
+  return (
+    <div className={`border-2 p-2 md:p-3 transition-all ${
+      unlocked
+        ? 'bg-cream border-progress shadow-[3px_3px_0_#3a6491]'
+        : 'bg-cream-dark border-border-dark opacity-50'
+    }`}>
+      <div className="flex items-center gap-2">
+        <span className="text-sm md:text-lg">{icon}</span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] md:text-xs font-bold text-ink font-mono">{label}</span>
+            {unlocked && <span className="text-[8px] text-progress font-bold font-mono">已解锁</span>}
+          </div>
+          <p className="text-[8px] md:text-[10px] text-muted font-mono">{desc}</p>
+        </div>
+        <span className="text-[7px] md:text-[8px] text-muted font-mono text-right shrink-0">{req}</span>
+      </div>
     </div>
   )
 }

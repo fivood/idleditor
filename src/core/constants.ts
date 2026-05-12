@@ -98,6 +98,11 @@ export const REBIRTH_STATUE_BONUSES = {
 
 export const BOSS_START_YEARS = 10
 
+// ──── Automation perks ────
+export const AUTO_REVIEW_DEPT_LEVEL = 3   // editing dept level >=3 unlocks auto-review
+export const AUTO_COVER_PRESTIGE = 100     // prestige >=100 unlocks auto-cover (placeholder)
+export const AUTO_REJECT_PRESTIGE = 200    // prestige >=200 + level 5 editing unlocks auto-reject unsuitable
+
 // ──── Milestones (playTicks) ────
 export const MILESTONES = [
   { ticks: 0, message: '永夜出版社迎来了又一个平凡的工作日。你在吱嘎作响的旧桌前坐下——这张桌子比你老，但比你短命的主人活得久。' },
