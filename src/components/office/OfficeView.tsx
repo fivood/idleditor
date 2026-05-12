@@ -42,7 +42,7 @@ export function OfficeView() {
         <h2 className="text-xs md:text-sm font-bold text-ink font-mono">办公室</h2>
         <button
           onClick={() => setShowChangelog(true)}
-          className="text-[11px] md:text-[13px] text-muted font-mono border border-border-medium px-1.5 py-0.5 bg-cream hover:text-ink cursor-pointer transition-colors"
+          className="text-[14px] md:text-[16px] text-muted font-mono border border-border-medium px-1.5 py-0.5 bg-cream hover:text-ink cursor-pointer transition-colors"
         >
           开发日志
         </button>
@@ -58,26 +58,26 @@ export function OfficeView() {
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-base md:text-lg">{info.icon}</span>
                   <span className="text-xs md:text-sm font-bold text-ink font-mono">{info.label}</span>
-                  {dept && <span className="text-[13px] md:text-xs text-copper font-bold ml-auto font-mono">Lv.{dept.level}</span>}
+                  {dept && <span className="text-[16px] md:text-xs text-copper font-bold ml-auto font-mono">Lv.{dept.level}</span>}
                 </div>
-                <p className="text-[13px] md:text-xs text-muted mb-1.5 md:mb-2 font-mono">{info.desc}</p>
+                <p className="text-[16px] md:text-xs text-muted mb-1.5 md:mb-2 font-mono">{info.desc}</p>
                 {!dept ? (
                   <button
                     onClick={() => createDepartment(type as DepartmentType)}
                     disabled={currencies.revisionPoints < 50}
-                    className={`text-[12px] md:text-xs px-2 md:px-3 py-1 md:py-1.5 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${
+                    className={`text-[15px] md:text-xs px-2 md:px-3 py-1 md:py-1.5 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${
                       currencies.revisionPoints >= 50 ? 'bg-copper text-white' : 'bg-cream-dark text-muted cursor-not-allowed'
                     }`}
                   >
                     雇佣 · 50 RP
                   </button>
                 ) : dept.upgradingUntil !== null ? (
-                  <span className="text-[13px] md:text-xs text-copper font-bold font-mono">升级中...</span>
+                  <span className="text-[16px] md:text-xs text-copper font-bold font-mono">升级中...</span>
                 ) : (
                   <button
                     onClick={() => upgradeDepartment(dept.id)}
                     disabled={currencies.revisionPoints < dept.upgradeCostRP}
-                    className={`text-[12px] md:text-xs px-2 md:px-3 py-1 md:py-1.5 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${
+                    className={`text-[15px] md:text-xs px-2 md:px-3 py-1 md:py-1.5 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${
                       currencies.revisionPoints >= dept.upgradeCostRP ? 'bg-copper text-white' : 'bg-cream-dark text-muted cursor-not-allowed'
                     }`}
                   >
@@ -92,19 +92,19 @@ export function OfficeView() {
 
       <div>
         <h2 className="text-xs md:text-sm font-bold text-ink mb-1 font-mono">偏爱领域</h2>
-        <p className="text-[11px] md:text-[13px] text-muted mb-2 md:mb-3 font-mono">
+        <p className="text-[14px] md:text-[16px] text-muted mb-2 md:mb-3 font-mono">
           声望越高，在编辑部的话语权越大。选择一个或多个偏爱的图书领域，获得质量与销量加成。
         </p>
 
         <div className="bg-card-inset border-2 border-border-dark p-1.5 md:p-2 mb-2 md:mb-3">
           <div className="flex items-center gap-0.5 md:gap-1">
-            <span className="text-[11px] md:text-[13px] text-muted font-mono">话语权：</span>
+            <span className="text-[14px] md:text-[16px] text-muted font-mono">话语权：</span>
             {Array.from({ length: GENRE_PREFERENCE_THRESHOLDS.length }).map((_, i) => (
-              <span key={i} className={`text-[13px] md:text-xs ${i < maxSlots ? '' : 'opacity-30'}`}>
+              <span key={i} className={`text-[16px] md:text-xs ${i < maxSlots ? '' : 'opacity-30'}`}>
                 {i < maxSlots ? '◆' : '◇'}
               </span>
             ))}
-            <span className="text-[11px] md:text-[13px] text-muted font-mono ml-auto">
+            <span className="text-[14px] md:text-[16px] text-muted font-mono ml-auto">
               {usedSlots}/{maxSlots}
               {nextThreshold && <span className="hidden md:inline"> · {nextThreshold}声解锁</span>}
             </span>
@@ -117,7 +117,7 @@ export function OfficeView() {
               <button
                 key={g}
                 onClick={() => removePreferredGenre(g)}
-                className="text-[12px] md:text-xs px-1.5 md:px-2 py-0.5 md:py-1 bg-copper text-white border-2 border-border-dark font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[1px] active:translate-y-[1px] transition-all flex items-center gap-1"
+                className="text-[15px] md:text-xs px-1.5 md:px-2 py-0.5 md:py-1 bg-copper text-white border-2 border-border-dark font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[1px] active:translate-y-[1px] transition-all flex items-center gap-1"
               >
                 {GENRE_ICONS[g]} {GENRE_LABELS[g]} ×
               </button>
@@ -134,7 +134,7 @@ export function OfficeView() {
                 key={genre}
                 onClick={() => setPreferredGenre(genre)}
                 disabled={isFull}
-                className={`text-[12px] md:text-xs px-1.5 md:px-2 py-1 md:py-2 border-2 border-border-dark font-mono transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[1px] active:translate-y-[1px] ${
+                className={`text-[15px] md:text-xs px-1.5 md:px-2 py-1 md:py-2 border-2 border-border-dark font-mono transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[1px] active:translate-y-[1px] ${
                   isFull ? 'bg-cream-dark text-muted cursor-not-allowed' : 'bg-cream text-ink hover:bg-cream-dark cursor-pointer'
                 }`}
               >
@@ -152,7 +152,7 @@ export function OfficeView() {
       {/* Automation Perks */}
       <div>
         <h2 className="text-xs md:text-sm font-bold text-ink mb-1 font-mono">编辑特权</h2>
-        <p className="text-[11px] md:text-[13px] text-muted mb-2 md:mb-3 font-mono">
+        <p className="text-[14px] md:text-[16px] text-muted mb-2 md:mb-3 font-mono">
           随着你在出版社的资历增长，一些枯燥的工作会自动化——毕竟活了两个多世纪，有些事该交给系统了。
         </p>
         <div className="grid gap-1.5 md:gap-2">
@@ -198,12 +198,12 @@ function PerkCard({ icon, label, desc, req, unlocked }: {
         <span className="text-sm md:text-lg">{icon}</span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
-            <span className="text-[13px] md:text-xs font-bold text-ink font-mono">{label}</span>
-            {unlocked && <span className="text-[11px] text-progress font-bold font-mono">已解锁</span>}
+            <span className="text-[16px] md:text-xs font-bold text-ink font-mono">{label}</span>
+            {unlocked && <span className="text-[14px] text-progress font-bold font-mono">已解锁</span>}
           </div>
-          <p className="text-[11px] md:text-[13px] text-muted font-mono">{desc}</p>
+          <p className="text-[14px] md:text-[16px] text-muted font-mono">{desc}</p>
         </div>
-        <span className="text-[13px] md:text-[11px] text-muted font-mono text-right shrink-0">{req}</span>
+        <span className="text-[16px] md:text-[14px] text-muted font-mono text-right shrink-0">{req}</span>
       </div>
     </div>
   )

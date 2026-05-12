@@ -12,7 +12,7 @@ export function ChangelogModal({ onClose }: Props) {
           <h2 className="text-sm md:text-base font-bold font-mono">开发日志</h2>
           <button
             onClick={onClose}
-            className="text-[13px] md:text-xs px-2 py-1 border-2 border-white/30 font-mono cursor-pointer hover:bg-white/10 transition-all"
+            className="text-[16px] md:text-xs px-2 py-1 border-2 border-white/30 font-mono cursor-pointer hover:bg-white/10 transition-all"
           >
             ✕
           </button>
@@ -23,12 +23,12 @@ export function ChangelogModal({ onClose }: Props) {
             <div key={entry.version}>
               <div className="flex items-baseline gap-2 mb-2">
                 <span className="text-xs md:text-sm font-bold text-copper font-mono">{entry.version}</span>
-                <span className="text-[13px] md:text-xs text-muted font-mono">{entry.date}</span>
+                <span className="text-[16px] md:text-xs text-muted font-mono">{entry.date}</span>
                 <span className="text-xs md:text-sm font-bold text-ink font-mono">— {entry.title}</span>
               </div>
               <ul className="space-y-1.5 md:space-y-2 pl-3">
                 {entry.items.map((item, i) => (
-                  <li key={i} className="text-[13px] md:text-xs text-ink-light leading-relaxed font-mono flex items-start gap-2">
+                  <li key={i} className="text-[16px] md:text-xs text-ink-light leading-relaxed font-mono flex items-start gap-2">
                     <span className="text-copper flex-shrink-0 mt-0.5">•</span>
                     <span>{item}</span>
                   </li>

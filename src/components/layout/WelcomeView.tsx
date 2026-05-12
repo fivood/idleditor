@@ -89,11 +89,11 @@ export function WelcomeView() {
               />
 
               <details className="mb-4">
-                <summary className="text-[13px] text-muted font-mono cursor-pointer hover:text-ink-light">
+                <summary className="text-[16px] text-muted font-mono cursor-pointer hover:text-ink-light">
                   云存档（可选）
                 </summary>
                 <div className="mt-2">
-                  <p className="text-[13px] text-muted mb-1.5 font-mono leading-relaxed">
+                  <p className="text-[16px] text-muted mb-1.5 font-mono leading-relaxed">
                     输入一个只有你知道的码，存档自动同步到云端。
                   </p>
                   <input
@@ -140,14 +140,14 @@ export function WelcomeView() {
                       <span className="text-lg">{t.icon}</span>
                       <span className="text-sm font-bold text-ink font-mono">{t.label}</span>
                     </div>
-                    <p className="text-[13px] text-muted font-mono">{t.desc}</p>
-                    <p className="text-[13px] text-copper font-bold font-mono mt-0.5">{t.effects}</p>
+                    <p className="text-[16px] text-muted font-mono">{t.desc}</p>
+                    <p className="text-[16px] text-copper font-bold font-mono mt-0.5">{t.effects}</p>
                   </button>
                 ))}
               </div>
 
               {cloudMsg && (
-                <p className={`text-[13px] font-mono ${cloudMsg.includes('恢复') ? 'text-green-600' : 'text-copper'}`}>
+                <p className={`text-[16px] font-mono ${cloudMsg.includes('恢复') ? 'text-green-600' : 'text-copper'}`}>
                   {cloudMsg}
                 </p>
               )}

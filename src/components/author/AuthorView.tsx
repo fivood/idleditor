@@ -19,7 +19,7 @@ export function AuthorView() {
     return (
       <div className="h-full overflow-y-auto p-3 md:p-5 text-center py-10 md:py-12">
         <p className="text-muted text-xs md:text-sm font-mono">还未发现任何作者。</p>
-        <p className="text-muted text-[13px] md:text-xs mt-1 font-mono">当稿件出现在你的桌面上时，你会遇到作者。</p>
+        <p className="text-muted text-[16px] md:text-xs mt-1 font-mono">当稿件出现在你的桌面上时，你会遇到作者。</p>
       </div>
     )
   }
@@ -44,11 +44,11 @@ export function AuthorView() {
                   {author.talent >= AFFECTION_ELITE_TALENT && <span className="text-copper" title="精英作者">💎 </span>}
                   {author.name}
                   {author.affection >= AFFECTION_LETTER && <span className="text-copper-dark ml-1" title="好感度高">💌</span>}
-                  <span className="text-[11px] md:text-[13px] text-muted font-normal ml-1.5">
+                  <span className="text-[14px] md:text-[16px] text-muted font-normal ml-1.5">
                     {TIER_LABELS[author.tier] ?? author.tier}
                   </span>
                 </p>
-                <p className="text-[12px] md:text-xs text-muted mt-0.5 font-mono">
+                <p className="text-[15px] md:text-xs text-muted mt-0.5 font-mono">
                   {GENRE_ICONS[author.genre]} {author.genre} · 才华 {author.talent} · 名气 {author.fame}
                   {author.cooldownUntil !== null && author.cooldownUntil > 0 && (
                     <span className="text-copper font-bold ml-1">· 休息中</span>
@@ -61,7 +61,7 @@ export function AuthorView() {
               {author.tier === 'new' && (
                 <button
                   onClick={() => signAuthor(author.id)}
-                  className="text-[12px] md:text-xs px-2 md:px-3 py-1 md:py-1.5 bg-copper text-white border-2 border-border-dark font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all flex-shrink-0"
+                  className="text-[15px] md:text-xs px-2 md:px-3 py-1 md:py-1.5 bg-copper text-white border-2 border-border-dark font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all flex-shrink-0"
                 >
                   签约
                 </button>
@@ -81,8 +81,8 @@ function FameBar({ author }: { author: Author }) {
   return (
     <div className="mt-1 md:mt-1.5">
       <div className="flex items-center justify-between mb-0.5">
-        <span className="text-[13px] md:text-[11px] text-muted font-mono">→ {TIER_LABELS[nextTier]}</span>
-        <span className="text-[13px] md:text-[11px] text-muted font-mono tabular-nums">{author.fame}/{threshold}</span>
+        <span className="text-[16px] md:text-[14px] text-muted font-mono">→ {TIER_LABELS[nextTier]}</span>
+        <span className="text-[16px] md:text-[14px] text-muted font-mono tabular-nums">{author.fame}/{threshold}</span>
       </div>
       <div className="h-1 md:h-1.5 bg-card-inset border border-border-dark overflow-hidden">
         <div className="h-full bg-progress transition-all duration-700" style={{ width: `${pct}%` }} />

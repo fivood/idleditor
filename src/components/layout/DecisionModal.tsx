@@ -1,4 +1,4 @@
-import type { Decision } from '@/core/decisions'
+﻿import type { Decision } from '@/core/decisions'
 import { useGameStore } from '@/store/gameStore'
 
 interface Props {

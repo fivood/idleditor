@@ -21,9 +21,9 @@
   --color-card-raised: #f0ece4;
   --color-card-inset: #d4cfc7;
 
-  /* Fonts — system pixel-friendly mono stacks */
+  /* Fonts — Chinese-first with monospace fallback */
   --font-sans: "Inter", system-ui, sans-serif;
-  --font-mono: "Courier New", "SimHei", "Microsoft YaHei", monospace;
+  --font-mono: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "SimHei", "Courier New", monospace;
   --font-pixel: "Courier New", "SimHei", monospace;
 }
 
@@ -33,7 +33,7 @@
     background: #c4b5a0;
     color: var(--color-ink);
     font-family: var(--font-mono);
-    font-size: 18px;
+    font-size: 22px;
     -webkit-font-smoothing: antialiased;
     image-rendering: pixelated;
   }
