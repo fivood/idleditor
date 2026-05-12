@@ -212,7 +212,7 @@ export function tick(world: GameWorldState): TickResult {
       world.manuscripts.set(ms.id, ms)
       result.newManuscripts.push(ms)
     }
-    world.spawnTimer = 15 + rangeInt(-3, 8)
+    world.spawnTimer = 40 + rangeInt(-5, 15)
   }
 
   // 2. Process reviewing
