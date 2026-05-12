@@ -37,6 +37,7 @@ export interface GameStore extends GameWorldState {
   upgradeDepartment: (id: string) => void
 
   // Actions: UI
+  setPlayerName: (name: string) => void
   setActiveTab: (tab: GameStore['activeTab']) => void
   dismissToast: (id: string) => void
   addToast: (toast: ToastMessage) => void
@@ -98,6 +99,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       currencies: state.currencies,
       permanentBonuses: state.permanentBonuses,
       trait: state.trait,
+      playerName: state.playerName,
+      calendar: state.calendar,
       spawnTimer: state.spawnTimer,
       awardTimer: state.awardTimer,
       trendTimer: state.trendTimer,
@@ -112,6 +115,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       totalBestsellers: world.totalBestsellers,
       totalRejections: world.totalRejections,
       currencies: { ...world.currencies },
+      calendar: { ...world.calendar },
       spawnTimer: world.spawnTimer,
       awardTimer: world.awardTimer,
       trendTimer: world.trendTimer,
@@ -126,6 +130,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         currencies: world.currencies,
         permanentBonuses: world.permanentBonuses,
         trait: world.trait,
+        playerName: world.playerName,
+        calendar: world.calendar,
         totalPublished: world.totalPublished,
         totalBestsellers: world.totalBestsellers,
         totalRejections: world.totalRejections,
@@ -154,6 +160,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     }
     set({
       ...createInitialWorld(),
+      playerName: state.playerName,
+      calendar: state.calendar,
       permanentBonuses: bonuses,
       currencies: {
         revisionPoints: 0,
@@ -306,6 +314,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   },
 
   // ──── UI actions ────
+  setPlayerName: (name) => set({ playerName: name }),
   setActiveTab: (tab) => set({ activeTab: tab }),
   dismissToast: (id) => {
     set(state => ({ toasts: state.toasts.filter(t => t.id !== id) }))

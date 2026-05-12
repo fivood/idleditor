@@ -9,6 +9,8 @@ export interface GameSaveData {
   currencies: SavedGame['currencies']
   permanentBonuses: SavedGame['permanentBonuses']
   trait: string | null
+  playerName: string
+  calendar: SavedGame['calendar']
   totalPublished: number
   totalBestsellers: number
   totalRejections: number
@@ -27,6 +29,8 @@ export async function saveGameToDb(data: GameSaveData): Promise<void> {
     currencies: data.currencies,
     permanentBonuses: data.permanentBonuses,
     trait: data.trait,
+    playerName: data.playerName,
+    calendar: data.calendar,
     totalPublished: data.totalPublished,
     totalBestsellers: data.totalBestsellers,
     totalRejections: data.totalRejections,
@@ -48,6 +52,8 @@ export async function loadGameFromDb(): Promise<GameSaveData | null> {
     currencies: save.currencies,
     permanentBonuses: save.permanentBonuses,
     trait: save.trait,
+    playerName: save.playerName ?? '',
+    calendar: save.calendar ?? { day: 1, month: 0, year: 1, totalDays: 0 },
     totalPublished: save.totalPublished,
     totalBestsellers: save.totalBestsellers,
     totalRejections: save.totalRejections,

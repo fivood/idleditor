@@ -29,6 +29,8 @@ export function useOfflineProgress() {
       currencies: { ...saved.currencies },
       permanentBonuses: { ...saved.permanentBonuses },
       trait: null,
+      playerName: saved.playerName ?? '',
+      calendar: saved.calendar ?? { day: 1, month: 0, year: 1, totalDays: 0 },
       spawnTimer: 0,
       awardTimer: 0,
       trendTimer: 0,

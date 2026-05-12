@@ -17,7 +17,7 @@ export interface ToastContext {
 type SlotResolver = (ctx: ToastContext) => string
 
 const SLOTS: Record<string, SlotResolver> = {
-  '{editorName}': () => '你',
+  '{editorName}': (ctx) => ctx.playerName ?? '你',
   '{title}': (ctx) => `《${ctx.title ?? '无名稿件'}》`,
   '{authorName}': (ctx) => ctx.authorName ?? '匿名作者',
   '{genre}': (ctx) => ctx.genre ?? '杂类',
@@ -51,34 +51,34 @@ function resolve(template: string, ctx: ToastContext): string {
 const SCENES: Record<string, string[]> = {
   reviewComplete: [
     '{intro}{editorName}{verb_read}了{title}。{punch_review}',
-    '{title}：用时{time_minutes}分钟读完，完全没读懂。{punch_review}',
-    '{title}的最后一章让{editorName}盯着天花板整整发了{time_minutes}秒的呆。{punch_review}',
+    '{title}：用时{time_minutes}分钟读完。{editorName}觉得，两百多年的编辑经验在此刻化为一声叹息。',
+    '{title}的最后一章让{editorName}盯着天花板整整发了{time_minutes}秒的呆。永生有时候确实太长了。',
   ],
   bookPublished: [
-    '{title}正式出版。{intro}现在这本书是读者的问题了。',
-    '{intro}印刷机隆隆作响。{title}被释放在毫无防备的世人面前。',
-    '一本新书加入了目录：《{title}》，作者{authorName}。书架微微倾斜以适应它的重量。',
+    '{title}正式出版。{intro}现在这本书是读者的问题了。{editorName}端起茶杯——里面当然是普通的红茶，不要再问了。',
+    '{intro}印刷机隆隆作响。{title}被释放在毫无防备的世人面前。又一本。永远还有下一本。',
+    '一本新书加入了永夜的目录：《{title}》。书架又倾斜了一点。三百年来一直如此。',
   ],
   bestseller: [
     '{title}正在排行榜上{verb_sell}。据目击，竞品出版社的编辑在办公室里{verb_read}自己的垃圾堆，面露绝望。',
-    '{intro}传真机被打爆了。各地书店都在补订{title}。传真机从未如此受欢迎。',
-    '{title}销量突破了10万册！作者{authorName}现在逢人就说自己是作家。出版社的声誉随之水涨船高。',
+    '{intro}传真机被打爆了。各地书店都在补订{title}。{editorName}想起上次看到这种场面还是在1920年代。那次是海明威。',
+    '{title}销量突破了10万册！作者{authorName}很开心。{editorName}也很开心——至少以吸血鬼的标准来说，嘴角微微动了一下。',
   ],
   authorCooldown: [
-    '{authorName}宣布需要休息一段时间。{punch_author}',
-    '{intro}{authorName}正在某个地方{verb_write}下一部巨著。预计{time_days}个工作日之后交稿。上下浮动一个月。',
+    '{authorName}宣布需要休息一段时间。{editorName}表示理解——活两百年的人最懂什么叫"需要空间"。',
+    '{intro}{authorName}正在某个地方{verb_write}下一部巨著。预计{time_days}个工作日之后交稿。对于永生者来说，这点时间不算什么。',
   ],
   authorReturn: [
-    '{authorName}从休息中归来，气色好得可疑，还带了一份新稿子。',
-    '{intro}{authorName}回到了书桌前。新稿件{adj_pos}。事情不太对劲。',
+    '{authorName}从休息中归来，气色好得可疑，还带来了一份新稿子。{editorName}怀疑他是不是偷喝了伯爵的存血。',
+    '{intro}{authorName}回到了书桌前。新稿件{adj_pos}。活了两百年，{editorName}还是会被这种惊喜感动。',
   ],
   manuscriptRejected: [
-    '{intro}{title}被退稿了。{punch_review}作者会活下去的。大概吧。',
-    '{title}——退稿决定已做出。相信它会在别处找到归宿。或者找不到。总之不是我们这儿。',
+    '{intro}{title}被退稿了。{editorName}活了这么久，退稿次数早已数不清。但每次都有不一样的失望。',
+    '{title}——退稿决定已做出。编辑部里一百岁的实习生说了一句："确实不行。"他有发言权。',
   ],
   idle: [
-    '稿件堆安静地躺在那里。你琢磨着是不是该泡杯茶。',
-    '{intro}一切如常。出版社轻轻地呼吸着。某个地方，一位作者正在恐慌。',
+    '稿件堆安静地躺在那里。{editorName}的茶杯飘出淡淡的红色蒸汽——纯红茶，绝对纯红茶。',
+    '{intro}一切如常。永夜出版社轻轻地呼吸着。某个地方，一位人类作者正在恐慌。而{editorName}已经目睹这种恐慌几百年了。',
   ],
 }
 

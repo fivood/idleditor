@@ -29,6 +29,9 @@ import { nanoid } from '../utils/id'
 import { pick, rangeInt, roll } from '../utils/random'
 import { generateToast } from './humor/generator'
 import { generateSynopsis, generateRejectionReason, isClearlyUnsuitable } from './humor/synopsis'
+import { createCalendar, advanceCalendar, TICKS_PER_DAY } from './calendar'
+import { checkDateEvent } from './dateEvents'
+import type { GameCalendar } from './calendar'
 
 // ──── State that the game loop reads/mutates ────
 export interface GameWorldState {
@@ -43,6 +46,8 @@ export interface GameWorldState {
   currencies: { revisionPoints: number; prestige: number; royalties: number; statues: number }
   permanentBonuses: PermanentBonuses
   trait: EditorTrait | null
+  playerName: string
+  calendar: GameCalendar
   spawnTimer: number
   awardTimer: number
   trendTimer: number
@@ -116,7 +121,9 @@ export function createInitialWorld(): GameWorldState {
       spawnRateBonus: 0,
     },
     trait: null,
-    spawnTimer: 5, // first manuscript in 5 seconds
+    playerName: '',
+    calendar: createCalendar(),
+    spawnTimer: 5,
     awardTimer: 0,
     trendTimer: 0,
     triggeredMilestones: new Set(),
@@ -135,6 +142,21 @@ export function tick(world: GameWorldState): TickResult {
   }
 
   world.playTicks++
+
+  // Advance calendar every TICKS_PER_DAY ticks
+  if (world.playTicks % TICKS_PER_DAY === 0) {
+    advanceCalendar(world.calendar)
+    // Check for date events
+    const dateEvt = checkDateEvent(world.calendar)
+    if (dateEvt) {
+      result.toasts.push({
+        id: nanoid(),
+        text: `📅 ${dateEvt.title}！${dateEvt.description}（${dateEvt.genre ? dateEvt.genre + '类书籍销量×' + dateEvt.multiplier : '全类书籍销量×' + dateEvt.multiplier}，持续${dateEvt.durationDays}天）`,
+        type: 'milestone',
+        createdAt: world.playTicks,
+      })
+    }
+  }
 
   // 1. Spawn manuscripts
   world.spawnTimer--
@@ -164,6 +186,7 @@ export function tick(world: GameWorldState): TickResult {
         genre: m.genre,
         quality: String(m.quality),
         authorName: world.authors.get(m.authorId)?.name ?? 'Unknown',
+        playerName: world.playerName,
       }), 'info'))
     }
   }
@@ -215,6 +238,7 @@ export function tick(world: GameWorldState): TickResult {
         title: m.title,
         genre: m.genre,
         authorName: world.authors.get(m.authorId)?.name ?? 'Unknown',
+        playerName: world.playerName,
       }), 'milestone'))
     }
   }
@@ -236,6 +260,7 @@ export function tick(world: GameWorldState): TickResult {
       result.toasts.push(createToast(generateToast('bestseller', {
         title: m.title,
         authorName: world.authors.get(m.authorId)?.name ?? 'Unknown',
+        playerName: world.playerName,
       }), 'award'))
     }
   }

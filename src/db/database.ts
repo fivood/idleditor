@@ -18,6 +18,8 @@ export interface SavedGame {
     spawnRateBonus: number
   }
   trait: string | null
+  playerName: string
+  calendar: { day: number; month: number; year: number; totalDays: number }
   totalPublished: number
   totalBestsellers: number
   totalRejections: number
