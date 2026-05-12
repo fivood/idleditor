@@ -25,7 +25,7 @@ export function LogPanel() {
       <h3 className="text-xs font-medium text-ink mb-2 shrink-0">出版日志</h3>
       <div className="flex-1 overflow-y-auto space-y-1.5 pr-1">
         {toasts.map(toast => (
-          <div key={toast.id} className="text-[10px] leading-relaxed">
+          <div key={toast.id} className="text-xs leading-relaxed">
             <span className={`inline-block mr-1 ${
               toast.type === 'milestone' ? 'text-gold' :
               toast.type === 'award' ? 'text-green' :

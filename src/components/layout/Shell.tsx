@@ -30,7 +30,7 @@ export function Shell() {
   }
 
   return (
-    <div className="w-full h-dvh max-w-5xl mx-auto flex flex-col bg-paper shadow-xl overflow-hidden">
+    <div className="w-full h-dvh flex flex-col bg-paper shadow-xl overflow-hidden">
       {/* Top bar */}
       <TopBar />
 

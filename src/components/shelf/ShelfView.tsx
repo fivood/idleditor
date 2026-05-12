@@ -14,7 +14,7 @@ export function ShelfView() {
 
   if (books.length === 0) {
     return (
-      <div className="h-full overflow-y-auto p-4">
+      <div className="h-full overflow-y-auto p-5">
         <p className="text-muted text-sm">还没有出版过任何书。</p>
         <p className="text-muted text-xs mt-1">在桌面上审稿，出版你的第一本书。</p>
       </div>

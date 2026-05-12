@@ -18,7 +18,7 @@ export function OfficeView() {
   const deptList = useMemo(() => [...departments.values()], [departments])
 
   return (
-    <div className="h-full overflow-y-auto p-4">
+    <div className="h-full overflow-y-auto p-5">
       <h2 className="text-sm font-medium text-ink mb-3">部门管理</h2>
       <div className="grid gap-2">
         {Object.entries(DEPT_INFO).map(([type, info]) => {

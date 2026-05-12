@@ -38,11 +38,11 @@ export function DeskView() {
   )
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4 h-full p-4">
+    <div className="grid grid-cols-[3fr_1.2fr] gap-4 h-full p-5">
       {/* Main content */}
       <div className="flex flex-col gap-3 min-h-0">
         {/* Stats */}
-        <div className="flex items-center gap-3 text-xs text-muted shrink-0">
+        <div className="flex items-center gap-3 text-sm text-muted shrink-0">
           <span className="text-ink font-medium">📥 {submitted.length} 篇待审</span>
           <span className="text-ink font-medium">⚙️ {inProgress.length} 篇进行中</span>
           {!isRunning && (
@@ -65,7 +65,7 @@ export function DeskView() {
         <div className="grid grid-cols-2 gap-3 flex-1 min-h-0">
           {/* Slush pile */}
           <div className="flex flex-col min-h-0">
-            <h2 className="text-xs font-medium text-muted uppercase tracking-wider mb-2 shrink-0">
+            <h2 className="text-sm font-medium text-muted uppercase tracking-wider mb-2 shrink-0">
               投稿池
             </h2>
             <div className="flex-1 overflow-y-auto space-y-2 pr-1">
@@ -83,7 +83,7 @@ export function DeskView() {
 
           {/* Pipeline */}
           <div className="flex flex-col min-h-0">
-            <h2 className="text-xs font-medium text-muted uppercase tracking-wider mb-2 shrink-0">
+            <h2 className="text-sm font-medium text-muted uppercase tracking-wider mb-2 shrink-0">
               编辑流水线
             </h2>
             <div className="flex-1 overflow-y-auto space-y-2 pr-1">
@@ -102,7 +102,7 @@ export function DeskView() {
       </div>
 
       {/* Log panel */}
-      <div className="hidden lg:block min-h-0">
+      <div className="min-h-0">
         <LogPanel />
       </div>
     </div>
@@ -121,7 +121,7 @@ function PipelineCard({ manuscript: ms }: { manuscript: Manuscript }) {
           <span className="text-base flex-shrink-0">{STAGE_ICONS[stage] ?? '📖'}</span>
           <div className="min-w-0">
             <p className="text-sm font-medium text-ink truncate">{ms.title}</p>
-            <p className="text-[10px] text-muted">{STAGE_LABELS[stage] ?? stage}</p>
+            <p className="text-xs text-muted">{STAGE_LABELS[stage] ?? stage}</p>
           </div>
         </div>
         <span className="text-sm font-mono font-medium text-green tabular-nums flex-shrink-0 ml-2">
@@ -138,7 +138,7 @@ function PipelineCard({ manuscript: ms }: { manuscript: Manuscript }) {
       </div>
 
       {/* Stage note */}
-      <p className="text-[10px] text-muted mt-1 text-right">
+      <p className="text-xs text-muted mt-1 text-right">
         {pct < 100 ? '处理中...' : '完成'}
       </p>
     </div>
