@@ -115,7 +115,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       awardTimer: world.awardTimer,
       trendTimer: world.trendTimer,
       triggeredMilestones: new Set(world.triggeredMilestones),
-      toasts: [...state.toasts, ...result.toasts].slice(-20),
+      toasts: [...state.toasts, ...result.toasts].slice(-100),
     })
 
     // Auto-save every 60 ticks (1 minute)
@@ -277,6 +277,6 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     set(state => ({ toasts: state.toasts.filter(t => t.id !== id) }))
   },
   addToast: (toast) => {
-    set(state => ({ toasts: [...state.toasts, toast].slice(-20) }))
+    set(state => ({ toasts: [...state.toasts, toast].slice(-100) }))
   },
 }))

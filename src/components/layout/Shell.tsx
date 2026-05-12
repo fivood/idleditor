@@ -3,7 +3,6 @@ import { DeskView } from '@/components/desk/DeskView'
 import { ShelfView } from '@/components/shelf/ShelfView'
 import { AuthorView } from '@/components/author/AuthorView'
 import { OfficeView } from '@/components/office/OfficeView'
-import { ToastContainer } from '@/components/shared/Toast'
 import { useGameStore } from '@/store/gameStore'
 import { useGameLoop } from '@/hooks/useGameLoop'
 import { useAutoSave } from '@/hooks/useAutoSave'
@@ -33,7 +32,7 @@ export function Shell() {
   return (
     <div className="flex flex-col min-h-dvh bg-paper">
       <TopBar />
-      <main className="flex-1 overflow-y-auto p-4">
+      <main className="flex-1 overflow-hidden p-4">
         {activeTab === 'desk' && <DeskView />}
         {activeTab === 'shelf' && <ShelfView />}
         {activeTab === 'authors' && <AuthorView />}
@@ -59,7 +58,6 @@ export function Shell() {
           </button>
         ))}
       </nav>
-      <ToastContainer />
     </div>
   )
 }
