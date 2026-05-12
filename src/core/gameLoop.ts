@@ -150,12 +150,10 @@ export function tick(world: GameWorldState): TickResult {
   // 2. Process reviewing
   for (const m of world.manuscripts.values()) {
     if (m.status !== 'reviewing') continue
-    m.editingProgress++
     const editEfficiency = getDeptEfficiency(world, 'editing')
     const needed = reviewTicks(editEfficiency)
     const speedMult = 1 + world.permanentBonuses.editingSpeedBonus
-    const progressPerTick = (1 / needed) * speedMult
-    m.editingProgress = Math.min(1, m.editingProgress * progressPerTick + (1 / needed))
+    m.editingProgress += (1 / needed) * speedMult
     if (m.editingProgress >= 1) {
       m.status = 'editing'
       m.editingProgress = 0
