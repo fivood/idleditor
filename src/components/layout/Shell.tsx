@@ -36,7 +36,7 @@ export function Shell() {
   }
 
   return (
-    <div className="w-full h-dvh max-w-6xl flex flex-col bg-cream border-2 border-border-dark shadow-[6px_6px_0_#4a3728] overflow-hidden">
+    <div className="w-full h-dvh flex flex-col bg-cream border-2 border-border-dark shadow-[6px_6px_0_#4a3728] overflow-hidden">
       <TopBar />
       <main className="flex-1 overflow-hidden flex flex-col min-h-0">
         {activeTab === 'desk' && <DeskView />}
