@@ -128,7 +128,7 @@ function PipelineCard({ manuscript: ms, onSelectCover }: { manuscript: Manuscrip
           onClick={onSelectCover}
           className="w-full text-[16px] md:text-xs px-2 md:px-3 py-1.5 md:py-2 bg-copper text-white border-2 border-border-dark font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
         >
-          选择封面
+          查看封面
         </button>
       </div>
     )
