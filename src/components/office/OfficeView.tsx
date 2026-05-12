@@ -3,7 +3,8 @@ import { getPreferenceSlots } from '@/store/gameStore'
 import type { DepartmentType, Genre } from '@/core/types'
 import { GENRE_ICONS } from '@/core/types'
 import { GENRE_PREFERENCE_THRESHOLDS } from '@/core/constants'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
+import { ChangelogModal } from './ChangelogModal'
 
 const DEPT_INFO: Record<DepartmentType, { label: string; icon: string; desc: string }> = {
   editing: { label: '编辑部', icon: '✍️', desc: '加快审稿、编辑和校对速度。' },
@@ -27,6 +28,7 @@ export function OfficeView() {
   const upgradeDepartment = useGameStore(s => s.upgradeDepartment)
   const setPreferredGenre = useGameStore(s => s.setPreferredGenre)
   const removePreferredGenre = useGameStore(s => s.removePreferredGenre)
+  const [showChangelog, setShowChangelog] = useState(false)
 
   const deptList = useMemo(() => [...departments.values()], [departments])
   const maxSlots = getPreferenceSlots(currencies.prestige)
@@ -35,6 +37,15 @@ export function OfficeView() {
 
   return (
     <div className="h-full overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xs md:text-sm font-bold text-ink font-mono">办公室</h2>
+        <button
+          onClick={() => setShowChangelog(true)}
+          className="text-[8px] md:text-[10px] text-muted font-mono border border-border-medium px-1.5 py-0.5 bg-cream hover:text-ink cursor-pointer transition-colors"
+        >
+          开发日志
+        </button>
+      </div>
       <div>
         <h2 className="text-xs md:text-sm font-bold text-ink mb-2 md:mb-3 font-mono">部门管理</h2>
         <div className="grid gap-1.5 md:gap-2">
@@ -135,6 +146,8 @@ export function OfficeView() {
           })}
         </div>
       </div>
+
+      {showChangelog && <ChangelogModal onClose={() => setShowChangelog(false)} />}
     </div>
   )
 }
