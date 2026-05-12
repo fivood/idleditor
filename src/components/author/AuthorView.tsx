@@ -83,7 +83,7 @@ function FameBar({ author }: { author: Author }) {
         <span className="text-[7px] md:text-[8px] text-muted font-mono tabular-nums">{author.fame}/{threshold}</span>
       </div>
       <div className="h-1 md:h-1.5 bg-card-inset border border-border-dark overflow-hidden">
-        <div className="h-full bg-copper transition-all duration-700" style={{ width: `${pct}%` }} />
+        <div className="h-full bg-progress transition-all duration-700" style={{ width: `${pct}%` }} />
       </div>
     </div>
   )

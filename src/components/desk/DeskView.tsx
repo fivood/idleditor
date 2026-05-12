@@ -25,10 +25,15 @@ export function DeskView() {
 
   const all = useMemo(() => [...manuscripts.values()], [manuscripts])
   const submitted = useMemo(() => all.filter(m => m.status === 'submitted'), [all])
-  const inProgress = useMemo(() =>
-    all.filter(m => ['reviewing', 'editing', 'proofing', 'cover_select', 'publishing'].includes(m.status)),
-    [all],
-  )
+  const inProgress = useMemo(() => {
+    const list = all.filter(m => ['reviewing', 'editing', 'proofing', 'cover_select', 'publishing'].includes(m.status))
+    // Pin cover_select manuscripts to top
+    return list.sort((a, b) => {
+      if (a.status === 'cover_select' && b.status !== 'cover_select') return -1
+      if (a.status !== 'cover_select' && b.status === 'cover_select') return 1
+      return 0
+    })
+  }, [all])
 
   const modalMs = coverModalId ? manuscripts.get(coverModalId) : null
 
@@ -142,7 +147,7 @@ function PipelineCard({ manuscript: ms, onSelectCover }: { manuscript: Manuscrip
       </div>
       <div className="h-2 md:h-3 bg-card-inset border-2 border-border-dark overflow-hidden">
         <div
-          className="h-full bg-copper border-r-2 border-border-dark transition-all duration-700"
+          className="h-full bg-progress border-r-2 border-border-dark transition-all duration-700"
           style={{ width: `${pct}%`, backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(0,0,0,0.15) 4px, rgba(0,0,0,0.15) 8px)' }}
         />
       </div>
