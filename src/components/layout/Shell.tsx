@@ -1,4 +1,4 @@
-import { TopBar } from './TopBar'
+﻿import { TopBar } from './TopBar'
 import { DeskView } from '@/components/desk/DeskView'
 import { ShelfView } from '@/components/shelf/ShelfView'
 import { AuthorView } from '@/components/author/AuthorView'
@@ -64,7 +64,7 @@ export function Shell() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab as typeof activeTab)}
-            className={`flex-1 h-full text-[10px] md:text-xs font-medium transition-all cursor-pointer border-r-2 border-border-dark last:border-r-0 ${
+            className={`flex-1 h-full text-[13px] md:text-xs font-medium transition-all cursor-pointer border-r-2 border-border-dark last:border-r-0 ${
               activeTab === tab
                 ? 'bg-copper text-white border-b-0'
                 : 'bg-cream-dark text-ink-light hover:bg-cream'

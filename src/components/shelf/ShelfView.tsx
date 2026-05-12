@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+﻿import { useState, useMemo } from 'react'
 import { useGameStore } from '@/store/gameStore'
 import type { Manuscript } from '@/core/types'
 import { GENRE_ICONS } from '@/core/types'
@@ -19,7 +19,7 @@ export function ShelfView() {
     return (
       <div className="h-full overflow-y-auto p-3 md:p-5">
         <p className="text-muted text-xs md:text-sm font-mono">还没有出版过任何书。</p>
-        <p className="text-muted text-[10px] md:text-xs mt-1 font-mono">在桌面上审稿，出版你的第一本书。</p>
+        <p className="text-muted text-[13px] md:text-xs mt-1 font-mono">在桌面上审稿，出版你的第一本书。</p>
       </div>
     )
   }
@@ -73,16 +73,16 @@ function BookSpine({ book, onClick }: { book: Manuscript; onClick: () => void })
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center opacity-60">
-            <span className="text-[8px]" style={{ writingMode: 'vertical-rl' }}>
+            <span className="text-[11px]" style={{ writingMode: 'vertical-rl' }}>
               {book.title.slice(0, 3)}
             </span>
           </div>
         )}
         {book.isBestseller && (
-          <div className="absolute -top-1 -right-1 text-[8px]">★</div>
+          <div className="absolute -top-1 -right-1 text-[11px]">★</div>
         )}
       </div>
-      <span className="text-[7px] md:text-[8px] text-muted font-mono mt-1 text-center leading-tight truncate" style={{ width: `${spineW + 6}px` }}>
+      <span className="text-[13px] md:text-[11px] text-muted font-mono mt-1 text-center leading-tight truncate" style={{ width: `${spineW + 6}px` }}>
         {book.title.slice(0, 4)}
       </span>
     </button>
@@ -100,7 +100,7 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
           <h2 className="text-sm md:text-base font-bold text-ink font-mono truncate">{book.title}</h2>
           <button
             onClick={onClose}
-            className="text-[10px] md:text-xs px-2 py-1 border-2 border-border-dark text-muted font-mono cursor-pointer bg-cream shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
+            className="text-[13px] md:text-xs px-2 py-1 border-2 border-border-dark text-muted font-mono cursor-pointer bg-cream shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
           >
             ✕
           </button>
@@ -117,24 +117,24 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
                 style={{ backgroundColor: spineColor + '33' }}
               >
                 <span className="text-4xl opacity-60">{icon}</span>
-                <span className="text-[10px] md:text-xs text-muted font-mono px-2 text-center">{book.title}</span>
+                <span className="text-[13px] md:text-xs text-muted font-mono px-2 text-center">{book.title}</span>
               </div>
             )}
           </div>
 
           {/* Stats */}
           <div className="bg-card-inset border-2 border-border-dark p-2 md:p-3 mb-3 md:mb-4">
-            <div className="grid grid-cols-2 gap-1.5 text-[10px] md:text-xs font-mono">
+            <div className="grid grid-cols-2 gap-1.5 text-[13px] md:text-xs font-mono">
               <div><span className="text-muted">类型</span> <span className="text-ink font-bold">{book.genre}</span></div>
               <div><span className="text-muted">品质</span> <span className="text-ink font-bold">Q{book.quality}</span></div>
               <div><span className="text-muted">字数</span> <span className="text-ink font-bold">{Math.round(book.wordCount / 1000)}K</span></div>
               <div><span className="text-muted">销量</span> <span className="text-ink font-bold">{Math.round(book.salesCount).toLocaleString()} 册</span></div>
             </div>
             {book.isBestseller && (
-              <p className="text-[10px] md:text-xs text-copper font-bold mt-1.5 font-mono">★ 畅销书</p>
+              <p className="text-[13px] md:text-xs text-copper font-bold mt-1.5 font-mono">★ 畅销书</p>
             )}
             {book.awards.length > 0 && (
-              <p className="text-[10px] md:text-xs text-copper font-bold mt-1 font-mono">
+              <p className="text-[13px] md:text-xs text-copper font-bold mt-1 font-mono">
                 🏆 {book.awards.join(' · ')}
               </p>
             )}
@@ -142,13 +142,13 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
 
           {/* Synopsis */}
           <div className="bg-cream-dark border-2 border-border-dark p-2 md:p-3 mb-3 md:mb-4">
-            <p className="text-[10px] md:text-xs text-ink leading-relaxed font-mono">{book.synopsis}</p>
+            <p className="text-[13px] md:text-xs text-ink leading-relaxed font-mono">{book.synopsis}</p>
           </div>
 
           {/* Editor notes */}
           <div className="bg-card-inset border-2 border-border-dark p-2 md:p-3 mb-3 md:mb-4">
-            <p className="text-[8px] md:text-[10px] text-muted font-mono mb-1">编辑批语：</p>
-            <p className="text-[10px] md:text-xs text-ink-light leading-relaxed font-mono italic">
+            <p className="text-[11px] md:text-[13px] text-muted font-mono mb-1">编辑批语：</p>
+            <p className="text-[13px] md:text-xs text-ink-light leading-relaxed font-mono italic">
               {generateEditorNote(book)}
             </p>
           </div>

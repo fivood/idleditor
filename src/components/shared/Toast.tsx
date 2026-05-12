@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+﻿import { useEffect } from 'react'
 import { useGameStore } from '@/store/gameStore'
 
 export function ToastContainer() {
@@ -20,7 +20,7 @@ export function ToastContainer() {
         <div
           key={toast.id}
           onClick={() => dismissToast(toast.id)}
-          className={`border-2 p-2 md:p-3 text-[10px] md:text-xs cursor-pointer transition-all animate-in shadow-[3px_3px_0_#4a3728] font-mono ${
+          className={`border-2 p-2 md:p-3 text-[13px] md:text-xs cursor-pointer transition-all animate-in shadow-[3px_3px_0_#4a3728] font-mono ${
             toast.type === 'milestone'
               ? 'bg-cream border-copper'
               : toast.type === 'award'

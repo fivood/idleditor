@@ -40,6 +40,10 @@ export type AuthorPersona =
   | 'ex-intelligence-officer'
   | 'sociology-phd'
   | 'anxious-debut'
+  | 'reclusive-latam-writer'
+  | 'nordic-crime-queen'
+  | 'american-bestseller-machine'
+  | 'japanese-lightnovel-otaku'
 
 // ──── Department types ────
 export type DepartmentType = 'editing' | 'design' | 'marketing' | 'rights'

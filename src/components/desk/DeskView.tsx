@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+﻿import { useState, useMemo } from 'react'
 import { useGameStore } from '@/store/gameStore'
 import { ManuscriptCard } from './ManuscriptCard'
 import { LogPanel } from '@/components/shared/LogPanel'
@@ -40,7 +40,7 @@ export function DeskView() {
   return (
     <div className="flex flex-col md:grid md:grid-cols-[3fr_1.2fr] gap-2 md:gap-4 h-full p-2 md:p-4">
       <div className="flex flex-col gap-2 md:gap-3 min-h-0">
-        <div className="flex items-center gap-2 text-[9px] md:text-xs text-muted shrink-0 font-mono">
+        <div className="flex items-center gap-2 text-[12px] md:text-xs text-muted shrink-0 font-mono">
           <span className="text-ink font-bold border border-border-dark px-1.5 md:px-2 py-0.5 bg-cream">📥 {submitted.length}</span>
           <span className="text-ink font-bold border border-border-dark px-1.5 md:px-2 py-0.5 bg-cream">⚙️ {inProgress.length}</span>
           {!isRunning && <span className="text-copper font-bold">⏸</span>}
@@ -49,7 +49,7 @@ export function DeskView() {
         {currencies.revisionPoints === 0 && submitted.length === 0 && (
           <div className="bg-cream border-2 border-border-dark p-3 md:p-4 text-xs shrink-0 shadow-[3px_3px_0_#4a3728]">
             <p className="font-bold text-ink mb-1 font-mono">欢迎来到永夜出版社。</p>
-            <p className="text-muted text-[10px] md:text-xs leading-relaxed">
+            <p className="text-muted text-[13px] md:text-xs leading-relaxed">
               稿件即将出现在你的书桌上。审读稿件来赚取修订点数，
               然后招募部门来让一切自动化。
             </p>
@@ -58,10 +58,10 @@ export function DeskView() {
 
         <div className="grid grid-cols-2 gap-2 md:gap-3 flex-1 min-h-0">
           <div className="flex flex-col min-h-0">
-            <h2 className="text-[10px] md:text-xs font-bold text-muted uppercase tracking-wider mb-1 md:mb-2 shrink-0 font-mono">📥 投稿池</h2>
+            <h2 className="text-[13px] md:text-xs font-bold text-muted uppercase tracking-wider mb-1 md:mb-2 shrink-0 font-mono">📥 投稿池</h2>
             <div className="flex-1 overflow-y-auto space-y-1.5 md:space-y-2 pr-1">
               {submitted.length === 0 && (
-                <div className="text-center py-6 md:py-8 text-muted text-[10px] md:text-xs font-mono">
+                <div className="text-center py-6 md:py-8 text-muted text-[13px] md:text-xs font-mono">
                   <p>稿件堆空了</p><p className="mt-1">等待新投稿……</p>
                 </div>
               )}
@@ -70,10 +70,10 @@ export function DeskView() {
           </div>
 
           <div className="flex flex-col min-h-0">
-            <h2 className="text-[10px] md:text-xs font-bold text-muted uppercase tracking-wider mb-1 md:mb-2 shrink-0 font-mono">⚙️ 编辑流水线</h2>
+            <h2 className="text-[13px] md:text-xs font-bold text-muted uppercase tracking-wider mb-1 md:mb-2 shrink-0 font-mono">⚙️ 编辑流水线</h2>
             <div className="flex-1 overflow-y-auto space-y-1.5 md:space-y-2 pr-1">
               {inProgress.length === 0 && (
-                <div className="text-center py-6 md:py-8 text-muted text-[10px] md:text-xs font-mono">
+                <div className="text-center py-6 md:py-8 text-muted text-[13px] md:text-xs font-mono">
                   <p>流水线空闲</p><p className="mt-1">从投稿池审稿开始</p>
                 </div>
               )}
@@ -87,7 +87,7 @@ export function DeskView() {
         {/* Mobile log toggle */}
         <button
           onClick={() => setShowLog(!showLog)}
-          className="md:hidden text-[10px] text-muted font-mono text-center py-1 border border-border-dark bg-cream-dark"
+          className="md:hidden text-[13px] text-muted font-mono text-center py-1 border border-border-dark bg-cream-dark"
         >
           {showLog ? '收起日志 ▲' : '出版日志 ▼'}
         </button>
@@ -120,12 +120,12 @@ function PipelineCard({ manuscript: ms, onSelectCover }: { manuscript: Manuscrip
           <span className="text-sm md:text-base">{STAGE_ICONS[stage]}</span>
           <div className="flex-1 min-w-0">
             <p className="text-xs md:text-sm font-bold text-ink truncate font-mono">{ms.title}</p>
-            <p className="text-[9px] md:text-xs text-copper font-bold">待选封面</p>
+            <p className="text-[12px] md:text-xs text-copper font-bold">待选封面</p>
           </div>
         </div>
         <button
           onClick={onSelectCover}
-          className="w-full text-[10px] md:text-xs px-2 md:px-3 py-1.5 md:py-2 bg-copper text-white border-2 border-border-dark font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
+          className="w-full text-[13px] md:text-xs px-2 md:px-3 py-1.5 md:py-2 bg-copper text-white border-2 border-border-dark font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
         >
           选择封面
         </button>
@@ -140,7 +140,7 @@ function PipelineCard({ manuscript: ms, onSelectCover }: { manuscript: Manuscrip
           <span className="text-sm md:text-base flex-shrink-0">{STAGE_ICONS[stage] ?? '📖'}</span>
           <div className="min-w-0">
             <p className="text-xs md:text-sm font-bold text-ink truncate font-mono">{ms.title}</p>
-            <p className="text-[9px] md:text-xs text-muted">{STAGE_LABELS[stage] ?? stage}</p>
+            <p className="text-[12px] md:text-xs text-muted">{STAGE_LABELS[stage] ?? stage}</p>
           </div>
         </div>
         <span className="text-xs md:text-sm font-mono font-bold text-copper tabular-nums flex-shrink-0 ml-1 md:ml-2">{pct}%</span>
@@ -151,7 +151,7 @@ function PipelineCard({ manuscript: ms, onSelectCover }: { manuscript: Manuscrip
           style={{ width: `${pct}%`, backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(0,0,0,0.15) 4px, rgba(0,0,0,0.15) 8px)' }}
         />
       </div>
-      <p className="text-[8px] md:text-[10px] text-muted mt-1 text-right font-mono">{pct < 100 ? '处理中...' : '完成'}</p>
+      <p className="text-[11px] md:text-[13px] text-muted mt-1 text-right font-mono">{pct < 100 ? '处理中...' : '完成'}</p>
     </div>
   )
 }

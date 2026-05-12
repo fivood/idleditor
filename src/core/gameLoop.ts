@@ -467,7 +467,10 @@ function createManuscriptForAuthor(world: GameWorldState, author: Author): Manus
 
 // ──── Author creation ────
 function createRandomAuthor(_world: GameWorldState): Author {
-  const personaList = ['retired-professor', 'basement-scifi-geek', 'ex-intelligence-officer', 'sociology-phd', 'anxious-debut'] as const
+  const personaList = [
+    'retired-professor', 'basement-scifi-geek', 'ex-intelligence-officer', 'sociology-phd', 'anxious-debut',
+    'reclusive-latam-writer', 'nordic-crime-queen', 'american-bestseller-machine', 'japanese-lightnovel-otaku',
+  ] as const
   const persona = pick([...personaList] as unknown as string[]) as AuthorPersona
   const names: Record<string, string[]> = {
     'retired-professor': ['沈默然', '林怀瑾', '顾知秋', '苏砚清'],
@@ -475,6 +478,10 @@ function createRandomAuthor(_world: GameWorldState): Author {
     'ex-intelligence-officer': ['陈深', '秦墨', '韩隐', '洛铮'],
     'sociology-phd': ['周知行博士', '温如言博士', '许观澜博士'],
     'anxious-debut': ['小透明', '宋迟迟', '姜未名', '沈惴惴'],
+    'reclusive-latam-writer': ['加夫列尔·神', '马里奥·略哈', '胡里奥·塔萨'],
+    'nordic-crime-queen': ['英格丽·凛', '阿斯特丽德·寒', '西格丽德·霜'],
+    'american-bestseller-machine': ['杰克·麦克畅销', '艾米丽·页翻', '泰勒·排行榜'],
+    'japanese-lightnovel-otaku': ['田中ライト', '鈴木ノベル', '佐藤異世界'],
   }
   const phrases: Record<string, string[]> = {
     'retired-professor': ['"截稿日期，说到底，只是一种建议。"', '"急什么。"'],
@@ -482,13 +489,27 @@ function createRandomAuthor(_world: GameWorldState): Author {
     'ex-intelligence-officer': ['"这只是小说。大概。"', '"我可以告诉你更多，但……"'],
     'sociology-phd': ['"光是脚注就写了四十页，不客气。"', '"我调研了两千人。他们帮不上什么忙。"'],
     'anxious-debut': ['"写得不好。抱歉。"', '"嫌弃也行，我理解。"'],
+    'reclusive-latam-writer': ['"花了十七年。前面十六年在泡茶。"', '"不要按章节读。第104页开始，跳回第3页。"'],
+    'nordic-crime-queen': ['"第二具尸体在……不能说。"', '"暖气是灵感的敌人。"'],
+    'american-bestseller-machine': ['"已经有三个制片人在竞价了。"', '"每章必须以钩子结尾。这是物理定律。"'],
+    'japanese-lightnovel-otaku': ['"如果篇幅不够，第三章加个泳装回。"', '"前13卷在硬盘里，等出版社打电话。"'],
   }
+
+  // Foreign personas have genre biases
+  const genreBias: Record<string, Genre[]> = {
+    'reclusive-latam-writer': ['hybrid', 'social-science'],
+    'nordic-crime-queen': ['mystery', 'suspense'],
+    'american-bestseller-machine': ['hybrid', 'mystery'],
+    'japanese-lightnovel-otaku': ['sci-fi', 'hybrid'],
+  }
+  const bias = genreBias[persona]
+  const genre = bias && Math.random() < 0.7 ? pick(bias) : pick(GENRES)
 
   return {
     id: nanoid(8),
     name: pick(names[persona]),
     persona,
-    genre: pick(GENRES),
+    genre,
     tier: 'new',
     talent: AUTHOR_BASE_TALENT + rangeInt(0, AUTHOR_TALENT_RANGE),
     reliability: 20 + rangeInt(0, 60),

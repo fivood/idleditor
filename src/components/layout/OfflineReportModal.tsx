@@ -1,4 +1,4 @@
-import { formatNumber } from '@/utils/format'
+﻿import { formatNumber } from '@/utils/format'
 
 interface Props {
   offlineTicks: number
@@ -19,7 +19,7 @@ export function OfflineReportModal({ offlineTicks, earned, events, onDismiss }: 
         {/* Header */}
         <div className="bg-copper text-white p-3 md:p-4 border-b-2 border-border-dark">
           <h2 className="text-sm md:text-base font-bold font-mono">你回来了</h2>
-          <p className="text-[10px] md:text-xs font-mono opacity-80 mt-0.5">离开了 {timeStr}</p>
+          <p className="text-[13px] md:text-xs font-mono opacity-80 mt-0.5">离开了 {timeStr}</p>
         </div>
 
         {/* Stats */}
@@ -27,15 +27,15 @@ export function OfflineReportModal({ offlineTicks, earned, events, onDismiss }: 
           <div className="flex justify-around text-center">
             <div>
               <p className="text-lg md:text-xl font-bold text-copper font-mono">{formatNumber(Math.floor(earned.royalties))}</p>
-              <p className="text-[8px] md:text-[10px] text-muted font-mono">版税收入</p>
+              <p className="text-[11px] md:text-[13px] text-muted font-mono">版税收入</p>
             </div>
             <div>
               <p className="text-lg md:text-xl font-bold text-ink font-mono">{earned.published}</p>
-              <p className="text-[8px] md:text-[10px] text-muted font-mono">新出版</p>
+              <p className="text-[11px] md:text-[13px] text-muted font-mono">新出版</p>
             </div>
             <div>
               <p className="text-lg md:text-xl font-bold text-copper-dark font-mono">{earned.rejected}</p>
-              <p className="text-[8px] md:text-[10px] text-muted font-mono">被退稿</p>
+              <p className="text-[11px] md:text-[13px] text-muted font-mono">被退稿</p>
             </div>
           </div>
         </div>
@@ -45,7 +45,7 @@ export function OfflineReportModal({ offlineTicks, earned, events, onDismiss }: 
           {events.map((msg, i) => (
             <div key={i} className="flex items-start gap-2">
               <span className="text-copper text-sm md:text-base flex-shrink-0 mt-0.5">◆</span>
-              <p className="text-[10px] md:text-xs text-ink leading-relaxed font-mono">{msg}</p>
+              <p className="text-[13px] md:text-xs text-ink leading-relaxed font-mono">{msg}</p>
             </div>
           ))}
         </div>
