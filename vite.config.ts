@@ -13,9 +13,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icons/icon-192.png', 'icons/icon-512.png'],
       manifest: {
-        name: '闲散编辑社',
-        short_name: '闲散编辑社',
-        description: '挂机出版社经营游戏——发现作者、编辑稿件、打造文学帝国',
+        name: '永夜出版社',
+        short_name: '永夜出版社',
+        description: '永夜出版社——一个不死编辑的日常。发现作者、编辑稿件、打造文学帝国。',
         theme_color: '#fafaf9',
         background_color: '#fafaf9',
         display: 'standalone',
