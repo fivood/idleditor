@@ -105,6 +105,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       awardTimer: state.awardTimer,
       trendTimer: state.trendTimer,
       triggeredMilestones: state.triggeredMilestones,
+      activeDateEvent: state.activeDateEvent,
     }
     const result = tick(world)
 
@@ -120,6 +121,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       awardTimer: world.awardTimer,
       trendTimer: world.trendTimer,
       triggeredMilestones: new Set(world.triggeredMilestones),
+      activeDateEvent: world.activeDateEvent,
       toasts: [...state.toasts, ...result.toasts].slice(-100),
     })
 

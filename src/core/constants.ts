@@ -30,7 +30,7 @@ export const PRESTIGE_PER_PUBLISH = 10
 export const PRESTIGE_PER_BESTSELLER = 50
 
 // ──── Bestseller threshold ────
-export const BESTSELLER_SALES = 100_000
+export const BESTSELLER_SALES = 30_000
 
 // ──── Author ────
 export const AUTHOR_BASE_TALENT = 30
@@ -60,7 +60,7 @@ export const DEPARTMENT_BASE_EFFICIENCY: Record<DepartmentType, number> = {
   marketing: 0.2,
   rights: 0.15,
 }
-export const DEPARTMENT_UPGRADE_TICKS_BASE = 600 // 10 min
+export const DEPARTMENT_UPGRADE_TICKS_BASE = 180 // 3 min
 export const DEPARTMENT_MAX_LEVEL = 10
 
 // ──── Market trends ────
@@ -88,10 +88,10 @@ export const REBIRTH_STATUE_BONUSES = {
 export const MILESTONES = [
   { ticks: 0, message: '永夜出版社迎来了又一个平凡的工作日。你在吱嘎作响的旧桌前坐下——这张桌子比你老，但比你短命的主人活得久。' },
   { ticks: 600, message: '第一本书出版。说实话，你在1732年出版第一本书时比现在兴奋。但习惯是个好东西——尤其是当你永远死不了。' },
-  { ticks: 1800, message: '你雇了一位人类助理。Ta 最大的资历：不怕吸血鬼，且有一支能写出字的笔。' },
-  { ticks: 7200, message: '三个完整的部门组建完毕。创始人伯爵从棺材里给你发了封感谢信——字迹潦草，但心意到了。' },
-  { ticks: 25200, message: '第一本畅销书诞生。作者现在自称"文坛新星"。你算了算，以你的寿命，大概还能见证他重孙也获这个奖。' },
-  { ticks: 36000, message: '第一座铜像到手。严格来说，是塑料的——毕竟伯爵他老人家虽然活了三个世纪，但预算永远是紧巴巴的。' },
+  { ticks: 1200, message: '你雇了一位人类助理。Ta 最大的资历：不怕吸血鬼，且有一支能写出字的笔。' },
+  { ticks: 3600, message: '三个完整的部门组建完毕。创始人伯爵从棺材里给你发了封感谢信——字迹潦草，但心意到了。' },
+  { ticks: 10800, message: '第一本畅销书诞生。作者现在自称"文坛新星"。你算了算，以你的寿命，大概还能见证他重孙也获这个奖。' },
+  { ticks: 28800, message: '第一座铜像到手。严格来说，是塑料的——毕竟伯爵他老人家虽然活了三个世纪，但预算永远是紧巴巴的。' },
 ]
 
 // ──── Editor trait bonuses ────

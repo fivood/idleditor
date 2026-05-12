@@ -35,6 +35,7 @@ export function useOfflineProgress() {
       awardTimer: 0,
       trendTimer: 0,
       triggeredMilestones: new Set(saved.triggeredMilestones),
+      activeDateEvent: null,
     }
 
     // Repopulate from saved data

@@ -19,6 +19,7 @@ export interface GameSaveData {
   authors: Map<string, Author>
   departments: Map<string, Department>
   events: GameEvent[]
+  activeDateEvent?: import('@/core/dateEvents').DateEvent | null
 }
 
 export async function saveGameToDb(data: GameSaveData): Promise<void> {

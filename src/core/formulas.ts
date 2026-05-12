@@ -112,7 +112,7 @@ export function royaltyPerTick(book: Manuscript, royaltyMultiplier: number, mark
 }
 
 export function salesPerTick(marketingEfficiency: number, quality: number): number {
-  const base = 0.05
+  const base = 1.5
   return base * (1 + marketingEfficiency) * (quality / 50)
 }
 
