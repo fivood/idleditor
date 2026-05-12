@@ -353,6 +353,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     if (author) {
       author.rejectedCount++
       author.cooldownUntil = 1800 + author.rejectedCount * 300
+      author.affection += -10 // rejection penalty
     }
     set({
       manuscripts: new Map(state.manuscripts),
@@ -397,6 +398,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
 
     ms.quality = Math.min(100, ms.quality + option.quality)
     ms.meticulouslyEdited = true
+    const author = state.authors.get(ms.authorId)
+    if (author) author.affection += 3
     set({
       manuscripts: new Map(state.manuscripts),
       currencies: {
@@ -451,6 +454,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     const author = state.authors.get(id)
     if (!author || author.tier !== 'new') return
     author.tier = 'signed'
+    author.affection += 10
     set({ authors: new Map(state.authors) })
   },
 

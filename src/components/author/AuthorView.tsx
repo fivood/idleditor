@@ -1,7 +1,7 @@
 ﻿import { useMemo } from 'react'
 import { useGameStore } from '@/store/gameStore'
 import { GENRE_ICONS } from '@/core/types'
-import { AUTHOR_TIER_THRESHOLDS } from '@/core/constants'
+import { AUTHOR_TIER_THRESHOLDS, AFFECTION_ELITE_TALENT, AFFECTION_LETTER } from '@/core/constants'
 import type { Author } from '@/core/types'
 
 const TIER_LABELS: Record<string, string> = { idol: '传奇', known: '知名', signed: '签约', new: '新人' }
@@ -41,7 +41,9 @@ export function AuthorView() {
               </span>
               <div className="flex-1 min-w-0">
                 <p className="text-xs md:text-sm font-bold text-ink font-mono">
+                  {author.talent >= AFFECTION_ELITE_TALENT && <span className="text-copper" title="精英作者">💎 </span>}
                   {author.name}
+                  {author.affection >= AFFECTION_LETTER && <span className="text-copper-dark ml-1" title="好感度高">💌</span>}
                   <span className="text-[11px] md:text-[13px] text-muted font-normal ml-1.5">
                     {TIER_LABELS[author.tier] ?? author.tier}
                   </span>

@@ -106,6 +106,7 @@ export interface Author {
   cooldownUntil: number | null
   rejectedCount: number
   signaturePhrase: string
+  affection: number
 }
 
 export interface Department {

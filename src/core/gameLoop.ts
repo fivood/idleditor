@@ -2,6 +2,13 @@ import type { Author, AuthorPersona, Department, EditorTrait, GameEvent, Genre, 
 import { GENRE_ICONS, GENRES } from './types'
 import { GENRE_COVER_COLORS } from './constants'
 import {
+  AFFECTION_BAD_PUBLISH_PENALTY,
+  AFFECTION_ELITE_TALENT,
+  AFFECTION_LETTER,
+  AFFECTION_LOYAL,
+  AFFECTION_PER_PROMOTION,
+  AFFECTION_PER_PUBLISH,
+  AFFECTION_PER_QUALITY_PUBLISH,
   AUTHOR_BASE_TALENT,
   AUTHOR_TALENT_RANGE,
   AUTHOR_FAME_PER_PUBLISH,
@@ -290,6 +297,18 @@ export function tick(world: GameWorldState): TickResult {
         if (author.tier !== prevTier) {
           // Tier promotion: boost author talent slightly
           author.talent = Math.min(95, author.talent + 5)
+          author.affection += AFFECTION_PER_PROMOTION
+        }
+        // Affection tracking
+        author.affection += AFFECTION_PER_PUBLISH
+        if (m.quality >= 60) author.affection += AFFECTION_PER_QUALITY_PUBLISH
+        if (m.isUnsuitable) author.affection += AFFECTION_BAD_PUBLISH_PENALTY
+        if (author.talent >= AFFECTION_ELITE_TALENT) author.affection += 2
+        // Loyalty check
+        if (author.affection >= AFFECTION_LOYAL) {
+          author.talent = Math.min(95, author.talent + 5)
+          author.affection = 0
+          result.toasts.push(createToast(`💖 ${author.name} 已成为永夜出版社的忠实作者！才华永久 +5。`, 'milestone'))
         }
       }
     }
@@ -537,6 +556,7 @@ function createRandomAuthor(_world: GameWorldState): Author {
     cooldownUntil: null,
     rejectedCount: 0,
     signaturePhrase: pick(phrases[persona]),
+    affection: 0,
   }
 }
 
@@ -666,6 +686,47 @@ function rollRandomEvent(world: GameWorldState): string | null {
     () => `📸 一位知名书评人发了张自拍，背景里——模糊但可辨认——是出版社的大楼。配文："接下来三个月我最期待的事"。编辑们默默截图了。`,
     () => `🎂 今天是出版社的「永生茶话会」——每百年一次的团建活动。伯爵说了两句祝词，然后回棺材补觉了。`,
     () => `📬 一封寄给"永夜出版社全体员工"的匿名信。内容是一首关于破晓的十四行诗。编辑部一致同意：写得不错。但这不改变寄件人不知道我们是吸血鬼的事实。`,
+
+    // ── Affection events ──
+    () => {
+      const loved = [...world.authors.values()].filter(a => a.affection >= AFFECTION_LETTER)
+      if (loved.length === 0) return null
+      const a = loved[Math.floor(Math.random() * loved.length)]
+      const prestige = rangeInt(15, 30)
+      world.currencies.prestige += prestige
+      a.affection = Math.max(0, a.affection - 30)
+      const letters = [
+        `${a.name}寄来了一封手写感谢信。信纸是手工纸，墨水是深蓝色的，字迹因为激动而微微颤抖。附赠一小袋自家种的茶叶。声望 +${prestige}。`,
+        `${a.name}在《永夜文学报》上刊登了一整版广告，内容只有一句话："谢谢永夜出版社的编辑。"编辑部主任把它裱起来了。声望 +${prestige}。`,
+        `${a.name}寄来了一瓶红酒和一张卡片："致那位让我不敢写烂稿的编辑"。卡片背面还有一行小字："下次我会写得更好"。声望 +${prestige}。`,
+        `${a.name}捐赠了一批书籍给出版社的阅览室。每本书的扉页上都手写了一句话。被编辑们轮流拍照发到了内部群里。声望 +${prestige}。`,
+      ]
+      return pick(letters)
+    },
+    () => {
+      const elite = [...world.authors.values()].filter(a => a.talent >= AFFECTION_ELITE_TALENT && a.affection >= 30)
+      if (elite.length === 0) return null
+      const a = elite[Math.floor(Math.random() * elite.length)]
+      const prestige = rangeInt(10, 20)
+      world.currencies.prestige += prestige
+      return `🌟 精英作者${a.name}在社交媒体上发了一条长文，称赞出版社的专业水准。文章被转发了${rangeInt(50, 500)}次。声望 +${prestige}。`
+    },
+    // ── Random events (non-love) ──
+    () => {
+      const loved = [...world.authors.values()].filter(a => a.affection >= AFFECTION_LETTER)
+      if (loved.length === 0) return null
+      const a = loved[Math.floor(Math.random() * loved.length)]
+      const prestige = rangeInt(15, 30)
+      world.currencies.prestige += prestige
+      a.affection = Math.max(0, a.affection - 30)
+      const letters = [
+        `${a.name}寄来了一封手写感谢信。信纸是手工纸，墨水是深蓝色的，字迹因为激动而微微颤抖。附赠一小袋自家种的茶叶。声望 +${prestige}。`,
+        `${a.name}在《永夜文学报》上刊登了一整版广告，内容只有一句话："谢谢永夜出版社的编辑。"编辑部主任把它裱起来了。声望 +${prestige}。`,
+        `${a.name}寄来了一瓶红酒和一张卡片："致那位让我不敢写烂稿的编辑"。卡片背面还有一行小字："下次我会写得更好"。声望 +${prestige}。`,
+        `${a.name}捐赠了一批书籍给出版社的阅览室。每本书的扉页上都手写了一句话。被编辑们轮流拍照发到了内部群里。声望 +${prestige}。`,
+      ]
+      return pick(letters)
+    },
   ]
 
   // Pick a random event, retry if null (max 5 tries)

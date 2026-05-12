@@ -108,6 +108,18 @@ export const AUTO_COVER_PRESTIGE = 100     // prestige >=100 unlocks auto-cover 
 export const AUTO_REJECT_PRESTIGE = 200    // prestige >=200 + level 5 editing unlocks auto-reject unsuitable
 export const PUBLISHING_QUOTA_PER_MONTH = 10
 
+// ──── Author affection ────
+export const AFFECTION_PER_PUBLISH = 5
+export const AFFECTION_PER_QUALITY_PUBLISH = 3  // bonus if quality >= 60
+export const AFFECTION_PER_PROMOTION = 20
+export const AFFECTION_PER_SIGN = 10
+export const AFFECTION_PER_METICULOUS = 3
+export const AFFECTION_REJECT_PENALTY = -10
+export const AFFECTION_BAD_PUBLISH_PENALTY = -5
+export const AFFECTION_ELITE_TALENT = 60  // talent threshold for elite status
+export const AFFECTION_LOYAL = 100
+export const AFFECTION_LETTER = 50  // first thank-you threshold
+
 // ──── Milestones (playTicks) ────
 export const MILESTONES = [
   { ticks: 0, message: '永夜出版社迎来了又一个平凡的工作日。你在吱嘎作响的旧桌前坐下——这张桌子比你老，但比你短命的主人活得久。' },
