@@ -23,6 +23,45 @@ export function getPreferenceSlots(prestige: number): number {
 
 async function tryTriggerDecision() {
   const state = useGameStore.getState()
+
+  // Try LLM first
+  const ctx = [
+    `声望：${state.currencies.prestige}`,
+    `修订点：${state.currencies.revisionPoints}`,
+    `已出版：${state.totalPublished}本`,
+    `畅销书：${state.totalBestsellers}本`,
+    `退稿数：${state.totalRejections}`,
+    `作者数：${state.authors.size}`,
+    `部门数：${state.departments.size}`,
+    `铜像：${state.currencies.statues}`,
+    `本月已出版：${state.booksPublishedThisMonth}/10`,
+  ].join('，')
+
+  try {
+    const res = await fetch('/api/decision', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ context: ctx }),
+    })
+    const data = await res.json()
+    if (data.title && data.options?.length >= 2) {
+      useGameStore.setState({
+        pendingDecision: {
+          id: Math.random().toString(36).slice(2, 10),
+          title: data.title,
+          description: data.description || '',
+          options: data.options.slice(0, 3).map((o: { label: string; description: string }) => ({
+            label: o.label,
+            description: o.description,
+          })),
+        },
+        decisionCooldown: 900,
+      })
+      return
+    }
+  } catch { /* fall through to templates */ }
+
+  // Fallback to template decisions
   const decision = generateTemplateDecision(state)
   if (decision) {
     useGameStore.setState({ pendingDecision: decision, decisionCooldown: 900 })
@@ -102,6 +141,7 @@ export interface GameStore extends GameWorldState {
   setActiveTab: (tab: GameStore['activeTab']) => void
   setCloudSaveCode: (code: string) => void
   generateLlmSynopsis: (id: string) => Promise<void>
+  generateLlmEditorNote: (id: string) => Promise<string | null>
   resolveDecision: (optionIndex: number) => void
   setPreferredGenre: (genre: string) => void
   removePreferredGenre: (genre: string) => void
@@ -490,12 +530,30 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         ms.synopsis = data.text
         set({ manuscripts: new Map(state.manuscripts), llmCallsRemaining: state.llmCallsRemaining - 1 })
         get().addToast({ id: nanoid(), text: `🤖 AI 已生成新简介。（剩余 ${state.llmCallsRemaining - 1} 次）`, type: 'info', createdAt: Date.now() })
-      } else if (data.error) {
-        get().addToast({ id: nanoid(), text: `LLM：${data.error}`, type: 'info', createdAt: Date.now() })
       }
-    } catch {
-      get().addToast({ id: nanoid(), text: 'LLM 调用超时', type: 'info', createdAt: Date.now() })
-    }
+    } catch { /* ignore */ }
+  },
+
+  generateLlmEditorNote: async (id: string) => {
+    const state = get()
+    if (state.llmCallsRemaining <= 0) return null
+    const ms = state.manuscripts.get(id)
+    if (!ms) return null
+
+    const prompt = `你是一家吸血鬼出版社的编辑。请用中文写一段对已出版书籍《${ms.title}》的编辑批语。风格：冷幽默、吐槽感、1-2句话。不要剧透。`
+    try {
+      const res = await fetch('/api/llm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+      })
+      const data = await res.json()
+      if (data.text) {
+        set({ llmCallsRemaining: state.llmCallsRemaining - 1 })
+        return data.text
+      }
+    } catch { /* ignore */ }
+    return null
   },
 
   resolveDecision: (optionIndex: number) => {
