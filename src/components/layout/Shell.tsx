@@ -25,19 +25,18 @@ export function Shell() {
 
   if (!isInitialized) {
     return (
-      <div className="flex items-center justify-center h-dvh bg-paper">
-        <p className="text-muted text-sm">出版社正在准备中……</p>
+      <div className="flex items-center justify-center h-dvh bg-cream">
+        <p className="text-muted text-sm font-mono">出版社正在准备中……</p>
       </div>
     )
   }
 
-  // Show welcome screen until player enters their name
   if (!playerName) {
     return <WelcomeView />
   }
 
   return (
-    <div className="w-full h-dvh flex flex-col bg-paper shadow-xl overflow-hidden">
+    <div className="w-full h-dvh max-w-6xl flex flex-col bg-cream border-2 border-border-dark shadow-[6px_6px_0_#4a3728] overflow-hidden">
       <TopBar />
       <main className="flex-1 overflow-hidden flex flex-col min-h-0">
         {activeTab === 'desk' && <DeskView />}
@@ -45,7 +44,7 @@ export function Shell() {
         {activeTab === 'authors' && <AuthorView />}
         {activeTab === 'office' && <OfficeView />}
       </main>
-      <nav className="h-12 border-t border-border bg-card flex items-center shrink-0">
+      <nav className="h-12 border-t-2 border-border-dark bg-cream-dark flex items-center shrink-0">
         {[
           ['desk', '桌面'],
           ['shelf', '书架'],
@@ -55,10 +54,10 @@ export function Shell() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab as typeof activeTab)}
-            className={`flex-1 h-full text-xs font-medium transition-colors cursor-pointer ${
+            className={`flex-1 h-full text-xs font-medium transition-all cursor-pointer border-r-2 border-border-dark last:border-r-0 ${
               activeTab === tab
-                ? 'text-green border-t-2 border-green -mt-px'
-                : 'text-muted hover:text-ink'
+                ? 'bg-copper text-white border-b-0'
+                : 'bg-cream-dark text-ink-light hover:bg-cream'
             }`}
           >
             {label}

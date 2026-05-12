@@ -18,44 +18,44 @@ export function OfficeView() {
   const deptList = useMemo(() => [...departments.values()], [departments])
 
   return (
-    <div className="h-full overflow-y-auto p-5">
-      <h2 className="text-sm font-medium text-ink mb-3">部门管理</h2>
+    <div className="h-full overflow-y-auto p-4">
+      <h2 className="text-sm font-bold text-ink mb-3 font-mono">部门管理</h2>
       <div className="grid gap-2">
         {Object.entries(DEPT_INFO).map(([type, info]) => {
           const dept = deptList.find(d => d.type === type)
           return (
             <div
               key={type}
-              className="bg-card border border-border rounded-lg p-3"
+              className="bg-cream border-2 border-border-dark p-3 shadow-[3px_3px_0_#4a3728]"
             >
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-lg">{info.icon}</span>
-                <span className="text-sm font-medium text-ink">{info.label}</span>
-                {dept && <span className="text-xs text-green ml-auto">Lv.{dept.level}</span>}
+                <span className="text-sm font-bold text-ink font-mono">{info.label}</span>
+                {dept && <span className="text-xs text-copper font-bold ml-auto font-mono">Lv.{dept.level}</span>}
               </div>
-              <p className="text-xs text-muted mb-2">{info.desc}</p>
+              <p className="text-xs text-muted mb-2 font-mono">{info.desc}</p>
               {!dept ? (
                 <button
                   onClick={() => createDepartment(type as DepartmentType)}
                   disabled={currencies.revisionPoints < 50}
-                  className={`text-xs px-2 py-1 rounded cursor-pointer transition-colors ${
+                  className={`text-xs px-3 py-1.5 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${
                     currencies.revisionPoints >= 50
-                      ? 'bg-green-bg text-green border border-green-border hover:bg-green hover:text-white'
-                      : 'bg-border text-muted border border-border cursor-not-allowed'
+                      ? 'bg-copper text-white'
+                      : 'bg-cream-dark text-muted cursor-not-allowed'
                   }`}
                 >
                   雇佣 · 50 RP
                 </button>
               ) : dept.upgradingUntil !== null ? (
-                <span className="text-xs text-gold">升级中...</span>
+                <span className="text-xs text-copper font-bold font-mono">升级中...</span>
               ) : (
                 <button
                   onClick={() => upgradeDepartment(dept.id)}
                   disabled={currencies.revisionPoints < dept.upgradeCostRP}
-                  className={`text-xs px-2 py-1 rounded cursor-pointer transition-colors ${
+                  className={`text-xs px-3 py-1.5 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${
                     currencies.revisionPoints >= dept.upgradeCostRP
-                      ? 'bg-green-bg text-green border border-green-border hover:bg-green hover:text-white'
-                      : 'bg-border text-muted border border-border cursor-not-allowed'
+                      ? 'bg-copper text-white'
+                      : 'bg-cream-dark text-muted cursor-not-allowed'
                   }`}
                 >
                   升级 · {dept.upgradeCostRP} RP{dept.upgradeCostPrestige > 0 ? ` + ${dept.upgradeCostPrestige}声` : ''}

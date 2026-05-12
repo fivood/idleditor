@@ -20,12 +20,12 @@ export function ToastContainer() {
         <div
           key={toast.id}
           onClick={() => dismissToast(toast.id)}
-          className={`bg-card border rounded-lg p-3 text-xs shadow-lg cursor-pointer transition-all animate-in ${
+          className={`border-2 p-3 text-xs cursor-pointer transition-all animate-in shadow-[3px_3px_0_#4a3728] font-mono ${
             toast.type === 'milestone'
-              ? 'border-gold bg-gold-bg'
+              ? 'bg-cream border-copper'
               : toast.type === 'award'
-              ? 'border-green-border bg-green-bg'
-              : 'border-border'
+              ? 'bg-cream border-green-600'
+              : 'bg-cream border-border-dark'
           }`}
         >
           <p className="text-ink leading-relaxed">{toast.text}</p>

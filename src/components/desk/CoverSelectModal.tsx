@@ -36,75 +36,59 @@ export function CoverSelectModal({ manuscript, onConfirm, onCancel }: Props) {
     }
   }
 
-  const displayCover = generatedUrl
-    ? generatedUrl
-    : manuscript.cover.src
-      ? manuscript.cover.src
-      : null
+  const displayCover = generatedUrl ?? manuscript.cover.src ?? null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-      <div className="bg-card rounded-xl shadow-2xl w-[520px] max-h-[90vh] overflow-y-auto p-6">
-        <h2 className="text-base font-serif font-bold text-ink mb-1">选择封面</h2>
-        <p className="text-xs text-muted mb-4">
-          《{manuscript.title}》· {manuscript.genre}
-        </p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-cream border-2 border-border-dark w-[520px] max-h-[90vh] overflow-y-auto p-6 shadow-[6px_6px_0_#4a3728]">
+        <h2 className="text-base font-bold text-ink mb-1 font-mono">选择封面</h2>
+        <p className="text-[10px] text-muted mb-4 font-mono">《{manuscript.title}》· {manuscript.genre}</p>
 
-        {/* Synopsis preview */}
-        <div className="bg-paper rounded-lg p-3 mb-4">
-          <p className="text-xs text-muted leading-relaxed">{manuscript.synopsis}</p>
+        <div className="bg-card-inset border-2 border-border-dark p-3 mb-4">
+          <p className="text-xs text-muted leading-relaxed font-mono">{manuscript.synopsis}</p>
         </div>
 
-        {/* Cover preview */}
-        <div className="mb-4">
-          <div
-            className="w-full aspect-[3/4] rounded-lg border border-border flex items-center justify-center overflow-hidden bg-paper"
-          >
+        <div className="mb-4 border-2 border-border-dark bg-card-inset">
+          <div className="w-full aspect-[3/4] flex items-center justify-center overflow-hidden">
             {displayCover ? (
               <img
                 src={displayCover}
                 alt="封面预览"
                 className="w-full h-full object-cover"
-                onError={(e) => {
-                  const target = e.currentTarget
-                  target.style.display = 'none'
-                  target.parentElement!.querySelector('.fallback')!.classList.remove('hidden')
-                }}
+                onError={(e) => { e.currentTarget.style.display = 'none' }}
               />
-            ) : null}
-            <div className={`fallback flex flex-col items-center gap-2 ${displayCover ? 'hidden' : ''}`}>
-              <span className="text-4xl">{icon}</span>
-              <span className="text-xs text-muted">等待生成封面</span>
-            </div>
+            ) : (
+              <div className="flex flex-col items-center gap-2">
+                <span className="text-4xl">{icon}</span>
+                <span className="text-xs text-muted font-mono">等待生成封面</span>
+              </div>
+            )}
           </div>
         </div>
 
-        {error && (
-          <p className="text-xs text-red-500 mb-3">{error}</p>
-        )}
+        {error && <p className="text-xs text-copper-dark mb-3 font-mono font-bold">{error}</p>}
 
-        {/* Actions */}
         <div className="flex gap-2">
           <button
             onClick={handleGenerate}
             disabled={loading}
-            className={`flex-1 text-sm px-4 py-2 rounded-lg border transition-colors cursor-pointer ${
+            className={`flex-1 text-xs px-4 py-2 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${
               loading
-                ? 'bg-border text-muted border-border cursor-wait'
-                : 'bg-green-bg text-green border-green-border hover:bg-green hover:text-white'
+                ? 'bg-cream-dark text-muted cursor-wait'
+                : 'bg-copper text-white'
             }`}
           >
             {loading ? '生成中...' : generatedUrl ? '重新生成' : 'AI 生成封面'}
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 text-sm px-4 py-2 rounded-lg bg-green text-white border border-green hover:bg-green/90 transition-colors cursor-pointer"
+            className="flex-1 text-xs px-4 py-2 bg-copper text-white border-2 border-border-dark font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
           >
             确认出版
           </button>
           <button
             onClick={onCancel}
-            className="text-sm px-4 py-2 rounded-lg border border-border text-muted hover:text-ink transition-colors cursor-pointer"
+            className="text-xs px-4 py-2 border-2 border-border-dark text-muted font-mono cursor-pointer bg-cream shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
           >
             取消
           </button>

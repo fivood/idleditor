@@ -12,31 +12,27 @@ export function ManuscriptCard({ manuscript }: Props) {
   const icon = GENRE_ICONS[manuscript.genre] ?? '📖'
 
   return (
-    <div className={`bg-card border rounded-lg p-3 flex gap-3 items-start transition-colors ${
+    <div className={`bg-cream border-2 p-3 flex gap-3 items-start transition-all ${
       manuscript.isUnsuitable
-        ? 'border-red-200 bg-red-50/30'
-        : 'border-border hover:border-green-border'
+        ? 'border-copper-dark bg-cream-dark shadow-[3px_3px_0_#8b5a2b]'
+        : 'border-border-dark shadow-[3px_3px_0_#4a3728] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_#4a3728]'
     }`}>
       <div
-        className="w-10 h-14 rounded flex-shrink-0 flex items-center justify-center text-lg"
-        style={{ backgroundColor: manuscript.cover.placeholder.bgColor + '33' }}
+        className="w-10 h-14 flex-shrink-0 flex items-center justify-center text-lg border-2 border-border-dark bg-card-inset"
+        style={{ backgroundColor: manuscript.cover.placeholder.bgColor + '22' }}
       >
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <h3 className="text-sm font-medium text-ink truncate">
-          {manuscript.title}
-        </h3>
-        <p className="text-xs text-muted mt-0.5">
-          {manuscript.genre} · {Math.round(manuscript.wordCount / 1000)}K字 · 质量{manuscript.quality}
+        <h3 className="text-sm font-bold text-ink truncate font-mono">{manuscript.title}</h3>
+        <p className="text-[10px] text-muted mt-0.5 font-mono">
+          {manuscript.genre} · {Math.round(manuscript.wordCount / 1000)}K字 · Q{manuscript.quality}
         </p>
         {manuscript.synopsis && (
-          <p className="text-xs text-muted mt-1.5 leading-relaxed line-clamp-2">
-            {manuscript.synopsis}
-          </p>
+          <p className="text-[10px] text-muted mt-1.5 leading-relaxed line-clamp-2">{manuscript.synopsis}</p>
         )}
         {manuscript.isUnsuitable && (
-          <p className="text-xs text-red-600 mt-1.5 leading-relaxed">
+          <p className="text-[10px] text-copper-dark mt-1.5 leading-relaxed font-bold">
             ⚠ {manuscript.rejectionReason}
           </p>
         )}
@@ -44,20 +40,20 @@ export function ManuscriptCard({ manuscript }: Props) {
       <div className="flex flex-col gap-1 flex-shrink-0">
         <button
           onClick={() => startReview(manuscript.id)}
-          className={`text-xs px-2 py-1 rounded cursor-pointer transition-colors ${
+          className={`text-[10px] px-2 py-1 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${
             manuscript.isUnsuitable
-              ? 'text-muted border border-border hover:border-green-border hover:text-green'
-              : 'bg-green-bg text-green border border-green-border hover:bg-green hover:text-white'
+              ? 'bg-cream text-muted'
+              : 'bg-copper text-white'
           }`}
         >
           审稿
         </button>
         <button
           onClick={() => rejectManuscript(manuscript.id)}
-          className={`text-xs px-2 py-1 rounded cursor-pointer transition-colors ${
+          className={`text-[10px] px-2 py-1 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${
             manuscript.isUnsuitable
-              ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100'
-              : 'text-muted border border-border hover:border-red-300 hover:text-red-500'
+              ? 'bg-copper-dark text-white'
+              : 'bg-cream text-muted'
           }`}
         >
           退稿
