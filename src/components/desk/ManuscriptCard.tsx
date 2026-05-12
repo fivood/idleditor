@@ -18,10 +18,14 @@ export function ManuscriptCard({ manuscript }: Props) {
         : 'border-border-dark shadow-[3px_3px_0_#4a3728] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_#4a3728]'
     }`}>
       <div
-        className="w-10 h-14 flex-shrink-0 flex items-center justify-center text-lg border-2 border-border-dark bg-card-inset"
+        className="w-8 h-11 flex-shrink-0 flex items-center justify-center text-sm border-2 border-border-dark bg-card-inset overflow-hidden"
         style={{ backgroundColor: manuscript.cover.placeholder.bgColor + '22' }}
       >
-        {icon}
+        {manuscript.cover.src ? (
+          <img src={manuscript.cover.src} alt="" className="w-full h-full object-cover" />
+        ) : (
+          icon
+        )}
       </div>
       <div className="flex-1 min-w-0">
         <h3 className="text-sm font-bold text-ink truncate font-mono">{manuscript.title}</h3>

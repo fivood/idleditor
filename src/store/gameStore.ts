@@ -56,6 +56,17 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     // Safety: always mark initialized even if DB fails
     const safetyTimeout = setTimeout(() => set({ isInitialized: true }), 3000)
     try {
+      // Load cover manifest
+      try {
+        const res = await fetch('/covers/manifest.json')
+        if (res.ok) {
+          const data = await res.json() as Array<{ slug: string; filename: string }>
+          const manifest: Record<string, string> = {}
+          for (const entry of data) manifest[entry.slug] = entry.filename
+          set({ coversManifest: manifest })
+        }
+      } catch { /* manifest not available, use placeholders */ }
+
       const existing = await hasExistingSave()
       if (existing) {
         const saved = await loadGameFromDb()
@@ -106,6 +117,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       trendTimer: state.trendTimer,
       triggeredMilestones: state.triggeredMilestones,
       activeDateEvent: state.activeDateEvent,
+      coversManifest: state.coversManifest,
     }
     const result = tick(world)
 

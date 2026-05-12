@@ -41,16 +41,20 @@ function BookCard({ book }: { book: Manuscript }) {
   return (
     <div className="bg-cream border-2 border-border-dark shadow-[3px_3px_0_#4a3728] overflow-hidden hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_#4a3728] transition-all">
       <div
-        className="aspect-[3/4] flex items-center justify-center text-3xl border-b-2 border-border-dark"
+        className="aspect-[5/7] flex items-center justify-center text-2xl border-b-2 border-border-dark overflow-hidden"
         style={{ backgroundColor: book.cover.placeholder.bgColor + '33' }}
       >
-        {icon}
+        {book.cover.src ? (
+          <img src={book.cover.src} alt="" className="w-full h-full object-cover" />
+        ) : (
+          icon
+        )}
       </div>
-      <div className="p-2">
-        <p className="text-xs font-bold text-ink truncate font-mono">{book.title}</p>
-        <p className="text-[10px] text-muted mt-0.5 font-mono">
+      <div className="p-1.5">
+        <p className="text-[10px] font-bold text-ink truncate font-mono">{book.title}</p>
+        <p className="text-[8px] text-muted mt-0.5 font-mono">
           {Math.round(book.salesCount).toLocaleString()} 册
-          {book.isBestseller && <span className="text-copper font-bold ml-1">★ 畅销书</span>}
+          {book.isBestseller && <span className="text-copper font-bold ml-0.5">★</span>}
         </p>
       </div>
     </div>
