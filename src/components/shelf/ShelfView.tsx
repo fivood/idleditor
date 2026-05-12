@@ -15,8 +15,8 @@ export function ShelfView() {
   if (books.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted text-sm">No books published yet.</p>
-        <p className="text-muted text-xs mt-1">Review manuscripts on the Desk to publish your first book.</p>
+        <p className="text-muted text-sm">还没有出版过任何书。</p>
+        <p className="text-muted text-xs mt-1">在桌面上审稿，出版你的第一本书。</p>
       </div>
     )
   }
@@ -24,7 +24,7 @@ export function ShelfView() {
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-medium text-ink">{books.length} book{books.length !== 1 ? 's' : ''} published</h2>
+        <h2 className="text-sm font-medium text-ink">{books.length} 本书已出版</h2>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
         {books.map(book => (
@@ -49,8 +49,8 @@ function BookCard({ book }: { book: Manuscript }) {
       <div className="p-2">
         <p className="text-xs font-medium text-ink truncate">{book.title}</p>
         <p className="text-[10px] text-muted mt-0.5">
-          {Math.round(book.salesCount).toLocaleString()} sold
-          {book.isBestseller && <span className="text-gold ml-1">★ Bestseller</span>}
+          {Math.round(book.salesCount).toLocaleString()} 册
+          {book.isBestseller && <span className="text-gold ml-1">★ 畅销书</span>}
         </p>
       </div>
     </div>

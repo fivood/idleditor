@@ -11,13 +11,13 @@ export function TopBar() {
   return (
     <header className="h-12 border-b border-border bg-card flex items-center justify-between px-4 shrink-0">
       <h1 className="text-sm font-serif font-bold text-green tracking-tight">
-        Idle Editor
+        闲散编辑社
       </h1>
 
       <div className="flex items-center gap-4 text-xs">
-        <CurrencyBadge label="RP" value={currencies.revisionPoints} color="text-green" />
-        <CurrencyBadge label="Prestige" value={currencies.prestige} color="text-gold" />
-        <CurrencyBadge label="Royalties" value={currencies.royalties} color="text-muted" />
+        <CurrencyBadge label="修订点" value={currencies.revisionPoints} color="text-green" />
+        <CurrencyBadge label="声誉" value={currencies.prestige} color="text-gold" />
+        <CurrencyBadge label="版税" value={currencies.royalties} color="text-muted" />
         <StatueDisplay count={currencies.statues} />
       </div>
 
@@ -30,7 +30,7 @@ export function TopBar() {
               : 'border-border text-muted hover:border-green-border hover:text-green'
           }`}
         >
-          {isRunning ? 'Running' : 'Paused'}
+          {isRunning ? '运行中' : '暂停'}
         </button>
       )}
     </header>

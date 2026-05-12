@@ -22,7 +22,7 @@ export function ManuscriptCard({ manuscript }: Props) {
       <div className="flex-1 min-w-0">
         <h3 className="text-sm font-medium text-ink truncate">{manuscript.title}</h3>
         <p className="text-xs text-muted mt-0.5">
-          {manuscript.genre} · {Math.round(manuscript.wordCount / 1000)}K words · Q{manuscript.quality}
+          {manuscript.genre} · {Math.round(manuscript.wordCount / 1000)}K字 · Q{manuscript.quality}
         </p>
       </div>
       <div className="flex flex-col gap-1 flex-shrink-0">
@@ -30,13 +30,13 @@ export function ManuscriptCard({ manuscript }: Props) {
           onClick={() => startReview(manuscript.id)}
           className="text-xs px-2 py-1 bg-green-bg text-green border border-green-border rounded cursor-pointer hover:bg-green hover:text-white transition-colors"
         >
-          Review
+          审稿
         </button>
         <button
           onClick={() => rejectManuscript(manuscript.id)}
           className="text-xs px-2 py-1 text-muted border border-border rounded cursor-pointer hover:border-red-300 hover:text-red-500 transition-colors"
         >
-          Reject
+          退稿
         </button>
       </div>
     </div>

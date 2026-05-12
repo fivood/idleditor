@@ -44,11 +44,11 @@ export const MAX_AUTHORS = 20
 
 // ──── Author persona names ────
 export const AUTHOR_PERSONA_NAMES: Record<AuthorPersona, string[]> = {
-  'retired-professor': ['Alistair Finch', 'Margaret Harlow', 'Edmund Cross'],
-  'basement-scifi-geek': ['Zane Kepler', 'Luna Quark', 'Rex Nebula'],
-  'ex-intelligence-officer': ['Charles Grey', 'Victoria Hale', 'Marcus Stone'],
-  'sociology-phd': ['Dr. Priya Nair', 'Dr. Oliver Banks', 'Dr. Simone Webb'],
-  'anxious-debut': ['Penny Wodehouse', 'Theo Ashworth', 'Clara Minton'],
+  'retired-professor': ['沈默然', '林怀瑾', '顾知秋', '苏砚清'],
+  'basement-scifi-geek': ['星野零', '陆星辰', '方代码', '季银河'],
+  'ex-intelligence-officer': ['陈深', '秦墨', '韩隐', '洛铮'],
+  'sociology-phd': ['周知行博士', '温如言博士', '许观澜博士'],
+  'anxious-debut': ['小透明', '宋迟迟', '姜未名', '沈惴惴'],
 }
 
 // ──── Department ────
@@ -86,12 +86,12 @@ export const REBIRTH_STATUE_BONUSES = {
 
 // ──── Milestones (playTicks) ────
 export const MILESTONES = [
-  { ticks: 0, message: 'You sit down at a creaky old desk. The slush pile awaits.' },
-  { ticks: 600, message: 'First manuscript published. It will not be the last — regrettably or otherwise.' },
-  { ticks: 1800, message: 'You have hired an assistant. Their chief qualification: owning a functioning pen.' },
-  { ticks: 7200, message: 'The press now has three whole departments. HMRC has taken notice.' },
-  { ticks: 25200, message: 'Your first bestseller. The author is now insufferable at parties.' },
-  { ticks: 36000, message: 'A first bronze statue. It is, technically, plastic. Budget, etc.' },
+  { ticks: 0, message: '你在吱嘎作响的旧桌前坐下。成堆的稿件静静躺在"垃圾堆"里。' },
+  { ticks: 600, message: '第一本书出版。它不会是最后一本——至于好坏，那是另一回事。' },
+  { ticks: 1800, message: '你雇了一位助理。Ta 最大的资历：有一支能写出字的笔。' },
+  { ticks: 7200, message: '出版社有了三个完整的部门。税务局已经开始好奇你到底是什么来头。' },
+  { ticks: 25200, message: '第一本畅销书诞生。作者现在逢人就说自己是"文坛新星"。' },
+  { ticks: 36000, message: '第一座铜像到手。严格来说，是塑料的——毕竟预算有限。' },
 ]
 
 // ──── Editor trait bonuses ────
@@ -113,23 +113,23 @@ export const GENRE_COVER_COLORS: Record<Genre, string> = {
 // ──── Author persona signature phrases ────
 export const AUTHOR_PERSONA_PHRASES: Record<AuthorPersona, string[]> = {
   'retired-professor': [
-    '"Deadlines are, at best, a suggestion."',
-    '"I shall submit when the work is ready, not a moment before."',
+    '"截稿日期，说到底，只是一种建议。"',
+    '"作品写完自然就交了，急什么。"',
   ],
   'basement-scifi-geek': [
-    '"The quantum mechanics checks out. I think."',
-    '"This draft replaces sleep. Literally."',
+    '"量子力学部分应该没算错……吧。"',
+    '"这份稿子直接取代了我这周的睡眠，字面意义上。"',
   ],
   'ex-intelligence-officer': [
-    '"I could tell you where I got this idea, but then I\'d have to..."',
-    '"It\'s fiction. Probably."',
+    '"我可以告诉你灵感的来源，但之后恐怕得……总之不太方便。"',
+    '"这只是小说。大概吧。"',
   ],
   'sociology-phd': [
-    '"The footnotes alone are 40 pages. You\'re welcome."',
-    '"I\'ve surveyed 2,000 people about this. They were ... unhelpful."',
+    '"光是脚注就写了四十页，不客气。"',
+    '"我调研了两千人。他们……怎么说呢，帮不上什么忙。"',
   ],
   'anxious-debut': [
-    '"It\'s not very good. I mean it might be. Sorry."',
-    '"Please don\'t hate it. Or do. I\'ll understand."',
+    '"写得不是很好。可能其实还行。对不起。"',
+    '"别太嫌弃就行。嫌弃也行，我理解。"',
   ],
 }

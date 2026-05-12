@@ -14,15 +14,14 @@ export interface ToastContext {
   [key: string]: string | undefined
 }
 
-// Template: a string with {slotName} placeholders
 type SlotResolver = (ctx: ToastContext) => string
 
 const SLOTS: Record<string, SlotResolver> = {
-  '{editorName}': () => 'You',
-  '{title}': (ctx) => ctx.title ?? 'Untitled Manuscript',
-  '{authorName}': (ctx) => ctx.authorName ?? 'Anonymous',
-  '{genre}': (ctx) => ctx.genre ?? 'miscellaneous',
-  '{quality}': (ctx) => ctx.quality ?? 'adequate',
+  '{editorName}': () => '你',
+  '{title}': (ctx) => `《${ctx.title ?? '无名稿件'}》`,
+  '{authorName}': (ctx) => ctx.authorName ?? '匿名作者',
+  '{genre}': (ctx) => ctx.genre ?? '杂类',
+  '{quality}': (ctx) => ctx.quality ?? '凑合',
   '{intro}': () => pickIntro(),
   '{verb_read}': () => pickVerb('reading'),
   '{verb_write}': () => pickVerb('writing'),
@@ -49,45 +48,44 @@ function resolve(template: string, ctx: ToastContext): string {
   return result
 }
 
-// ──── Scene templates ────
 const SCENES: Record<string, string[]> = {
   reviewComplete: [
-    '{intro} the editor read "the {title}" in its entirety. {punch_review}',
-    '"The {title}": read in {time_minutes} minutes, understood in none. {punch_review}',
-    'The last chapter of "the {title}" left {editorName} staring at the wall. {punch_review}',
+    '{intro}{editorName}{verb_read}了{title}。{punch_review}',
+    '{title}：用时{time_minutes}分钟读完，完全没读懂。{punch_review}',
+    '{title}的最后一章让{editorName}盯着天花板整整发了{time_minutes}秒的呆。{punch_review}',
   ],
   bookPublished: [
-    '"the {title}" has been published. {intro} it is now the public\'s problem.',
-    '{intro} the presses roll. "the {title}" is loosed upon an unsuspecting world.',
-    'A new book enters the catalogue. "the {title}" by {authorName}. The shelf shifts slightly to accommodate it.',
+    '{title}正式出版。{intro}现在这本书是读者的问题了。',
+    '{intro}印刷机隆隆作响。{title}被释放在毫无防备的世人面前。',
+    '一本新书加入了目录：《{title}》，作者{authorName}。书架微微倾斜以适应它的重量。',
   ],
   bestseller: [
-    '"the {title}" is climbing the charts. Rival editors were seen {verb_read} their own slush piles with renewed desperation.',
-    '{intro} the fax machine is overwhelmed. Bookshops want more copies of "the {title}". The machine has never been so popular.',
-    '"the {title}" has sold 100,000 copies. {authorName} is now insufferable at parties. The press\'s prestige swells accordingly.',
+    '{title}正在排行榜上{verb_sell}。据目击，竞品出版社的编辑在办公室里{verb_read}自己的垃圾堆，面露绝望。',
+    '{intro}传真机被打爆了。各地书店都在补订{title}。传真机从未如此受欢迎。',
+    '{title}销量突破了10万册！作者{authorName}现在逢人就说自己是作家。出版社的声誉随之水涨船高。',
   ],
   authorCooldown: [
-    '{authorName} is taking a break. {punch_author}',
-    '{intro} {authorName} announced a sabbatical to {verb_write} their next masterpiece. ETA: {time_days} business days. Give or take a month.',
+    '{authorName}宣布需要休息一段时间。{punch_author}',
+    '{intro}{authorName}正在某个地方{verb_write}下一部巨著。预计{time_days}个工作日之后交稿。上下浮动一个月。',
   ],
   authorReturn: [
-    '{authorName} has returned from their break, looking suspiciously well-rested and bearing a new manuscript.',
-    '{intro} {authorName} is back at the desk. The new manuscript is {adj_pos}. Suspicious.',
+    '{authorName}从休息中归来，气色好得可疑，还带了一份新稿子。',
+    '{intro}{authorName}回到了书桌前。新稿件{adj_pos}。事情不太对劲。',
   ],
   manuscriptRejected: [
-    '{intro} the decision was made. "the {title}" will find its home elsewhere. Or not. Either way, not here.',
-    '"the {title}" — rejected. {punch_review} The author will survive. Probably.',
+    '{intro}{title}被退稿了。{punch_review}作者会活下去的。大概吧。',
+    '{title}——退稿决定已做出。相信它会在别处找到归宿。或者找不到。总之不是我们这儿。',
   ],
   idle: [
-    'The slush pile sits quietly, as slush piles do. {editorName} contemplates tea.',
-    '{intro} nothing of note occurred. The press breathes. Somewhere, an author panics.',
+    '稿件堆安静地躺在那里。你琢磨着是不是该泡杯茶。',
+    '{intro}一切如常。出版社轻轻地呼吸着。某个地方，一位作者正在恐慌。',
   ],
 }
 
 export function generateToast(scene: string, ctx: ToastContext = {}): string {
   const templates = SCENES[scene]
   if (!templates) {
-    return 'Something happened. The details are unclear, as is tradition.'
+    return '发生了一些事情。详情不明，一如传统。'
   }
   const template = pick(templates)
   return resolve(template, ctx)

@@ -4,11 +4,11 @@ export type Genre = 'sci-fi' | 'mystery' | 'suspense' | 'social-science' | 'hybr
 export const GENRES: Genre[] = ['sci-fi', 'mystery', 'suspense', 'social-science', 'hybrid']
 
 export const GENRE_LABELS: Record<Genre, string> = {
-  'sci-fi': 'Sci-Fi',
-  mystery: 'Mystery',
-  suspense: 'Suspense',
-  'social-science': 'Social Science',
-  hybrid: 'Hybrid',
+  'sci-fi': '科幻',
+  mystery: '推理',
+  suspense: '悬疑',
+  'social-science': '社科',
+  hybrid: '混血',
 }
 
 export const GENRE_ICONS: Record<Genre, string> = {

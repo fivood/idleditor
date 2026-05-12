@@ -23,7 +23,7 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.error) {
       return (
         <div style={{ padding: 40, fontFamily: 'system-ui' }}>
-          <h2 style={{ color: '#c00', margin: '0 0 8px' }}>Something went wrong</h2>
+          <h2 style={{ color: '#c00', margin: '0 0 8px' }}>出了点问题</h2>
           <pre style={{
             background: '#fff3f3',
             padding: 12,
@@ -38,7 +38,7 @@ export class ErrorBoundary extends Component<Props, State> {
             onClick={() => this.setState({ error: null })}
             style={{ marginTop: 12, padding: '6px 16px', cursor: 'pointer' }}
           >
-            Retry
+            重试
           </button>
         </div>
       )

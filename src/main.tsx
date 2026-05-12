@@ -5,8 +5,8 @@ import './index.css'
 function ErrorFallback() {
   return (
     <div style={{ padding: 40, fontFamily: 'system-ui' }}>
-      <h2 style={{ color: '#c00' }}>App crashed</h2>
-      <p>Check the browser console (F12) for error details.</p>
+      <h2 style={{ color: '#c00' }}>启动失败</h2>
+      <p>请打开浏览器控制台 (F12) 查看错误详情。</p>
     </div>
   )
 }

@@ -25,7 +25,7 @@ export function Shell() {
   if (!isInitialized) {
     return (
       <div className="flex items-center justify-center min-h-dvh">
-        <p className="text-muted text-sm">Loading your press...</p>
+        <p className="text-muted text-sm">出版社正在准备中……</p>
       </div>
     )
   }
@@ -41,10 +41,10 @@ export function Shell() {
       </main>
       <nav className="h-12 border-t border-border bg-card flex items-center shrink-0">
         {[
-          ['desk', 'Desk'],
-          ['shelf', 'Shelf'],
-          ['authors', 'Authors'],
-          ['office', 'Office'],
+          ['desk', '桌面'],
+          ['shelf', '书架'],
+          ['authors', '作者'],
+          ['office', '办公室'],
         ].map(([tab, label]) => (
           <button
             key={tab}

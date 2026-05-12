@@ -3,10 +3,10 @@ import type { DepartmentType } from '@/core/types'
 import { useMemo } from 'react'
 
 const DEPT_INFO: Record<DepartmentType, { label: string; icon: string; desc: string }> = {
-  editing: { label: 'Editorial', icon: '✍️', desc: 'Speeds up reviewing, editing, and proofing.' },
-  design: { label: 'Design', icon: '🎨', desc: 'Improves book covers and layout quality.' },
-  marketing: { label: 'Marketing', icon: '📢', desc: 'Boosts book sales and royalty income.' },
-  rights: { label: 'Rights', icon: '📜', desc: 'Generates passive prestige over time.' },
+  editing: { label: '编辑部', icon: '✍️', desc: '加快审稿、编辑和校对速度。' },
+  design: { label: '设计部', icon: '🎨', desc: '提升封面和排版质量。' },
+  marketing: { label: '市场部', icon: '📢', desc: '提高书籍销量和版税收入。' },
+  rights: { label: '版权部', icon: '📜', desc: '随时间自动产生被动声望。' },
 }
 
 export function OfficeView() {
@@ -19,7 +19,7 @@ export function OfficeView() {
 
   return (
     <div>
-      <h2 className="text-sm font-medium text-ink mb-3">Departments</h2>
+      <h2 className="text-sm font-medium text-ink mb-3">部门管理</h2>
       <div className="grid gap-2">
         {Object.entries(DEPT_INFO).map(([type, info]) => {
           const dept = deptList.find(d => d.type === type)
@@ -44,10 +44,10 @@ export function OfficeView() {
                       : 'bg-border text-muted border border-border cursor-not-allowed'
                   }`}
                 >
-                  Hire · 50 RP
+                  雇佣 · 50 RP
                 </button>
               ) : dept.upgradingUntil !== null ? (
-                <span className="text-xs text-gold">Upgrading...</span>
+                <span className="text-xs text-gold">升级中...</span>
               ) : (
                 <button
                   onClick={() => upgradeDepartment(dept.id)}
@@ -58,7 +58,7 @@ export function OfficeView() {
                       : 'bg-border text-muted border border-border cursor-not-allowed'
                   }`}
                 >
-                  Upgrade · {dept.upgradeCostRP} RP{dept.upgradeCostPrestige > 0 ? ` + ${dept.upgradeCostPrestige}P` : ''}
+                  升级 · {dept.upgradeCostRP} RP{dept.upgradeCostPrestige > 0 ? ` + ${dept.upgradeCostPrestige}声` : ''}
                 </button>
               )}
             </div>

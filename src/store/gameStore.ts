@@ -162,7 +162,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       },
       toasts: [{
         id: nanoid(),
-        text: `You have earned your ${newStatues === 1 ? 'first' : 'next'} bronze statue. It is, technically, ${newStatues <= 2 ? 'plastic' : newStatues <= 4 ? 'copper-plated' : 'solid bronze'}. Budget, etc.`,
+        text: `你获得了第${newStatues === 1 ? '一' : newStatues}座铜像。严格来说，是${newStatues <= 2 ? '塑料' : newStatues <= 4 ? '镀铜' : '纯黄铜'}的——毕竟有预算限制。`,
         type: 'milestone' as const,
         createdAt: Date.now(),
       }],
@@ -197,7 +197,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     const state2 = get()
     state2.addToast({
       id: nanoid(),
-      text: `"${ms.title}" has been rejected. The author will survive. Probably.`,
+      text: `"${ms.title}" 已被退回。作者会缓过来的。大概。`,
       type: 'rejection',
       createdAt: Date.now(),
     })
