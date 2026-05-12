@@ -42,6 +42,13 @@ export const AUTHOR_COOLDOWN_PER_REJECTION = 300 // +5 min per reject
 export const AUTHOR_RETURN_QUALITY_BOOST = 3 // quality per rejection
 export const MAX_AUTHORS = 20
 
+// ──── Author tier progression ────
+export const AUTHOR_FAME_PER_PUBLISH = 10 // base fame per published book
+export const AUTHOR_TIER_THRESHOLDS: Record<string, number> = {
+  known: 100, // signed → known: ~10 books
+  idol: 500,  // known → idol: ~50 books
+}
+
 // ──── Author persona names ────
 export const AUTHOR_PERSONA_NAMES: Record<AuthorPersona, string[]> = {
   'retired-professor': ['沈默然', '林怀瑾', '顾知秋', '苏砚清'],

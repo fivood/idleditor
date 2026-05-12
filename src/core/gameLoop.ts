@@ -4,6 +4,8 @@ import { GENRE_COVER_COLORS } from './constants'
 import {
   AUTHOR_BASE_TALENT,
   AUTHOR_TALENT_RANGE,
+  AUTHOR_FAME_PER_PUBLISH,
+  AUTHOR_TIER_THRESHOLDS,
   BESTSELLER_SALES,
   MAX_SUBMITTED_QUEUE,
   MILESTONES,
@@ -240,6 +242,24 @@ export function tick(world: GameWorldState): TickResult {
         authorName: world.authors.get(m.authorId)?.name ?? 'Unknown',
         playerName: world.playerName,
       }), 'milestone'))
+
+      // Author fame progression
+      const author = world.authors.get(m.authorId)
+      if (author) {
+        author.fame += AUTHOR_FAME_PER_PUBLISH
+        const prevTier = author.tier
+        if (prevTier === 'signed' && author.fame >= AUTHOR_TIER_THRESHOLDS.known) {
+          author.tier = 'known'
+          result.toasts.push(createToast(`🌟 ${author.name} 已晋升为知名作者！其作品质量获得了永久提升。`, 'milestone'))
+        } else if (prevTier === 'known' && author.fame >= AUTHOR_TIER_THRESHOLDS.idol) {
+          author.tier = 'idol'
+          result.toasts.push(createToast(`🏆 ${author.name} 已晋升为传奇作者！永夜出版社的藏书阁将铭记这个时刻。`, 'milestone'))
+        }
+        if (author.tier !== prevTier) {
+          // Tier promotion: boost author talent slightly
+          author.talent = Math.min(95, author.talent + 5)
+        }
+      }
     }
   }
 
