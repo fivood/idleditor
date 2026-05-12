@@ -16,6 +16,7 @@ export function TopBar() {
   const totalBestsellers = useGameStore(s => s.totalBestsellers)
   const permanentBonuses = useGameStore(s => s.permanentBonuses)
   const reborn = useGameStore(s => s.reborn)
+  const trait = useGameStore(s => s.trait)
   const [showRebirth, setShowRebirth] = useState(false)
 
   const canReborn = totalBestsellers >= 1
@@ -87,6 +88,7 @@ export function TopBar() {
           onCancel={() => setShowRebirth(false)}
           bonuses={permanentBonuses}
           statues={currencies.statues}
+          trait={trait}
         />
       )}
     </header>
@@ -112,11 +114,12 @@ function StatueDisplay({ count }: { count: number }) {
   )
 }
 
-function RebirthModal({ onConfirm, onCancel, bonuses, statues }: {
+function RebirthModal({ onConfirm, onCancel, bonuses, statues, trait }: {
   onConfirm: () => void
   onCancel: () => void
   bonuses: { manuscriptQualityBonus: number; editingSpeedBonus: number; royaltyMultiplier: number; authorTalentBoost: number; bossYears: number }
   statues: number
+  trait: string | null
 }) {
   const nextCount = statues + 1
   const nextBossYears = Math.max(0, bonuses.bossYears - 1)
@@ -138,6 +141,9 @@ function RebirthModal({ onConfirm, onCancel, bonuses, statues }: {
             <p className="text-copper-dark mt-1">🦇 伯爵剩余年数：{bonuses.bossYears} → {nextBossYears}</p>
             {nextBossYears === 0 && (
               <p className="text-copper font-bold mt-1">🏆 伯爵将退休，你将成为永夜出版社的新主人！</p>
+            )}
+            {trait && (
+              <p className="text-progress mt-1">🎭 编辑风格「{trait === 'decisive' ? '果断' : trait === 'meticulous' ? '细致' : '远见'}」将保留。</p>
             )}
             <p className="text-copper-dark font-bold mt-1">⚠ 所有进度将重置。铜像效果永久保留。</p>
           </div>

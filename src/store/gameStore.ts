@@ -305,6 +305,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       ...createInitialWorld(),
       playerName: state.playerName,
       calendar: state.calendar,
+      trait: state.trait, // preserve editor trait through rebirth
       permanentBonuses: bonuses,
       currencies: {
         revisionPoints: 0,
