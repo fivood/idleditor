@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="560" viewBox="0 0 400 560">
+  <rect width="400" height="560" fill="#121212"/>
+  <defs><pattern id="p" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="20" fill="#ef9a9a" opacity="0.06"/><rect x="10" width="10" height="20" fill="none"/></pattern><rect width="400" height="560" fill="url(#p)"/></defs>
+  <polygon points="200,152 292,312 108,312" fill="#ef9a9a" opacity="0.1"/>
+  <rect x="40" y="60" width="320" height="2" fill="#cf6679" opacity="0.5"/>
+  <rect x="40" y="68" width="320" height="1" fill="#cf6679" opacity="0.2"/>
+  <line x1="40" y1="532" x2="232" y2="532" stroke="#cf6679" stroke-width="2" opacity="0.4"/>
+  <rect x="40" y="490" width="320" height="1" fill="#cf6679" opacity="0.2"/>
+  <rect x="40" y="498" width="320" height="2" fill="#cf6679" opacity="0.5"/>
+</svg>

@@ -80,7 +80,9 @@ function generateTitle(genre: string): string {
 function generateCover(title: string, genre: string, coversManifest: Record<string, string> | null): Manuscript['cover'] {
   const baseTitle = getBaseTitle(title)
   const slug = titleToSlug(baseTitle)
-  const localSrc = coversManifest?.[slug] ? `/covers/${coversManifest[slug]}` : null
+  const entry = coversManifest?.[slug]
+  // Support both PNG and SVG formats
+  const localSrc = entry ? `/covers/${entry}` : null
   return {
     type: 'generated',
     src: localSrc,

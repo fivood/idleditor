@@ -78,7 +78,7 @@ for (const [genre, titles] of Object.entries(TITLE_POOLS)) {
       title,
       genre,
       slug,
-      filename: `${slug}.png`,
+      filename: `${slug}.svg`,
     })
   }
 }
