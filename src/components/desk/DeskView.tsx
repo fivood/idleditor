@@ -112,6 +112,7 @@ export function DeskView() {
 function PipelineCard({ manuscript: ms, onSelectCover }: { manuscript: Manuscript; onSelectCover: () => void }) {
   const stage = ms.status
   const pct = Math.min(100, Math.round(ms.editingProgress * 100))
+  const meticulousEdit = useGameStore(s => s.meticulousEdit)
 
   if (stage === 'cover_select') {
     return (
@@ -151,6 +152,13 @@ function PipelineCard({ manuscript: ms, onSelectCover }: { manuscript: Manuscrip
           style={{ width: `${pct}%`, backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(0,0,0,0.15) 4px, rgba(0,0,0,0.15) 8px)' }}
         />
       </div>
+      {stage === 'editing' && !ms.meticulouslyEdited && (
+        <div className="mt-1.5 flex gap-1">
+          <button onClick={() => meticulousEdit(ms.id, 'light')} className="text-[11px] md:text-[13px] px-1.5 py-0.5 border-2 border-border-dark bg-cream text-progress font-mono cursor-pointer shadow-[2px_2px_0_#3a6491] active:shadow-none active:translate-x-[1px] active:translate-y-[1px] transition-all" title="10 RP · 品质+3">轻校</button>
+          <button onClick={() => meticulousEdit(ms.id, 'deep')} className="text-[11px] md:text-[13px] px-1.5 py-0.5 border-2 border-border-dark bg-progress text-white font-mono cursor-pointer shadow-[2px_2px_0_#3a6491] active:shadow-none active:translate-x-[1px] active:translate-y-[1px] transition-all" title="30 RP · 品质+8">深校</button>
+          <button onClick={() => meticulousEdit(ms.id, 'extreme')} className="text-[11px] md:text-[13px] px-1.5 py-0.5 border-2 border-border-dark bg-progress-dark text-white font-mono cursor-pointer shadow-[2px_2px_0_#3a6491] active:shadow-none active:translate-x-[1px] active:translate-y-[1px] transition-all" title="60 RP · 品质+15">极校</button>
+        </div>
+      )}
       <p className="text-[11px] md:text-[13px] text-muted mt-1 text-right font-mono">{pct < 100 ? '处理中...' : '完成'}</p>
     </div>
   )

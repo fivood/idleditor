@@ -81,6 +81,7 @@ export interface Manuscript {
   synopsis: string
   isUnsuitable: boolean
   rejectionReason: string
+  meticulouslyEdited: boolean
 }
 
 export interface BookCover {

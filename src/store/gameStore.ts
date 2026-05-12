@@ -56,6 +56,8 @@ export interface GameStore extends GameWorldState {
   isRunning: boolean
   activeTab: 'desk' | 'shelf' | 'authors' | 'office'
   cloudSaveCode: string | null
+  llmApiKey: string
+  llmCallsRemaining: number
 
   // Actions: lifecycle
   initialize: () => Promise<void>
@@ -70,6 +72,7 @@ export interface GameStore extends GameWorldState {
   // Actions: manuscript
   startReview: (id: string) => void
   rejectManuscript: (id: string) => void
+  meticulousEdit: (id: string, level: 'light' | 'deep' | 'extreme') => void
   confirmCover: (id: string) => void
   getSubmittedManuscripts: () => Manuscript[]
   getPublishedBooks: () => Manuscript[]
@@ -87,6 +90,8 @@ export interface GameStore extends GameWorldState {
   setTrait: (trait: EditorTrait) => void
   setActiveTab: (tab: GameStore['activeTab']) => void
   setCloudSaveCode: (code: string) => void
+  setLlmApiKey: (key: string) => void
+  generateLlmSynopsis: (id: string) => Promise<void>
   setPreferredGenre: (genre: string) => void
   removePreferredGenre: (genre: string) => void
   dismissToast: (id: string) => void
@@ -101,6 +106,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   isRunning: false,
   activeTab: 'desk',
   cloudSaveCode: null,
+  llmApiKey: '',
+  llmCallsRemaining: 30,
 
   // ──── Lifecycle ────
   initialize: async () => {
@@ -275,6 +282,9 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     if (wasUnsuitable) {
       rpReward = 8
       prestigeReward = 3
+    } else {
+      // Rejecting a good manuscript: prestige penalty
+      prestigeReward = -5
     }
 
     const author = state.authors.get(ms.authorId)
@@ -303,11 +313,41 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     } else {
       state2.addToast({
         id: nanoid(),
-        text: `"${ms.title}" 已被退回。作者会缓过来的。大概。`,
+        text: `"${ms.title}" 已被退回。作者面露不悦——这本书本来还不错。声望 -5`,
         type: 'rejection',
         createdAt: Date.now(),
       })
     }
+  },
+
+  meticulousEdit: (id: string, level: 'light' | 'deep' | 'extreme') => {
+    const state = get()
+    const ms = state.manuscripts.get(id)
+    if (!ms || ms.status !== 'editing' || ms.meticulouslyEdited) return
+
+    const costs: Record<string, { rp: number; quality: number; label: string }> = {
+      light: { rp: 10, quality: 3, label: '轻度精校' },
+      deep: { rp: 30, quality: 8, label: '深度精校' },
+      extreme: { rp: 60, quality: 15, label: '极限精校' },
+    }
+    const option = costs[level]
+    if (!option || state.currencies.revisionPoints < option.rp) return
+
+    ms.quality = Math.min(100, ms.quality + option.quality)
+    ms.meticulouslyEdited = true
+    set({
+      manuscripts: new Map(state.manuscripts),
+      currencies: {
+        ...state.currencies,
+        revisionPoints: state.currencies.revisionPoints - option.rp,
+      },
+    })
+    get().addToast({
+      id: nanoid(),
+      text: `🔍 ${option.label}：《${ms.title}》品质 +${option.quality}（花费 ${option.rp} RP）`,
+      type: 'info',
+      createdAt: Date.now(),
+    })
   },
 
   confirmCover: (id: string) => {
@@ -400,6 +440,34 @@ export const useGameStore = create<GameStore>()((set, get) => ({
 
   // ──── Cloud save ────
   setCloudSaveCode: (code) => set({ cloudSaveCode: code }),
+
+  setLlmApiKey: (key) => set({ llmApiKey: key }),
+
+  generateLlmSynopsis: async (id) => {
+    const state = get()
+    if (!state.llmApiKey || state.llmCallsRemaining <= 0) return
+    const ms = state.manuscripts.get(id)
+    if (!ms) return
+
+    const prompt = `书名：《${ms.title}》\n类型：${ms.genre}\n字数：${Math.round(ms.wordCount / 1000)}K\n品质预估：${ms.quality}/100\n请写一段简介。`
+    try {
+      const res = await fetch('/api/llm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey: state.llmApiKey, prompt }),
+      })
+      const data = await res.json()
+      if (data.text) {
+        ms.synopsis = data.text
+        set({ manuscripts: new Map(state.manuscripts), llmCallsRemaining: state.llmCallsRemaining - 1 })
+        get().addToast({ id: nanoid(), text: `🤖 LLM 已生成《${ms.title}》的新简介。（剩余 ${state.llmCallsRemaining - 1} 次）`, type: 'info', createdAt: Date.now() })
+      } else if (data.error) {
+        get().addToast({ id: nanoid(), text: `LLM 调用失败：${data.error}`, type: 'info', createdAt: Date.now() })
+      }
+    } catch {
+      get().addToast({ id: nanoid(), text: 'LLM 调用超时，请检查网络。', type: 'info', createdAt: Date.now() })
+    }
+  },
 
   setPreferredGenre: (genre) => {
     const state = get()

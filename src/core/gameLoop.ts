@@ -249,14 +249,20 @@ export function tick(world: GameWorldState): TickResult {
       m.editingProgress = 0
       world.totalPublished++
       world.currencies.revisionPoints += rpPerPublish(m.quality, 0)
-      world.currencies.prestige += 10
+      const pubPrestige = m.isUnsuitable ? 2 : 10
+      world.currencies.prestige += pubPrestige
       result.publishedBooks.push(m)
-      result.toasts.push(createToast(generateToast('bookPublished', {
-        title: m.title,
-        genre: m.genre,
-        authorName: world.authors.get(m.authorId)?.name ?? 'Unknown',
-        playerName: world.playerName,
-      }), 'milestone'))
+      if (m.isUnsuitable) {
+        result.toasts.push(createToast(
+          `📘 《${m.title}》出版了。读者评价：还行吧。（品质过低，仅 +2 声誉）`, 'info'))
+      } else {
+        result.toasts.push(createToast(generateToast('bookPublished', {
+          title: m.title,
+          genre: m.genre,
+          authorName: world.authors.get(m.authorId)?.name ?? 'Unknown',
+          playerName: world.playerName,
+        }), 'milestone'))
+      }
 
       // Author fame progression
       const author = world.authors.get(m.authorId)
@@ -432,6 +438,7 @@ function createManuscript(world: GameWorldState): Manuscript {
     synopsis: generateSynopsis(genre),
     isUnsuitable: isClearlyUnsuitable(quality),
     rejectionReason: isClearlyUnsuitable(quality) ? generateRejectionReason() : '',
+    meticulouslyEdited: false,
   }
 }
 
@@ -462,6 +469,7 @@ function createManuscriptForAuthor(world: GameWorldState, author: Author): Manus
     synopsis: generateSynopsis(author.genre),
     isUnsuitable: isClearlyUnsuitable(quality),
     rejectionReason: isClearlyUnsuitable(quality) ? generateRejectionReason() : '',
+    meticulouslyEdited: false,
   }
 }
 
