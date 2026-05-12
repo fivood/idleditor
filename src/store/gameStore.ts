@@ -1,11 +1,13 @@
 import { create } from 'zustand'
 import type { Department, EditorTrait, Manuscript, PermanentBonuses, ToastMessage } from '@/core/types'
 import { GENRE_PREFERENCE_THRESHOLDS } from '@/core/constants'
+import type { Decision } from '@/core/decisions'
 import { createInitialWorld, tick } from '@/core/gameLoop'
 import type { TickResult } from '@/core/types'
 import type { GameWorldState } from '@/core/gameLoop'
 import { saveGameToDb, loadGameFromDb, hasExistingSave } from '@/db/saveManager'
 import { nanoid } from '@/utils/id'
+import { generateTemplateDecision } from '@/core/decisions'
 
 function serializeMapForDb(map: Map<unknown, unknown>): string {
   return JSON.stringify([...map.entries()])
@@ -17,6 +19,14 @@ export function getPreferenceSlots(prestige: number): number {
     if (prestige >= t) slots++
   }
   return slots
+}
+
+async function tryTriggerDecision() {
+  const state = useGameStore.getState()
+  const decision = generateTemplateDecision(state)
+  if (decision) {
+    useGameStore.setState({ pendingDecision: decision, decisionCooldown: 900 })
+  }
 }
 
 async function syncToCloudImpl(state: GameStore): Promise<boolean> {
@@ -57,6 +67,8 @@ export interface GameStore extends GameWorldState {
   activeTab: 'desk' | 'shelf' | 'authors' | 'office'
   cloudSaveCode: string | null
   llmCallsRemaining: number
+  pendingDecision: Decision | null
+  decisionCooldown: number
 
   // Actions: lifecycle
   initialize: () => Promise<void>
@@ -90,6 +102,7 @@ export interface GameStore extends GameWorldState {
   setActiveTab: (tab: GameStore['activeTab']) => void
   setCloudSaveCode: (code: string) => void
   generateLlmSynopsis: (id: string) => Promise<void>
+  resolveDecision: (optionIndex: number) => void
   setPreferredGenre: (genre: string) => void
   removePreferredGenre: (genre: string) => void
   dismissToast: (id: string) => void
@@ -105,6 +118,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   activeTab: 'desk',
   cloudSaveCode: null,
   llmCallsRemaining: 30,
+  pendingDecision: null,
+  decisionCooldown: 900,
 
   // ──── Lifecycle ────
   initialize: async () => {
@@ -192,8 +207,15 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       triggeredMilestones: new Set(world.triggeredMilestones),
       activeDateEvent: world.activeDateEvent,
       booksPublishedThisMonth: world.booksPublishedThisMonth,
+      decisionCooldown: Math.max(0, state.decisionCooldown - 1),
       toasts: [...state.toasts, ...result.toasts].slice(-100),
     })
+
+    // Decision trigger: every 600 ticks (~10 min), if no pending decision
+    const newState = get()
+    if (!newState.pendingDecision && newState.decisionCooldown <= 0 && world.playTicks % 600 === 0 && world.playTicks > 0) {
+      tryTriggerDecision()
+    }
 
     // Auto-save every 60 ticks (1 minute)
     if (world.playTicks % 60 === 0) {
@@ -476,6 +498,19 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     }
   },
 
+  resolveDecision: (optionIndex: number) => {
+    const state = get()
+    if (!state.pendingDecision) return
+
+    const decision = state.pendingDecision
+    applyDecisionEffect(decision.id, decision.title, optionIndex, state)
+
+    set({
+      pendingDecision: null,
+      decisionCooldown: 900,
+    })
+  },
+
   setPreferredGenre: (genre) => {
     const state = get()
     const maxSlots = getPreferenceSlots(state.currencies.prestige)
@@ -539,3 +574,166 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     }
   },
 }))
+
+function applyDecisionEffect(_id: string, title: string, optionIndex: number, state: GameStore) {
+  const set = (partial: Partial<GameStore>) => useGameStore.setState(partial)
+  const addToast = (text: string) => {
+    const s = useGameStore.getState()
+    useGameStore.setState({ toasts: [...s.toasts, { id: nanoid(), text, type: 'milestone' as const, createdAt: Date.now() }].slice(-100) })
+  }
+
+  if (title === '评论家提前审读') {
+    if (optionIndex === 0) {
+      const submitted = [...state.manuscripts.values()].filter(m => m.status === 'submitted')
+      const ms = submitted[Math.floor(Math.random() * submitted.length)]
+      if (ms) {
+        ms.quality = Math.max(0, ms.quality - 10)
+        ms.status = 'publishing'
+        ms.editingProgress = 0
+        set({ manuscripts: new Map(state.manuscripts) })
+        addToast(`"${ms.title}" 跳过编辑，直接出版！品质 -10。` )
+      }
+    }
+    return
+  }
+  if (title === '作者请求加急') {
+    if (optionIndex === 0) {
+      const submitted = [...state.manuscripts.values()].filter(m => m.status === 'submitted')
+      const ms = submitted[Math.floor(Math.random() * submitted.length)]
+      if (ms) {
+        ms.quality = Math.max(0, ms.quality - 5)
+        ms.status = 'publishing'
+        set({ manuscripts: new Map(state.manuscripts) })
+        addToast(`"${ms.title}" 加急出版！品质 -5。`)
+      }
+    }
+    return
+  }
+  if (title === '匿名举报') {
+    if (optionIndex === 0) {
+      const authors = [...state.authors.values()].filter(a => a.tier !== 'new')
+      if (authors.length > 0) {
+        const a = authors[Math.floor(Math.random() * authors.length)]
+        a.cooldownUntil = 1800
+        set({ authors: new Map(state.authors) })
+      }
+      set({ currencies: { ...state.currencies, prestige: state.currencies.prestige + 15 } })
+      addToast('调查结束。一位作者被暂时停职。声望 +15。')
+    } else {
+      set({ currencies: { ...state.currencies, prestige: Math.max(0, state.currencies.prestige - 5) } })
+      addToast('搁置举报。声望 -5。')
+    }
+    return
+  }
+  if (title === '图书博览会邀请') {
+    if (optionIndex === 0) {
+      const cost = Math.min(state.currencies.revisionPoints, 50)
+      const success = Math.random() < 0.7
+      set({
+        currencies: {
+          ...state.currencies,
+          revisionPoints: state.currencies.revisionPoints - cost,
+          prestige: state.currencies.prestige + (success ? 30 : 3),
+        },
+      })
+      addToast(success ? '参展大获成功！声望 +30。' : '效果平平，但茶歇点心不错。+3 声望。')
+    }
+    return
+  }
+  if (title === '影视改编报价') {
+    if (optionIndex === 0) {
+      set({ currencies: { ...state.currencies, revisionPoints: state.currencies.revisionPoints + 200 } })
+      addToast('买断成交！200 RP 到账。')
+    }
+    return
+  }
+  if (title.includes('预支稿费')) {
+    if (optionIndex === 0) {
+      set({ currencies: { ...state.currencies, revisionPoints: state.currencies.revisionPoints - 50 } })
+      addToast('预支 50 RP。作者承诺下本品质 +15。')
+    } else {
+      if (Math.random() < 0.5) {
+        const authors = [...state.authors.values()].filter(a => a.tier !== 'new')
+        if (authors.length > 0) {
+          const a = authors[Math.floor(Math.random() * authors.length)]
+          a.cooldownUntil = 1200
+          set({ authors: new Map(state.authors) })
+          addToast(`${a.name} 被拒后进入冷却。`)
+        }
+      }
+    }
+    return
+  }
+  if (title.includes('新人推荐')) {
+    if (optionIndex === 0) {
+      const newcomers = [...state.authors.values()].filter(a => a.tier === 'new')
+      if (newcomers.length > 0) {
+        const a = newcomers[Math.floor(Math.random() * newcomers.length)]
+        a.tier = 'signed'
+        set({ authors: new Map(state.authors) })
+        addToast(`${a.name} 签约成功！${Math.random() < 0.5 ? '入选新人奖！声望 +30。' : ''}`)
+        if (Math.random() < 0.5) {
+          set({ currencies: { ...state.currencies, prestige: state.currencies.prestige + 30 } })
+        }
+      }
+    }
+    return
+  }
+  if (title === '印刷厂罢工') {
+    if (optionIndex === 0) {
+      set({ currencies: { ...state.currencies, revisionPoints: Math.max(0, state.currencies.revisionPoints - 30) } })
+      addToast('涨薪同意。印刷继续。')
+    } else {
+      for (const m of state.manuscripts.values()) {
+        if (m.status === 'publishing') m.editingProgress = 0
+      }
+      set({ manuscripts: new Map(state.manuscripts) })
+      addToast('拒绝涨薪。印刷进度归零。')
+    }
+    return
+  }
+  if (title === '负面书评风暴') {
+    if (optionIndex === 0) {
+      set({ currencies: { ...state.currencies, prestige: Math.max(0, state.currencies.prestige - 10) } })
+      addToast('公开回应。声望 -10。')
+    } else if (optionIndex === 1) {
+      set({ currencies: { ...state.currencies, revisionPoints: Math.max(0, state.currencies.revisionPoints - 20) } })
+      addToast('私下摆平。花了 20 RP。')
+    }
+    return
+  }
+  if (title === '开设分社') {
+    if (optionIndex === 0) {
+      if (Math.random() < 0.4) {
+        addToast('分社开业！作者提交速度 +30%。')
+      } else {
+        set({ currencies: { ...state.currencies, revisionPoints: Math.max(0, state.currencies.revisionPoints - 500), prestige: Math.max(0, state.currencies.prestige - 100) } })
+        addToast('分社失败。500 RP 和 100 声望打水漂。')
+      }
+    }
+    return
+  }
+  if (title.includes('退休编辑')) {
+    if (optionIndex === 0) {
+      const signed = [...state.authors.values()].filter(a => a.tier !== 'new')
+      for (let i = 0; i < Math.min(3, signed.length); i++) signed[i].cooldownUntil = 1200
+      set({ authors: new Map(state.authors), currencies: { ...state.currencies, prestige: state.currencies.prestige + 50 } })
+      addToast('回忆录出版！声望 +50。三位作者不满。')
+    } else {
+      set({ currencies: { ...state.currencies, prestige: state.currencies.prestige + 10 } })
+      addToast('劝阻成功。声望 +10。')
+    }
+    return
+  }
+  if (title === '茶水间预算') {
+    if (optionIndex === 0) {
+      set({ currencies: { ...state.currencies, revisionPoints: state.currencies.revisionPoints + 20 } })
+      addToast('省下 20 RP。编辑们不开心。')
+    } else {
+      set({ currencies: { ...state.currencies, revisionPoints: Math.max(0, state.currencies.revisionPoints - 20) } })
+      addToast('继续供应。消耗 20 RP。编辑们满意。')
+    }
+    return
+  }
+  addToast(`决策已执行：${title}`)
+}

@@ -5,6 +5,7 @@ import { AuthorView } from '@/components/author/AuthorView'
 import { OfficeView } from '@/components/office/OfficeView'
 import { WelcomeView } from './WelcomeView'
 import { OfflineReportModal } from './OfflineReportModal'
+import { DecisionModal } from './DecisionModal'
 import { useGameStore } from '@/store/gameStore'
 import { useGameLoop } from '@/hooks/useGameLoop'
 import { useAutoSave } from '@/hooks/useAutoSave'
@@ -16,6 +17,7 @@ export function Shell() {
   const initialize = useGameStore(s => s.initialize)
   const playerName = useGameStore(s => s.playerName)
   const activeTab = useGameStore(s => s.activeTab)
+  const pendingDecision = useGameStore(s => s.pendingDecision)
   const setActiveTab = useGameStore(s => s.setActiveTab)
 
   useEffect(() => {
@@ -83,6 +85,8 @@ export function Shell() {
           onDismiss={dismiss}
         />
       )}
+
+      {pendingDecision && <DecisionModal decision={pendingDecision} />}
     </div>
   )
 }

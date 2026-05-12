@@ -397,6 +397,7 @@ export function tick(world: GameWorldState): TickResult {
   for (const ms of MILESTONES) {
     if (!world.triggeredMilestones.has(ms.ticks) && world.playTicks >= ms.ticks) {
       world.triggeredMilestones.add(ms.ticks)
+      world.triggeredMilestones.add(ms.ticks)
       result.toasts.push({ id: nanoid(), text: ms.message, type: 'milestone', createdAt: world.playTicks })
     }
   }
