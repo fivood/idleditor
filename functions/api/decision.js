@@ -35,6 +35,7 @@ ${gameCtx}
 - 两个选项要有真实的权衡（不是明显的好坏）
 - 后果描述简洁，包含数值或概率
 - 风格偏冷幽默、吐槽感
+- 不要使用破折号
 - 只返回JSON，不要其他文字`
 
     const res = await fetch(`${provider}/chat/completions`, {

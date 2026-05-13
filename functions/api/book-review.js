@@ -42,8 +42,8 @@ export async function onRequestPost(context) {
     const model = env.LLM_MODEL || 'deepseek-chat'
 
     const prompts = {
-      review: `你是一位口味挑剔的吸血鬼读者（活了几百年）。请为一本名叫《${title}》的${genre}小说写一条读者短评。风格：冷幽默、一句话、像豆瓣/Goodreads上的那种。15-25字。不要书名号。`,
-      quote: `你是一位名叫某作者的${genre}小说作者，刚出版了《${title}》。请模仿该作者的口吻，说一句关于这本书的访谈摘录。风格：冷幽默、谦虚或自嘲。15-25字。`,
+      review: `你是一位口味挑剔的吸血鬼读者（活了几百年）。请为一本名叫《${title}》的${genre}小说写一条读者短评。风格：冷幽默、一句话、像豆瓣/Goodreads上的那种。15-25字。不要书名号。不要使用破折号。`,
+      quote: `你是一位名叫某作者的${genre}小说作者，刚出版了《${title}》。请模仿该作者的口吻，说一句关于这本书的访谈摘录。风格：冷幽默、谦虚或自嘲。15-25字。不要使用破折号。`,
     }
 
     const prompt = prompts[type] || prompts.review

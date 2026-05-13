@@ -43,7 +43,7 @@ export async function onRequestPost(context) {
     const provider = env.LLM_BASE_URL || 'https://api.deepseek.com'
     const model = env.LLM_MODEL || 'deepseek-chat'
 
-    const prompt = `你是一位活了两百多年的吸血鬼编辑。请用中文对以下小说发表一句吐槽式评语，风格冷幽默、刻薄但善意。1句话，30字以内。不要加引号。
+    const prompt = `你是一位活了两百多年的吸血鬼编辑。请用中文对以下小说发表一句吐槽式评语，风格冷幽默、刻薄但善意。1句话，30字以内。不要使用破折号。不要加引号。
 
 书名：《${title}》
 类型：${genre}

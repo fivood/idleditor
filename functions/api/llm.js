@@ -42,7 +42,7 @@ export async function onRequestPost(context) {
         messages: [
           {
             role: 'system',
-            content: '你是一家中外文出版社的编辑，为投稿的小说写简介。用中文输出，风格偏冷幽默、带吐槽感。2-3句话，不要剧透结尾。',
+              content: '你是一家中外文出版社的编辑，为投稿的小说写简介。用中文输出，风格偏冷幽默、带吐槽感。2-3句话，不要剧透结尾。不要使用破折号。',
           },
           { role: 'user', content: prompt },
         ],
