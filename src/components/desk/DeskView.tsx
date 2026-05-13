@@ -18,7 +18,6 @@ const STAGE_LABELS: Record<string, string> = {
 export function DeskView() {
   const manuscripts = useGameStore(s => s.manuscripts)
   const currencies = useGameStore(s => s.currencies)
-  const isRunning = useGameStore(s => s.isRunning)
   const confirmCover = useGameStore(s => s.confirmCover)
   const rejectManuscript = useGameStore(s => s.rejectManuscript)
   const [coverModalId, setCoverModalId] = useState<string | null>(null)
@@ -44,7 +43,6 @@ export function DeskView() {
         <div className="flex items-center gap-2 text-[15px] md:text-xs text-muted shrink-0 font-mono">
           <span className="text-ink font-bold border border-border-dark px-1.5 md:px-2 py-0.5 bg-cream">📥 {submitted.length}</span>
           <span className="text-ink font-bold border border-border-dark px-1.5 md:px-2 py-0.5 bg-cream">⚙️ {inProgress.length}</span>
-          {!isRunning && <span className="text-copper font-bold">⏸</span>}
         </div>
 
         {currencies.revisionPoints === 0 && submitted.length === 0 && (

@@ -6,12 +6,8 @@ import { xpProgressInLevel } from '@/core/leveling'
 
 export function TopBar() {
   const currencies = useGameStore(s => s.currencies)
-  const isRunning = useGameStore(s => s.isRunning)
-  const isInitialized = useGameStore(s => s.isInitialized)
   const playerName = useGameStore(s => s.playerName)
   const calendar = useGameStore(s => s.calendar)
-  const startLoop = useGameStore(s => s.startLoop)
-  const stopLoop = useGameStore(s => s.stopLoop)
   const cloudSaveCode = useGameStore(s => s.cloudSaveCode)
   const booksPublishedThisMonth = useGameStore(s => s.booksPublishedThisMonth)
   const publishingQuotaUpgrades = useGameStore(s => s.publishingQuotaUpgrades || 0)
@@ -71,18 +67,6 @@ export function TopBar() {
               className="text-[15px] md:text-[16px] px-1.5 md:px-2 py-0.5 md:py-1 bg-copper-dark text-white border-2 border-border-dark font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
             >
               转生
-            </button>
-          )}
-          {isInitialized && (
-            <button
-              onClick={() => isRunning ? stopLoop() : startLoop()}
-              className={`text-[15px] md:text-[16px] px-2 md:px-3 py-0.5 md:py-1 border-2 border-border-dark font-mono transition-all cursor-pointer ${
-                isRunning
-                  ? 'bg-copper text-white shadow-[2px_2px_0_#4a3728]'
-                  : 'bg-cream text-ink-light shadow-[2px_2px_0_#4a3728] hover:bg-cream-dark'
-              }`}
-            >
-              {isRunning ? '⏸' : '▶'}
             </button>
           )}
         </div>
