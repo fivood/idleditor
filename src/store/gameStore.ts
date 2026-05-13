@@ -543,17 +543,14 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   // ──── Cloud save ────
   setCloudSaveCode: (code) => set({ cloudSaveCode: code }),
 
-  generateLlmSynopsis: async (_id: string) => { /* removed */ },
   llmCommentary: async (title: string, genre: string, context: string) => {
     const state = get()
     if (state.llmCallsRemaining <= 0) return
-    const prompt = `你是一位活了两百多年的吸血鬼编辑。请用中文对以下小说发表一句吐槽式评语，风格冷幽默、刻薄但善意。1句话，20字以内。
-书名：《${title}》，类型：${genre}，场景：${context}`
     try {
-      const res = await fetch('/api/llm', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) })
+      const res = await fetch('/api/commentary', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, genre, context }) })
       const data = await res.json()
       if (data.text) {
-        set({ llmCallsRemaining: state.llmCallsRemaining - 1 })
+        if (!data.cached) set({ llmCallsRemaining: state.llmCallsRemaining - 1 })
         get().addToast({ id: nanoid(), text: `[编辑吐槽] ${data.text}`, type: 'info', createdAt: Date.now() })
       }
     } catch { /* ignore */ }
