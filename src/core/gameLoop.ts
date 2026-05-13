@@ -140,6 +140,8 @@ export function createInitialWorld(): GameWorldState {
       authorTalentBoost: 0,
       spawnRateBonus: 0,
       bossYears: BOSS_START_YEARS,
+      countRelation: 0,
+      countGender: 'male',
     },
     trait: null,
     playerName: '',

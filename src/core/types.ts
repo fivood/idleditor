@@ -140,6 +140,8 @@ export interface PermanentBonuses {
   authorTalentBoost: number
   spawnRateBonus: number
   bossYears: number
+  countRelation: number
+  countGender: 'male' | 'female'
 }
 
 export interface PlayerState {

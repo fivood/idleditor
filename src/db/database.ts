@@ -17,6 +17,8 @@ export interface SavedGame {
     authorTalentBoost: number
     spawnRateBonus: number
     bossYears: number
+    countRelation: number
+    countGender: 'male' | 'female'
   }
   trait: string | null
   playerName: string

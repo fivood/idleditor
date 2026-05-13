@@ -7,6 +7,8 @@ import { StudyView } from '@/components/study/StudyView'
 import { WelcomeView } from './WelcomeView'
 import { OfflineReportModal } from './OfflineReportModal'
 import { DecisionModal } from './DecisionModal'
+import { CountSceneModal } from './CountSceneModal'
+import { VictoryModal } from './VictoryModal'
 import { useGameStore } from '@/store/gameStore'
 import { useGameLoop } from '@/hooks/useGameLoop'
 import { useAutoSave } from '@/hooks/useAutoSave'
@@ -19,6 +21,11 @@ export function Shell() {
   const playerName = useGameStore(s => s.playerName)
   const activeTab = useGameStore(s => s.activeTab)
   const pendingDecision = useGameStore(s => s.pendingDecision)
+  const activeCountScene = useGameStore(s => s.activeCountScene)
+  const countEnding = useGameStore(s => s.countEnding)
+  const onCountSceneChoice = useGameStore(s => s.onCountSceneChoice)
+  const onCountGenderChoice = useGameStore(s => s.onCountGenderChoice)
+  const dismissEnding = useGameStore(s => s.dismissEnding)
   const setActiveTab = useGameStore(s => s.setActiveTab)
 
   useEffect(() => {
@@ -90,6 +97,19 @@ export function Shell() {
       )}
 
       {pendingDecision && <DecisionModal decision={pendingDecision} />}
+
+      {activeCountScene && (
+        <CountSceneModal
+          scene={activeCountScene}
+          onChoose={onCountSceneChoice}
+          showGenderChoice={activeCountScene.rebirth === -1}
+          onChooseGender={onCountGenderChoice}
+        />
+      )}
+
+      {countEnding && (
+        <VictoryModal ending={countEnding} onDismiss={dismissEnding} />
+      )}
     </div>
   )
 }

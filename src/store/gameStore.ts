@@ -9,6 +9,7 @@ import { saveGameToDb, loadGameFromDb, hasExistingSave } from '@/db/saveManager'
 import { nanoid } from '@/utils/id'
 import { generateTemplateDecision } from '@/core/decisions'
 import { loadSynopsisPool } from '@/core/humor/synopsis'
+import { COUNT_SCENES, type CountScene } from '@/core/countStory'
 import { COLLECTIONS } from '@/core/collections'
 
 function serializeMapForDb(map: Map<unknown, unknown>): string {
@@ -126,6 +127,8 @@ export interface GameStore extends GameWorldState {
   unlockedCollections: Set<string>
   prActive: boolean
   readingRoomRenovated: boolean
+  activeCountScene: CountScene | null
+  countEnding: string | null
 
   // Actions: lifecycle
   initialize: () => Promise<void>
@@ -146,6 +149,9 @@ export interface GameStore extends GameWorldState {
   hirePR: () => void
   renovateReadingRoom: () => void
   sponsorAward: () => void
+  onCountSceneChoice: (choiceIndex: number) => void
+  onCountGenderChoice: (gender: 'male' | 'female') => void
+  dismissEnding: () => void
 
   // Actions: manuscript
   startReview: (id: string) => void
@@ -196,6 +202,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   unlockedCollections: new Set(),
   prActive: false,
   readingRoomRenovated: false,
+  activeCountScene: null,
+  countEnding: null,
 
   // ──── Lifecycle ────
   initialize: async () => {
@@ -390,12 +398,14 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       authorTalentBoost: state.permanentBonuses.authorTalentBoost + 1,
       spawnRateBonus: state.permanentBonuses.spawnRateBonus + 0.03,
       bossYears: Math.max(0, state.permanentBonuses.bossYears - 1),
+      countRelation: state.permanentBonuses.countRelation,
+      countGender: state.permanentBonuses.countGender,
     }
     set({
       ...createInitialWorld(),
       playerName: state.playerName,
       calendar: state.calendar,
-      trait: state.trait, // preserve editor trait through rebirth
+      trait: state.trait,
       permanentBonuses: bonuses,
       currencies: {
         revisionPoints: 0,
@@ -411,8 +421,52 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       }],
       cloudSaveCode: state.cloudSaveCode,
       coversManifest: state.coversManifest,
+      prActive: state.prActive,
+      readingRoomRenovated: state.readingRoomRenovated,
     })
+
+    // Check for count scene
+    const scene = COUNT_SCENES.find(s => s.rebirth === newStatues)
+    if (scene) {
+      set({ activeCountScene: scene })
+    }
+
+    // Check for ending
+    if (bonuses.bossYears <= 0) {
+      const relation = bonuses.countRelation
+      const ending = relation >= 5 ? 'loyal' : relation <= -3 ? 'independent' : 'balanced'
+      set({ countEnding: ending })
+    }
   },
+
+  onCountSceneChoice: (choiceIndex: number) => {
+    const state = get()
+    const scene = state.activeCountScene
+    if (!scene) return
+    const choice = scene.choices[choiceIndex]
+    if (!choice) return
+    const newRelation = state.permanentBonuses.countRelation + choice.loyaltyChange
+    set({
+      permanentBonuses: { ...state.permanentBonuses, countRelation: newRelation },
+      activeCountScene: null,
+    })
+    get().addToast({ id: nanoid(), text: choice.toastText, type: 'milestone', createdAt: Date.now() })
+    // Gender choice after first scene
+    if (scene.rebirth === 1) {
+      set({ activeCountScene: { ...scene, rebirth: -1 } as CountScene }) // Signal gender choice
+    }
+  },
+
+  onCountGenderChoice: (gender: 'male' | 'female') => {
+    set(s => ({
+      permanentBonuses: { ...s.permanentBonuses, countGender: gender },
+      activeCountScene: null,
+    }))
+    const label = gender === 'female' ? '女伯爵' : '伯爵'
+    get().addToast({ id: nanoid(), text: `伯爵档案已更新。此后称呼为：${label}。`, type: 'milestone', createdAt: Date.now() })
+  },
+
+  dismissEnding: () => set({ countEnding: null }),
 
   // ──── Manuscript actions ────
   startReview: (id: string) => {
@@ -813,7 +867,16 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         editorXP: data.editorXP ?? 0,
         editorLevel: data.editorLevel ?? 1,
         currencies: data.currencies ?? { revisionPoints: 0, prestige: 0, royalties: 0, statues: 0 },
-        permanentBonuses: data.permanentBonuses ?? createInitialWorld().permanentBonuses,
+        permanentBonuses: {
+          manuscriptQualityBonus: data.permanentBonuses?.manuscriptQualityBonus ?? 0,
+          editingSpeedBonus: data.permanentBonuses?.editingSpeedBonus ?? 0,
+          royaltyMultiplier: data.permanentBonuses?.royaltyMultiplier ?? 1,
+          authorTalentBoost: data.permanentBonuses?.authorTalentBoost ?? 0,
+          spawnRateBonus: data.permanentBonuses?.spawnRateBonus ?? 0,
+          bossYears: data.permanentBonuses?.bossYears ?? 10,
+          countRelation: data.permanentBonuses?.countRelation ?? 0,
+          countGender: data.permanentBonuses?.countGender ?? 'male',
+        },
         calendar: data.calendar ?? createInitialWorld().calendar,
         trait: data.trait ?? null,
         preferredGenres: data.preferredGenres ?? [],
