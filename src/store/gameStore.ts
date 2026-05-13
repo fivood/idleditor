@@ -131,6 +131,7 @@ export interface GameStore extends GameWorldState {
   // Actions: manuscript
   startReview: (id: string) => void
   rejectManuscript: (id: string) => void
+  shelveManuscript: (id: string) => void
   meticulousEdit: (id: string, level: 'light' | 'deep' | 'extreme') => void
   confirmCover: (id: string) => void
   getSubmittedManuscripts: () => Manuscript[]
@@ -430,6 +431,21 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         createdAt: Date.now(),
       })
     }
+  },
+
+  shelveManuscript: (id: string) => {
+    const state = get()
+    const ms = state.manuscripts.get(id)
+    if (!ms || ms.status !== 'submitted') return
+    ms.status = 'shelved'
+    ms.shelvedAt = state.playTicks
+    set({ manuscripts: new Map(state.manuscripts) })
+    get().addToast({
+      id: nanoid(),
+      text: `"${ms.title}" 已搁置。作者可能会修改后重新投稿。`,
+      type: 'info',
+      createdAt: Date.now(),
+    })
   },
 
   meticulousEdit: (id: string, level: 'light' | 'deep' | 'extreme') => {

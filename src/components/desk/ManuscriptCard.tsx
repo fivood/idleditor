@@ -10,6 +10,7 @@ interface Props {
 export function ManuscriptCard({ manuscript }: Props) {
   const startReview = useGameStore(s => s.startReview)
   const rejectManuscript = useGameStore(s => s.rejectManuscript)
+  const shelveManuscript = useGameStore(s => s.shelveManuscript)
   const [expanded, setExpanded] = useState(false)
   const icon = GENRE_ICONS[manuscript.genre] ?? '/icons/misc/book.svg'
 
@@ -54,6 +55,12 @@ export function ManuscriptCard({ manuscript }: Props) {
           className="text-[14px] md:text-[16px] px-1.5 md:px-2 py-0.5 md:py-1 bg-cream-dark text-muted border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
         >
           退稿
+        </button>
+        <button
+          onClick={() => shelveManuscript(manuscript.id)}
+          className="text-[14px] md:text-[16px] px-1.5 md:px-2 py-0.5 md:py-1 bg-cream text-muted border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[1px] active:translate-y-[1px]"
+        >
+          搁置
         </button>
       </div>
     </div>

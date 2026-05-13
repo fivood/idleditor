@@ -86,6 +86,7 @@ export interface Manuscript {
   isUnsuitable: boolean
   rejectionReason: string
   meticulouslyEdited: boolean
+  shelvedAt: number | null
 }
 
 export interface BookCover {

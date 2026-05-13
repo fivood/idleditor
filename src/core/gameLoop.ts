@@ -449,8 +449,19 @@ export function tick(world: GameWorldState): TickResult {
   for (const ms of MILESTONES) {
     if (!world.triggeredMilestones.has(ms.ticks) && world.playTicks >= ms.ticks) {
       world.triggeredMilestones.add(ms.ticks)
-      world.triggeredMilestones.add(ms.ticks)
       result.toasts.push({ id: nanoid(), text: ms.message, type: 'milestone', createdAt: world.playTicks })
+    }
+  }
+
+  // 11. Shelved manuscript resubmission
+  for (const m of world.manuscripts.values()) {
+    if (m.status !== 'shelved' || !m.shelvedAt) continue
+    const shelvedDuration = world.playTicks - m.shelvedAt
+    if (shelvedDuration >= 300 + rangeInt(0, 300)) {
+      m.status = 'submitted'
+      m.quality = Math.min(100, m.quality + 3)
+      m.shelvedAt = null
+      result.toasts.push(createToast(`📥 《${m.title}》经过修改后重新投稿。品质 +3。`, 'info'))
     }
   }
 
@@ -503,6 +514,7 @@ function createManuscript(world: GameWorldState): Manuscript {
     isUnsuitable: isClearlyUnsuitable(quality),
     rejectionReason: isClearlyUnsuitable(quality) ? generateRejectionReason() : '',
     meticulouslyEdited: false,
+    shelvedAt: null,
   }
 }
 
@@ -534,6 +546,7 @@ function createManuscriptForAuthor(world: GameWorldState, author: Author): Manus
     isUnsuitable: isClearlyUnsuitable(quality),
     rejectionReason: isClearlyUnsuitable(quality) ? generateRejectionReason() : '',
     meticulouslyEdited: false,
+    shelvedAt: null,
   }
 }
 
