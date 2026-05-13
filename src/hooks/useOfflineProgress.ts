@@ -72,11 +72,11 @@ export function useOfflineProgress() {
 
     if (elapsedMinutes >= 60) {
       const hours = Math.round(elapsedMinutes / 60)
-      eventMsgs.push(`你离开了约${hours}小时。伯爵敲了七次你办公室的门，然后叹了口气说"年轻人啊"。`)
+      eventMsgs.push(`你离开了约${hours}小时。伯爵敲了七次你办公室的门，然后叹了口气说"年轻人啊"。他的意思是：活了三百多岁，还是没教会下属守时。`)
     } else if (elapsedMinutes >= 10) {
-      eventMsgs.push(`你离开了${elapsedMinutes}分钟。茶水间的咖啡机爆炸了两次——编辑们已经开始用冷水泡茶了。`)
+      eventMsgs.push(`你离开了${elapsedMinutes}分钟。茶水间的"红茶"被新来的实习生尝了一口——现在她还在茶水间里坐着，反复问同事"这个真的是茶吗"。`)
     } else {
-      eventMsgs.push(`离线期间积累经验：+${offlineXP} XP（在线效率约15倍）`)
+      eventMsgs.push(`短暂离开。还好，出版社没有在你不在的时候被火焰吞噬（这次没有）。你在屋顶上看到一切安好才飞下来。`)
     }
 
     if (newPublished > 0) {
