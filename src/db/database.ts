@@ -35,6 +35,12 @@ export interface SavedGame {
   updatedAt: number
 }
 
+export interface Bookmark {
+  name: string
+  position: number  // character index
+  createdAt: number
+}
+
 export interface PlayerNovel {
   id: string
   title: string
@@ -46,6 +52,7 @@ export interface PlayerNovel {
   createdAt: number
   readingProgress: number
   wordCount: number
+  bookmarks: Bookmark[]
 }
 
 const db = new Dexie('IdleEditorDB') as Dexie & {

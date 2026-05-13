@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
-import { db, type PlayerNovel } from '@/db/database'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { db, type PlayerNovel, type Bookmark } from '@/db/database'
 import { nanoid } from '@/utils/id'
 import JSZip from 'jszip'
 import { type Genre } from '@/core/types'
@@ -101,6 +101,7 @@ function UploadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =>
       createdAt: Date.now(),
       readingProgress: 0,
       wordCount: content.trim().length,
+      bookmarks: [],
     }
     await db.novels.put(novel)
     onSaved()
@@ -256,22 +257,66 @@ function UploadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =>
 
 function ReaderView({ novel, onClose }: { novel: PlayerNovel; onClose: () => void }) {
   const [position, setPosition] = useState(novel.readingProgress)
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>(novel.bookmarks || [])
+  const [showBookmarks, setShowBookmarks] = useState(false)
+  const [newBookmarkName, setNewBookmarkName] = useState('')
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const total = novel.content.length
   const progress = total > 0 ? Math.round(position / total * 100) : 0
+
+  // Auto-save every 5 seconds
+  function scheduleSave(pos: number) {
+    setPosition(pos)
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    saveTimerRef.current = setTimeout(() => {
+      db.novels.update(novel.id, { readingProgress: pos })
+    }, 5000)
+  }
 
   function handleScroll(e: React.UIEvent<HTMLDivElement>) {
     const el = e.currentTarget
     const pct = el.scrollTop / (el.scrollHeight - el.clientHeight)
     const newPos = Math.round(pct * total)
-    setPosition(newPos)
+    scheduleSave(newPos)
   }
 
-  async function handleSaveProgress() {
-    await db.novels.update(novel.id, { readingProgress: position })
+  async function handleClose() {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    await db.novels.update(novel.id, { readingProgress: position, bookmarks })
     onClose()
   }
 
-  // Split content into paragraphs, render basic markdown
+  async function addBookmark() {
+    const name = newBookmarkName.trim() || `位置 ${progress}%`
+    const bm: Bookmark = { name, position, createdAt: Date.now() }
+    const updated = [...bookmarks, bm]
+    setBookmarks(updated)
+    setNewBookmarkName('')
+    await db.novels.update(novel.id, { bookmarks: updated })
+  }
+
+  async function removeBookmark(index: number) {
+    const updated = bookmarks.filter((_, i) => i !== index)
+    setBookmarks(updated)
+    await db.novels.update(novel.id, { bookmarks: updated })
+  }
+
+  function jumpToBookmark(bm: Bookmark) {
+    const el = document.getElementById('reader-content')
+    if (!el) return
+    const pct = bm.position / total
+    el.scrollTop = pct * (el.scrollHeight - el.clientHeight)
+    setShowBookmarks(false)
+  }
+
+  // Save progress on unmount
+  useEffect(() => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    return () => {
+      db.novels.update(novel.id, { readingProgress: position, bookmarks }).catch(() => {})
+    }
+  }, [])
+
   const paragraphs = novel.content.split('\n').filter(p => p.trim())
 
   function renderLine(line: string, i: number) {
@@ -324,10 +369,16 @@ function ReaderView({ novel, onClose }: { novel: PlayerNovel; onClose: () => voi
           <p className="text-[12px] md:text-xs text-muted font-mono">{novel.author} · {total.toLocaleString()} 字 · {progress}%</p>
         </div>
         <button
-          onClick={handleSaveProgress}
+          onClick={handleClose}
           className="text-[12px] md:text-xs px-3 py-1.5 bg-copper text-white border-2 border-border-dark font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
         >
           关闭
+        </button>
+        <button
+          onClick={() => setShowBookmarks(!showBookmarks)}
+          className="text-[12px] md:text-xs px-2 py-1.5 border-2 border-border-dark text-muted font-mono cursor-pointer bg-cream shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
+        >
+          书签 ({bookmarks.length})
         </button>
       </div>
 
@@ -345,7 +396,42 @@ function ReaderView({ novel, onClose }: { novel: PlayerNovel; onClose: () => voi
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto p-4 md:p-8" onScroll={handleScroll}>
+      {showBookmarks && (
+        <div className="bg-cream-dark border-b-2 border-border-dark p-3 md:p-4">
+          <p className="text-[12px] md:text-xs text-muted font-mono mb-2">书签 ({bookmarks.length})</p>
+          <div className="flex gap-2 mb-2">
+            <input
+              value={newBookmarkName}
+              onChange={e => setNewBookmarkName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && addBookmark()}
+              placeholder="书签名..."
+              className="flex-1 px-2 py-1 text-[12px] border-2 border-border-dark bg-card-inset text-ink font-mono focus:outline-none focus:border-copper"
+            />
+            <button
+              onClick={addBookmark}
+              className="text-[12px] px-3 py-1 bg-copper text-white border-2 border-border-dark font-mono cursor-pointer"
+            >
+              添加
+            </button>
+          </div>
+          {bookmarks.length > 0 ? (
+            <div className="space-y-1 max-h-40 overflow-y-auto">
+              {[...bookmarks].reverse().map((bm, i) => (
+                <div key={i} className="flex items-center justify-between text-[12px] font-mono">
+                  <button onClick={() => jumpToBookmark(bm)} className="text-progress hover:underline text-left">
+                    {bm.name} ({Math.round(bm.position / Math.max(1, total) * 100)}%)
+                  </button>
+                  <button onClick={() => removeBookmark(bookmarks.length - 1 - i)} className="text-muted hover:text-copper-dark">X</button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-[12px] text-muted font-mono">暂无书签，输入名称后点添加</p>
+          )}
+        </div>
+      )}
+
+      <div className="flex-1 overflow-y-auto p-4 md:p-8" onScroll={handleScroll} id="reader-content">
         <div className="max-w-[640px] mx-auto">
           {paragraphs.map((p, i) => renderLine(p, i))}
           {paragraphs.length === 0 && (
