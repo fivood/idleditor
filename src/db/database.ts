@@ -29,6 +29,9 @@ export interface SavedGame {
   editorXP: number
   editorLevel: number
   publishingQuotaUpgrades: number
+  autoReviewEnabled: boolean
+  autoCoverEnabled: boolean
+  autoRejectEnabled: boolean
   // Serialized maps
   manuscriptsJson: string
   authorsJson: string

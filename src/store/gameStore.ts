@@ -109,6 +109,9 @@ export interface GameStore extends GameWorldState {
   pendingDecision: Decision | null
   decisionCooldown: number
   publishingQuotaUpgrades: number
+  autoReviewEnabled: boolean
+  autoCoverEnabled: boolean
+  autoRejectEnabled: boolean
 
   // Actions: lifecycle
   initialize: () => Promise<void>
@@ -120,6 +123,9 @@ export interface GameStore extends GameWorldState {
   syncToCloud: () => Promise<boolean>
   loadFromCloud: (code: string) => Promise<boolean>
   upgradePublishingQuota: () => void
+  toggleAutoReview: () => void
+  toggleAutoCover: () => void
+  toggleAutoReject: () => void
 
   // Actions: manuscript
   startReview: (id: string) => void
@@ -163,6 +169,9 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   pendingDecision: null,
   decisionCooldown: 900,
   publishingQuotaUpgrades: 0,
+  autoReviewEnabled: true,
+  autoCoverEnabled: true,
+  autoRejectEnabled: true,
 
   // ──── Lifecycle ────
   initialize: async () => {
@@ -239,6 +248,9 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       editorXP: state.editorXP,
       editorLevel: state.editorLevel,
       publishingQuotaUpgrades: state.publishingQuotaUpgrades,
+      autoReviewEnabled: state.autoReviewEnabled,
+      autoCoverEnabled: state.autoCoverEnabled,
+      autoRejectEnabled: state.autoRejectEnabled,
     }
     const result = tick(world)
 
@@ -260,6 +272,9 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       editorXP: world.editorXP,
       editorLevel: world.editorLevel,
       publishingQuotaUpgrades: world.publishingQuotaUpgrades,
+      autoReviewEnabled: world.autoReviewEnabled,
+      autoCoverEnabled: world.autoCoverEnabled,
+      autoRejectEnabled: world.autoRejectEnabled,
       decisionCooldown: Math.max(0, state.decisionCooldown - 1),
       toasts: [...state.toasts, ...result.toasts].slice(-100),
     })
@@ -294,6 +309,9 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         editorXP: world.editorXP,
         editorLevel: world.editorLevel,
         publishingQuotaUpgrades: world.publishingQuotaUpgrades,
+        autoReviewEnabled: world.autoReviewEnabled,
+        autoCoverEnabled: world.autoCoverEnabled,
+        autoRejectEnabled: world.autoRejectEnabled,
         triggeredMilestones: world.triggeredMilestones,
         manuscripts: world.manuscripts,
         authors: world.authors,
@@ -609,6 +627,10 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       createdAt: Date.now(),
     })
   },
+
+  toggleAutoReview: () => set(s => ({ autoReviewEnabled: !s.autoReviewEnabled })),
+  toggleAutoCover: () => set(s => ({ autoCoverEnabled: !s.autoCoverEnabled })),
+  toggleAutoReject: () => set(s => ({ autoRejectEnabled: !s.autoRejectEnabled })),
 
   setPreferredGenre: (genre) => {
     const state = get()

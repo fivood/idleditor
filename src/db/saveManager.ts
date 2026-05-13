@@ -18,6 +18,9 @@ export interface GameSaveData {
   editorXP: number
   editorLevel: number
   publishingQuotaUpgrades: number
+  autoReviewEnabled: boolean
+  autoCoverEnabled: boolean
+  autoRejectEnabled: boolean
   triggeredMilestones: Set<number>
   manuscripts: Map<string, Manuscript>
   authors: Map<string, Author>
@@ -44,6 +47,9 @@ export async function saveGameToDb(data: GameSaveData): Promise<void> {
     editorXP: data.editorXP,
     editorLevel: data.editorLevel,
     publishingQuotaUpgrades: data.publishingQuotaUpgrades,
+    autoReviewEnabled: data.autoReviewEnabled,
+    autoCoverEnabled: data.autoCoverEnabled,
+    autoRejectEnabled: data.autoRejectEnabled,
     manuscriptsJson: serializeMap(data.manuscripts),
     authorsJson: serializeMap(data.authors),
     departmentsJson: serializeMap(data.departments),
@@ -70,6 +76,9 @@ export async function loadGameFromDb(): Promise<GameSaveData | null> {
     editorXP: save.editorXP ?? 0,
     editorLevel: save.editorLevel ?? 1,
     publishingQuotaUpgrades: save.publishingQuotaUpgrades ?? 0,
+    autoReviewEnabled: save.autoReviewEnabled ?? true,
+    autoCoverEnabled: save.autoCoverEnabled ?? true,
+    autoRejectEnabled: save.autoRejectEnabled ?? true,
     triggeredMilestones: new Set(save.triggeredMilestones),
     manuscripts: deserializeMap<string, Manuscript>(save.manuscriptsJson),
     authors: deserializeMap<string, Author>(save.authorsJson),

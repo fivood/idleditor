@@ -29,6 +29,12 @@ export function OfficeView() {
   const setPreferredGenre = useGameStore(s => s.setPreferredGenre)
   const removePreferredGenre = useGameStore(s => s.removePreferredGenre)
   const upgradePublishingQuota = useGameStore(s => s.upgradePublishingQuota)
+  const toggleAutoReview = useGameStore(s => s.toggleAutoReview)
+  const toggleAutoCover = useGameStore(s => s.toggleAutoCover)
+  const toggleAutoReject = useGameStore(s => s.toggleAutoReject)
+  const autoReviewEnabled = useGameStore(s => s.autoReviewEnabled)
+  const autoCoverEnabled = useGameStore(s => s.autoCoverEnabled)
+  const autoRejectEnabled = useGameStore(s => s.autoRejectEnabled)
   const publishingQuotaUpgrades = useGameStore(s => s.publishingQuotaUpgrades || 0)
   const [showChangelog, setShowChangelog] = useState(false)
 
@@ -196,6 +202,8 @@ export function OfficeView() {
             desc="编辑部自动受理投稿池里的稿件。"
             req={`编辑部 Lv.${AUTO_REVIEW_DEPT_LEVEL}`}
             unlocked={editingLevel >= AUTO_REVIEW_DEPT_LEVEL}
+            enabled={autoReviewEnabled}
+            onToggle={toggleAutoReview}
           />
           <PerkCard
             icon="🎨"
@@ -203,6 +211,8 @@ export function OfficeView() {
             desc="封面待选的稿件自动使用占位封面出版。"
             req={`声望 ${AUTO_COVER_PRESTIGE}`}
             unlocked={currencies.prestige >= AUTO_COVER_PRESTIGE}
+            enabled={autoCoverEnabled}
+            onToggle={toggleAutoCover}
           />
           <PerkCard
             icon="🗑️"
@@ -210,6 +220,8 @@ export function OfficeView() {
             desc="一眼看出就不行的稿件不用你亲自动手退了。"
             req={`声望 ${AUTO_REJECT_PRESTIGE} + 编辑部 Lv.5`}
             unlocked={currencies.prestige >= AUTO_REJECT_PRESTIGE && editingLevel >= 5}
+            enabled={autoRejectEnabled}
+            onToggle={toggleAutoReject}
           />
         </div>
       </div>
@@ -219,12 +231,12 @@ export function OfficeView() {
   )
 }
 
-function PerkCard({ icon, label, desc, req, unlocked }: {
-  icon: string; label: string; desc: string; req: string; unlocked: boolean
+function PerkCard({ icon, label, desc, req, unlocked, enabled, onToggle }: {
+  icon: string; label: string; desc: string; req: string; unlocked: boolean; enabled?: boolean; onToggle?: () => void
 }) {
   return (
     <div className={`border-2 p-2 md:p-3 transition-all ${
-      unlocked
+      unlocked && enabled !== false
         ? 'bg-cream border-progress shadow-[3px_3px_0_#3a6491]'
         : 'bg-cream-dark border-border-dark opacity-50'
     }`}>
@@ -232,12 +244,23 @@ function PerkCard({ icon, label, desc, req, unlocked }: {
         <span className="text-sm md:text-lg">{icon}</span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
-            <span className="text-[16px] md:text-xs font-bold text-ink font-mono">{label}</span>
-            {unlocked && <span className="text-[14px] text-progress font-bold font-mono">已解锁</span>}
+            <span className="text-[12px] md:text-xs font-bold text-ink font-mono">{label}</span>
+            {unlocked && enabled !== false && <span className="text-[12px] text-progress font-bold font-mono">已解锁</span>}
+            {unlocked && enabled === false && <span className="text-[12px] text-muted font-mono">已暂停</span>}
           </div>
-          <p className="text-[14px] md:text-[16px] text-muted font-mono">{desc}</p>
+          <p className="text-[12px] md:text-[13px] text-muted font-mono">{desc}</p>
         </div>
-        <span className="text-[16px] md:text-[14px] text-muted font-mono text-right shrink-0">{req}</span>
+        <span className="text-[12px] md:text-[13px] text-muted font-mono text-right shrink-0">{req}</span>
+        {unlocked && onToggle && (
+          <button
+            onClick={onToggle}
+            className={`text-[14px] px-2 py-0.5 border-2 border-border-dark font-mono cursor-pointer transition-all ${
+              enabled ? 'bg-progress text-white' : 'bg-cream text-muted'
+            }`}
+          >
+            {enabled ? 'ON' : 'OFF'}
+          </button>
+        )}
       </div>
     </div>
   )

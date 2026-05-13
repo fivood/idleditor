@@ -44,6 +44,9 @@ export function useOfflineProgress() {
       editorXP: saved.editorXP ?? 0,
       editorLevel: saved.editorLevel ?? 1,
       publishingQuotaUpgrades: saved.publishingQuotaUpgrades ?? 0,
+      autoReviewEnabled: saved.autoReviewEnabled ?? true,
+      autoCoverEnabled: saved.autoCoverEnabled ?? true,
+      autoRejectEnabled: saved.autoRejectEnabled ?? true,
     }
 
     for (const [id, ms] of saved.manuscripts) world.manuscripts.set(id, ms)

@@ -79,6 +79,9 @@ export interface GameWorldState {
   editorXP: number
   editorLevel: number
   publishingQuotaUpgrades: number
+  autoReviewEnabled: boolean
+  autoCoverEnabled: boolean
+  autoRejectEnabled: boolean
 }
 
 // ──── Title generation ────
@@ -149,6 +152,9 @@ export function createInitialWorld(): GameWorldState {
     editorXP: 0,
     editorLevel: 1,
     publishingQuotaUpgrades: 0,
+    autoReviewEnabled: true,
+    autoCoverEnabled: true,
+    autoRejectEnabled: true,
   }
 }
 
@@ -400,7 +406,7 @@ export function tick(world: GameWorldState): TickResult {
   const prestige = world.currencies.prestige
 
   // Auto-review: editing dept >= 3
-  if (editingDeptLevel >= AUTO_REVIEW_DEPT_LEVEL) {
+  if (editingDeptLevel >= AUTO_REVIEW_DEPT_LEVEL && world.autoReviewEnabled) {
     const submitted = [...world.manuscripts.values()].filter(m => m.status === 'submitted')
     if (submitted.length > 0) {
       const ms = submitted[0]
@@ -411,7 +417,7 @@ export function tick(world: GameWorldState): TickResult {
   }
 
   // Auto-cover: prestige >= 100
-  if (prestige >= AUTO_COVER_PRESTIGE && world.booksPublishedThisMonth < 10 + world.publishingQuotaUpgrades) {
+  if (prestige >= AUTO_COVER_PRESTIGE && world.booksPublishedThisMonth < 10 + world.publishingQuotaUpgrades && world.autoCoverEnabled) {
     const awaitingCover = [...world.manuscripts.values()].filter(m => m.status === 'cover_select')
     if (awaitingCover.length > 0) {
       const ms = awaitingCover[0]
@@ -422,7 +428,7 @@ export function tick(world: GameWorldState): TickResult {
   }
 
   // Auto-reject unsuitable: prestige >= 200 && editing dept >= 5
-  if (prestige >= AUTO_REJECT_PRESTIGE && editingDeptLevel >= 5) {
+  if (prestige >= AUTO_REJECT_PRESTIGE && editingDeptLevel >= 5 && world.autoRejectEnabled) {
     const unsuitable = [...world.manuscripts.values()].filter(m => m.status === 'submitted' && m.isUnsuitable)
     for (const ms of unsuitable) {
       ms.status = 'rejected'
