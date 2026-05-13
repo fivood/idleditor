@@ -4,10 +4,11 @@ import { GENRE_ICONS } from '@/core/types'
 interface Props {
   manuscript: Manuscript
   onConfirm: () => void
+  onReject: () => void
   onCancel: () => void
 }
 
-export function CoverSelectModal({ manuscript, onConfirm, onCancel }: Props) {
+export function CoverSelectModal({ manuscript, onConfirm, onReject, onCancel }: Props) {
   const icon = GENRE_ICONS[manuscript.genre] ?? '/icons/misc/book.svg'
   const displayCover = manuscript.cover.src ?? null
 
@@ -46,10 +47,16 @@ export function CoverSelectModal({ manuscript, onConfirm, onCancel }: Props) {
             确认出版
           </button>
           <button
-            onClick={onCancel}
-            className="flex-1 text-[14px] md:text-xs px-3 md:px-4 py-1.5 md:py-2 border-2 border-border-dark text-muted font-mono cursor-pointer bg-cream shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
+            onClick={onReject}
+            className="text-[14px] md:text-xs px-3 md:px-4 py-1.5 md:py-2 border-2 border-border-dark bg-copper-dark text-white font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
           >
-            取消
+            退稿
+          </button>
+          <button
+            onClick={onCancel}
+            className="text-[14px] md:text-xs px-3 md:px-4 py-1.5 md:py-2 border-2 border-border-dark text-muted font-mono cursor-pointer bg-cream shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
+          >
+            搁置
           </button>
         </div>
       </div>

@@ -351,9 +351,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   rejectManuscript: (id: string) => {
     const state = get()
     const ms = state.manuscripts.get(id)
-    if (!ms || ms.status !== 'submitted') return
+    if (!ms || (ms.status !== 'submitted' && ms.status !== 'cover_select')) return
     ms.status = 'rejected'
-
     const wasUnsuitable = ms.isUnsuitable
     let rpReward = 0
     let prestigeReward = 0

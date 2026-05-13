@@ -20,6 +20,7 @@ export function DeskView() {
   const currencies = useGameStore(s => s.currencies)
   const isRunning = useGameStore(s => s.isRunning)
   const confirmCover = useGameStore(s => s.confirmCover)
+  const rejectManuscript = useGameStore(s => s.rejectManuscript)
   const [coverModalId, setCoverModalId] = useState<string | null>(null)
   const [showLog, setShowLog] = useState(false)
 
@@ -102,6 +103,7 @@ export function DeskView() {
         <CoverSelectModal
           manuscript={modalMs}
           onConfirm={() => { confirmCover(modalMs.id); setCoverModalId(null) }}
+          onReject={() => { rejectManuscript(modalMs.id); setCoverModalId(null) }}
           onCancel={() => setCoverModalId(null)}
         />
       )}
