@@ -250,46 +250,46 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
       <div className="bg-cream border-2 border-border-dark w-full max-w-[420px] max-h-[90vh] overflow-y-auto shadow-[6px_6px_0_#4a3728]">
         <div className="flex items-center justify-between p-3 md:p-4 border-b-2 border-border-dark">
           <h2 className="text-sm md:text-base font-bold text-ink font-mono truncate">{book.title}</h2>
-          <button onClick={onClose} className="text-[16px] md:text-xs px-2 py-1 border-2 border-border-dark text-muted font-mono cursor-pointer bg-cream">X</button>
+          <button onClick={onClose} className="text-xs md:text-xs px-2 py-1 border-2 border-border-dark text-muted font-mono cursor-pointer bg-cream">X</button>
         </div>
         <div className="p-3 md:p-4">
-          <div className="border-2 border-border-dark bg-card-inset mb-3 md:mb-4" style={{ width: 200, height: 280, margin: '0 auto' }}>
+          <div className="border-2 border-border-dark bg-card-inset mb-3 md:mb-4 mx-auto" style={{ width: 'min(200px, 50vw)', height: 'min(280px, 70vw)' }}>
             {book.cover.src ? (
               <img src={book.cover.src} alt="" className="w-full h-full object-cover" onError={(e) => { const el = e.currentTarget; if (el.src.endsWith('.png')) el.src = el.src.replace('.png', '.svg'); else el.style.display = 'none' }} />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center gap-2" style={{ backgroundColor: greyColor + '33' }}>
-                <span className="text-[16px] md:text-xs text-muted font-mono px-2 text-center">{book.title}</span>
+                <span className="text-[13px] md:text-xs text-muted font-mono px-2 text-center">{book.title}</span>
               </div>
             )}
           </div>
           <div className="bg-card-inset border-2 border-border-dark p-2 md:p-3 mb-3 md:mb-4">
-            <div className="grid grid-cols-2 gap-1.5 text-[16px] md:text-xs font-mono">
+            <div className="grid grid-cols-2 gap-1.5 text-[13px] md:text-xs font-mono">
               <div><span className="text-muted">类型</span> <span className="text-ink font-bold">{book.genre}</span></div>
               <div><span className="text-muted">品质</span> <span className="text-ink font-bold">Q{book.quality}</span></div>
               <div><span className="text-muted">字数</span> <span className="text-ink font-bold">{Math.round(book.wordCount / 1000)}K</span></div>
               <div><span className="text-muted">销量</span> <span className="text-ink font-bold">{Math.round(book.salesCount).toLocaleString()} 册</span></div>
             </div>
-            {book.isBestseller && <p className="text-[16px] md:text-xs text-copper font-bold mt-1.5 font-mono">★ 畅销书</p>}
+            {book.isBestseller && <p className="text-[13px] md:text-xs text-copper font-bold mt-1.5 font-mono">★ 畅销书</p>}
           </div>
           <div className="bg-cream-dark border-2 border-border-dark p-2 md:p-3 mb-3 md:mb-4">
-            <p className="text-[16px] md:text-xs text-ink leading-relaxed font-mono">{book.synopsis}</p>
+            <p className="text-[13px] md:text-xs text-ink leading-relaxed font-mono">{book.synopsis}</p>
           </div>
           <div className="bg-card-inset border-2 border-border-dark p-2 md:p-3 mb-3 md:mb-4">
-            <p className="text-[14px] md:text-[16px] text-muted font-mono mb-1">编辑批语：</p>
-            <p className="text-[16px] md:text-xs text-ink-light leading-relaxed font-mono italic">{generateEditorNote(book)}</p>
+            <p className="text-[13px] md:text-[16px] text-muted font-mono mb-1">编辑批语：</p>
+            <p className="text-[13px] md:text-xs text-ink-light leading-relaxed font-mono italic">{generateEditorNote(book)}</p>
           </div>
 
           {/* LLM-generated content */}
           {readerReview ? (
             <div className="bg-cream-dark border-2 border-progress p-2 md:p-3 mb-2">
-              <p className="text-[14px] md:text-[16px] text-progress font-mono mb-0.5">读者短评 ×{readerReview.poolSize}</p>
-              <p className="text-[14px] md:text-xs text-ink leading-relaxed font-mono italic">"{readerReview.text}"</p>
+              <p className="text-[13px] md:text-[16px] text-progress font-mono mb-0.5">读者短评 ×{readerReview.poolSize}</p>
+              <p className="text-[13px] md:text-xs text-ink leading-relaxed font-mono italic">"{readerReview.text}"</p>
             </div>
           ) : (
             <button
               onClick={async () => { setReviewLoading(true); const r = await generateBookReview(book.title, book.genre); if (r) setReaderReview(r); setReviewLoading(false) }}
               disabled={reviewLoading}
-              className="w-full text-[14px] md:text-xs px-3 py-1.5 border-2 border-border-dark text-progress font-mono cursor-pointer bg-cream hover:bg-cream-dark transition-all mb-2 disabled:opacity-50"
+              className="w-full text-[13px] md:text-xs px-3 py-1.5 border-2 border-border-dark text-progress font-mono cursor-pointer bg-cream hover:bg-cream-dark transition-all mb-2 disabled:opacity-50"
             >
               {reviewLoading ? '生成中...' : '读者短评'}
             </button>
@@ -297,14 +297,14 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
 
           {authorQuote ? (
             <div className="bg-cream-dark border-2 border-progress p-2 md:p-3 mb-2">
-              <p className="text-[14px] md:text-[16px] text-progress font-mono mb-0.5">作者访谈 ×{authorQuote.poolSize}</p>
-              <p className="text-[14px] md:text-xs text-ink leading-relaxed font-mono italic">——{authorQuote.text}</p>
+              <p className="text-[13px] md:text-[16px] text-progress font-mono mb-0.5">作者访谈 ×{authorQuote.poolSize}</p>
+              <p className="text-[13px] md:text-xs text-ink leading-relaxed font-mono italic">——{authorQuote.text}</p>
             </div>
           ) : (
             <button
               onClick={async () => { setQuoteLoading(true); const q = await generateAuthorQuote(book.title, authorName, book.genre); if (q) setAuthorQuote(q); setQuoteLoading(false) }}
               disabled={quoteLoading}
-              className="w-full text-[14px] md:text-xs px-3 py-1.5 border-2 border-border-dark text-progress font-mono cursor-pointer bg-cream hover:bg-cream-dark transition-all mb-2 disabled:opacity-50"
+              className="w-full text-[13px] md:text-xs px-3 py-1.5 border-2 border-border-dark text-progress font-mono cursor-pointer bg-cream hover:bg-cream-dark transition-all mb-2 disabled:opacity-50"
             >
               {quoteLoading ? '生成中...' : '作者访谈'}
             </button>
@@ -325,12 +325,12 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
             </button>
           )}
 
-          {book.reissueBoostUntil && <p className="text-[14px] md:text-[16px] text-progress font-mono mb-2">营销窗口期中 · 销量 ×1.5</p>}
+          {book.reissueBoostUntil && <p className="text-[13px] md:text-[16px] text-progress font-mono mb-2">营销窗口期中 · 销量 ×1.5</p>}
           <div className="flex gap-1.5 md:gap-2">
-            <button onClick={() => reissueBook(book.id)} disabled={book.meticulouslyEdited} className={`flex-1 text-[14px] md:text-xs px-3 md:px-4 py-1.5 md:py-2 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${book.meticulouslyEdited ? 'bg-cream-dark text-muted cursor-not-allowed' : 'bg-progress text-white'}`}>
+            <button onClick={() => reissueBook(book.id)} disabled={book.meticulouslyEdited} className={`flex-1 text-[13px] md:text-xs px-3 md:px-4 py-1.5 md:py-2 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${book.meticulouslyEdited ? 'bg-cream-dark text-muted cursor-not-allowed' : 'bg-progress text-white'}`}>
               {book.meticulouslyEdited ? '已再版' : `再版 (${200 + Math.floor(book.quality * 5)} 税)`}
             </button>
-            <button onClick={onClose} className="flex-1 text-[14px] md:text-xs px-3 md:px-4 py-1.5 md:py-2 border-2 border-border-dark bg-copper text-white font-mono cursor-pointer shadow-[3px_3px_0_#4a3728] active:shadow-none active:translate-x-[3px] active:translate-y-[3px] transition-all">放回书架</button>
+            <button onClick={onClose} className="flex-1 text-[13px] md:text-xs px-3 md:px-4 py-1.5 md:py-2 border-2 border-border-dark bg-copper text-white font-mono cursor-pointer shadow-[3px_3px_0_#4a3728] active:shadow-none active:translate-x-[3px] active:translate-y-[3px] transition-all">放回书架</button>
           </div>
         </div>
       </div>
