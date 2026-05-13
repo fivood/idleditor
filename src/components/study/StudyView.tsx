@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { db, type PlayerNovel } from '@/db/database'
 import { nanoid } from '@/utils/id'
+import JSZip from 'jszip'
 
 export function StudyView() {
   const [novels, setNovels] = useState<PlayerNovel[]>([])
@@ -97,22 +98,82 @@ function UploadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =>
     onClose()
   }
 
-  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     if (file.size > 5 * 1024 * 1024) {
-      alert('文件不能超过 5MB（纯文本小说通常远小于这个限制）')
+      alert('文件不能超过 5MB')
       return
     }
-    const reader = new FileReader()
-    reader.onload = () => {
-      const text = reader.result as string
-      setContent(text)
-      if (!title && file.name.endsWith('.txt')) {
-        setTitle(file.name.replace('.txt', ''))
+
+    const ext = file.name.split('.').pop()?.toLowerCase()
+
+    if (ext === 'txt' || ext === 'md') {
+      const reader = new FileReader()
+      reader.onload = () => {
+        const text = reader.result as string
+        setContent(text)
+        if (!title) setTitle(file.name.replace(/\.(txt|md)$/, ''))
       }
+      reader.readAsText(file)
+      return
     }
-    reader.readAsText(file)
+
+    if (ext === 'epub') {
+      try {
+        const buffer = await file.arrayBuffer()
+        const zip = await JSZip.loadAsync(buffer)
+        // Find container.xml to locate the OPF file
+        const containerXml = await zip.file('META-INF/container.xml')?.async('string')
+        if (!containerXml) { alert('无法解析 EPUB：缺少 container.xml'); return }
+        const opfMatch = containerXml.match(/full-path="([^"]+)"/)
+        if (!opfMatch) { alert('无法解析 EPUB：找不到 OPF 文件路径'); return }
+        const opfPath = opfMatch[1]
+        const opfXml = await zip.file(opfPath)?.async('string')
+        if (!opfXml) { alert('无法解析 EPUB：找不到 OPF 文件'); return }
+
+        // Extract all spine items in order
+        const itemRefs = [...opfXml.matchAll(/<itemref[^>]*idref="([^"]+)"/g)].map(m => m[1])
+        const itemMap = new Map<string, string>()
+        for (const m of opfXml.matchAll(/<item[^>]*id="([^"]*)"[^>]*href="([^"]*)"/g)) {
+          itemMap.set(m[1], m[2])
+        }
+
+        // Read each content file and extract text
+        const opfDir = opfPath.split('/').slice(0, -1).join('/')
+        const chunks: string[] = []
+        for (const idref of itemRefs) {
+          const href = itemMap.get(idref)
+          if (!href) continue
+          const fullPath = opfDir ? `${opfDir}/${href}` : href
+          const html = await zip.file(fullPath)?.async('string')
+          if (!html) continue
+          // Strip HTML tags, decode entities
+          const text = html
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<p[^>]*>/gi, '\n')
+            .replace(/<\/p>/gi, '')
+            .replace(/<[^>]+>/g, '')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/\n{3,}/g, '\n\n')
+            .trim()
+          if (text) chunks.push(text)
+        }
+
+        const result = chunks.join('\n\n')
+        setContent(result)
+        if (!title) setTitle(file.name.replace('.epub', ''))
+      } catch {
+        alert('EPUB 解析失败，请确认文件格式正确')
+      }
+      return
+    }
+
+    alert('支持格式：.txt / .md / .epub')
   }
 
   return (
@@ -143,13 +204,13 @@ function UploadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =>
             <label className="text-[12px] md:text-xs text-muted font-mono mb-1 block">正文 *</label>
             <div className="flex items-center gap-2 mb-1.5">
               <label className="text-[12px] md:text-xs text-progress font-mono cursor-pointer hover:underline">
-                <input type="file" accept=".txt" onChange={handleFileUpload} className="hidden" />
-                上传 .txt
+                <input type="file" accept=".txt,.md,.epub" onChange={handleFileUpload} className="hidden" />
+                上传 .txt / .md / .epub
               </label>
               <span className="text-[12px] text-muted font-mono">或直接粘贴</span>
             </div>
             <p className="text-[12px] text-muted font-mono mb-1 leading-relaxed">
-              数据存储在浏览器本地（IndexedDB），不上传服务器。换浏览器需重新导入。单本上限 ~5MB（《战争与和平》全文仅 3MB）。
+              支持 .txt / .md / .epub 上传（5MB 内）。数据存储在浏览器本地，不上传服务器。
             </p>
             <textarea value={content} onChange={e => setContent(e.target.value)} rows={12} className="w-full px-3 py-1.5 text-xs border-2 border-border-dark bg-card-inset text-ink font-mono focus:outline-none focus:border-copper resize-y" placeholder="粘贴小说全文，或将 .txt 拖入上方区域..." />
           </div>
@@ -185,8 +246,50 @@ function ReaderView({ novel, onClose }: { novel: PlayerNovel; onClose: () => voi
     onClose()
   }
 
-  // Split content into paragraphs for display
+  // Split content into paragraphs, render basic markdown
   const paragraphs = novel.content.split('\n').filter(p => p.trim())
+
+  function renderLine(line: string, i: number) {
+    // Headings
+    if (/^### (.+)/.test(line)) {
+      return <h3 key={i} className="text-sm md:text-base font-bold text-ink mt-4 mb-2 font-mono">{line.replace(/^### /, '')}</h3>
+    }
+    if (/^## (.+)/.test(line)) {
+      return <h2 key={i} className="text-base md:text-lg font-bold text-ink mt-4 mb-2 font-mono">{line.replace(/^## /, '')}</h2>
+    }
+    if (/^# (.+)/.test(line)) {
+      return <h1 key={i} className="text-lg md:text-xl font-bold text-ink mt-4 mb-2 font-mono">{line.replace(/^# /, '')}</h1>
+    }
+    // Horizontal rule
+    if (/^[-*_]{3,}$/.test(line.trim())) {
+      return <hr key={i} className="border-border-dark my-4" />
+    }
+    // Bullet lists
+    if (/^[-*] (.+)/.test(line)) {
+      return <p key={i} className="text-sm md:text-base text-ink leading-[2] pl-4 mb-1 font-mono">- {renderInline(line.replace(/^[-*] /, ''))}</p>
+    }
+    // Numbered lists
+    if (/^\d+\. (.+)/.test(line)) {
+      return <p key={i} className="text-sm md:text-base text-ink leading-[2] pl-4 mb-1 font-mono">{renderInline(line)}</p>
+    }
+    // Bold and italic inline
+    return (
+      <p key={i} className="text-sm md:text-base text-ink leading-[2] indent-8 mb-4 font-mono">
+        {renderInline(line)}
+      </p>
+    )
+  }
+
+  function renderInline(text: string): React.ReactNode {
+    return text
+      .split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g)
+      .map((part, i) => {
+        if (part.startsWith('**') && part.endsWith('**')) return <strong key={i} className="font-bold">{part.slice(2, -2)}</strong>
+        if (part.startsWith('*') && part.endsWith('*')) return <em key={i} className="italic">{part.slice(1, -1)}</em>
+        if (part.startsWith('`') && part.endsWith('`')) return <code key={i} className="bg-card-inset px-1 text-xs">{part.slice(1, -1)}</code>
+        return part
+      })
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-cream">
@@ -219,11 +322,7 @@ function ReaderView({ novel, onClose }: { novel: PlayerNovel; onClose: () => voi
 
       <div className="flex-1 overflow-y-auto p-4 md:p-8" onScroll={handleScroll}>
         <div className="max-w-[640px] mx-auto">
-          {paragraphs.map((p, i) => (
-            <p key={i} className="text-sm md:text-base text-ink leading-[2] indent-8 mb-4 font-mono">
-              {p}
-            </p>
-          ))}
+          {paragraphs.map((p, i) => renderLine(p, i))}
           {paragraphs.length === 0 && (
             <p className="text-muted text-sm font-mono text-center py-20">（空文本）</p>
           )}
