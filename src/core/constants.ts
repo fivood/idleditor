@@ -64,7 +64,7 @@ export const AUTHOR_PERSONA_NAMES: Record<AuthorPersona, string[]> = {
   'reclusive-latam-writer': ['Gabriel·Manana（加布里埃尔·明日复明日）', 'Mario·Llama（马里奥·没灵感）', 'Julio·Taza（胡里奥·一杯茶写一页）', 'Roberto·Rano（罗贝托·慢慢写）'],
   'nordic-crime-queen': ['Ingrid·Frost（英格丽·冷飕飕）', 'Astrid·Winter（阿斯特丽德·冻死人）', 'Sigrid·Snow（西格丽德·下大雪）', 'Freya·Winter（芙蕾雅·下冰雹）'],
   'american-bestseller-machine': ['Jack·Bestsell（杰克·畅销王）', 'Emily·Pageturn（艾米丽·翻页快）', 'Taylor·Delay（泰勒·拖延症）', 'Morgan·Signing（摩根·签不完）'],
-  'japanese-lightnovel-otaku': ['Tanaka Light（田中·这也太长了）', 'Suzuki Novel（铃木·连载中）', 'Sato Isekai（佐藤·又穿越了）', 'Takahashi Tensei（高桥·又转生了）'],
+  'japanese-lightnovel-otaku': ['Tanaka Light（田中·亮得耀眼）', 'Suzuki Novel（铃木·小说家）', 'Sato Isekai（佐藤·又穿越了）', 'Takahashi Tensei（高桥·又转生了）'],
 }
 
 // ──── Department ────
