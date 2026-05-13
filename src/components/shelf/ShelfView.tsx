@@ -158,7 +158,7 @@ export function ShelfView() {
             {/* Genre label */}
             {row.genre && (
               <div className="px-3 md:px-4 pt-2 pb-0">
-                <span className="text-[14px] md:text-xs font-bold text-copper-light font-mono bg-cream-dark/80 px-2 py-0.5 border border-border-medium">{GENRE_LABELS[row.genre]}</span>
+                <span className="text-xs md:text-sm font-bold text-cream font-mono bg-copper/80 px-3 py-1 border-2 border-border-dark shadow-[2px_2px_0_#4a3728]">{GENRE_LABELS[row.genre]}</span>
               </div>
             )}
             {/* Books on this shelf */}
@@ -182,8 +182,8 @@ export function ShelfView() {
 
 function BookSpine({ book, onClick }: { book: Manuscript; onClick: () => void }) {
   const spineColor = spineGrayForBook(book)
-  const spineW = 16
-  const spineH = 70 + (Math.abs(book.id.charCodeAt(0) || 0) % 30)
+  const spineW = 24
+  const spineH = 90 + (Math.abs(book.id.charCodeAt(0) || 0) % 30)
   const [showTitle, setShowTitle] = useState(false)
 
   return (
@@ -211,8 +211,8 @@ function BookSpine({ book, onClick }: { book: Manuscript; onClick: () => void })
         ) : null}
         {/* Spine title (vertical) */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-[10px] text-ink-light opacity-60 font-mono" style={{ writingMode: 'vertical-rl' }}>
-            {book.title.slice(0, 4)}
+          <span className="text-xs text-ink-light opacity-60 font-mono" style={{ writingMode: 'vertical-rl', letterSpacing: '2px' }}>
+            {book.title.slice(0, 8)}
           </span>
         </div>
         {book.isBestseller && (
