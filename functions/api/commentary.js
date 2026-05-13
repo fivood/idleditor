@@ -11,10 +11,15 @@ export async function onRequestPost(context) {
     const slug = title.replace(/[《》\s（）()：:？?！!。，,、/\\]/g, '').slice(0, 30)
     const cacheKey = `commentary:${scene}:${slug}`
 
-    // Check cache first
+    // Check cache: array of stored commentaries
     const cached = await env.SAVE_KV.get(cacheKey)
-    if (cached) {
-      return new Response(JSON.stringify({ text: cached, cached: true }), {
+    let pool = []
+    try { pool = JSON.parse(cached || '[]') } catch { pool = [] }
+
+    // If cache has entries, randomly pick one
+    if (pool.length > 0) {
+      const text = pool[Math.floor(Math.random() * pool.length)]
+      return new Response(JSON.stringify({ text, cached: true, poolSize: pool.length }), {
         headers: { 'Content-Type': 'application/json' },
       })
     }
@@ -65,11 +70,13 @@ export async function onRequestPost(context) {
 
     const text = data.choices?.[0]?.message?.content?.trim()?.replace(/^["""]|["""]$/g, '') || ''
     if (text) {
-      // Cache for 30 days
-      await env.SAVE_KV.put(cacheKey, text, { expirationTtl: 2592000 })
+      // Append to pool, cap at 5
+      pool.push(text)
+      if (pool.length > 5) pool.shift()
+      await env.SAVE_KV.put(cacheKey, JSON.stringify(pool), { expirationTtl: 2592000 })
     }
 
-    return new Response(JSON.stringify({ text, cached: false }), {
+    return new Response(JSON.stringify({ text, cached: false, poolSize: pool.length }), {
       headers: { 'Content-Type': 'application/json' },
     })
   } catch (err) {
