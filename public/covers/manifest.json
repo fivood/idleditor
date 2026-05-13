@@ -228,6 +228,54 @@
     "filename": "你一生的故事简写本.svg"
   },
   {
+    "title": "火星编年史（微信精选）",
+    "genre": "sci-fi",
+    "slug": "火星编年史微信精选",
+    "filename": "火星编年史微信精选.svg"
+  },
+  {
+    "title": "基地（物业公司）",
+    "genre": "sci-fi",
+    "slug": "基地物业公司",
+    "filename": "基地物业公司.svg"
+  },
+  {
+    "title": "雪崩（区块链版）",
+    "genre": "sci-fi",
+    "slug": "雪崩区块链版",
+    "filename": "雪崩区块链版.svg"
+  },
+  {
+    "title": "与罗摩相会（线上会议）",
+    "genre": "sci-fi",
+    "slug": "与罗摩相会线上会议",
+    "filename": "与罗摩相会线上会议.svg"
+  },
+  {
+    "title": "黑暗的左手（握手版）",
+    "genre": "sci-fi",
+    "slug": "黑暗的左手握手版",
+    "filename": "黑暗的左手握手版.svg"
+  },
+  {
+    "title": "海伯利安（经济舱）",
+    "genre": "sci-fi",
+    "slug": "海伯利安经济舱",
+    "filename": "海伯利安经济舱.svg"
+  },
+  {
+    "title": "安德的影子（已离职）",
+    "genre": "sci-fi",
+    "slug": "安德的影子已离职",
+    "filename": "安德的影子已离职.svg"
+  },
+  {
+    "title": "神的九十亿个名字（多写了一篇）",
+    "genre": "sci-fi",
+    "slug": "神的九十亿个名字多写了一篇",
+    "filename": "神的九十亿个名字多写了一篇.svg"
+  },
+  {
     "title": "饼干盒疑案",
     "genre": "mystery",
     "slug": "饼干盒疑案",
@@ -420,6 +468,42 @@
     "filename": "占星术杀人魔法已破解.svg"
   },
   {
+    "title": "长眠不醒（失眠版）",
+    "genre": "mystery",
+    "slug": "长眠不醒失眠版",
+    "filename": "长眠不醒失眠版.svg"
+  },
+  {
+    "title": "马耳他之鹰（网购版）",
+    "genre": "mystery",
+    "slug": "马耳他之鹰网购版",
+    "filename": "马耳他之鹰网购版.svg"
+  },
+  {
+    "title": "消失的爱人（朋友圈版）",
+    "genre": "mystery",
+    "slug": "消失的爱人朋友圈版",
+    "filename": "消失的爱人朋友圈版.svg"
+  },
+  {
+    "title": "龙纹身的女孩（纹身贴）",
+    "genre": "mystery",
+    "slug": "龙纹身的女孩纹身贴",
+    "filename": "龙纹身的女孩纹身贴.svg"
+  },
+  {
+    "title": "漫长的告别（微信版）",
+    "genre": "mystery",
+    "slug": "漫长的告别微信版",
+    "filename": "漫长的告别微信版.svg"
+  },
+  {
+    "title": "大眠（咖啡因版）",
+    "genre": "mystery",
+    "slug": "大眠咖啡因版",
+    "filename": "大眠咖啡因版.svg"
+  },
+  {
     "title": "知道太少的人",
     "genre": "suspense",
     "slug": "知道太少的人",
@@ -574,6 +658,36 @@
     "genre": "suspense",
     "slug": "罪与改",
     "filename": "罪与改.svg"
+  },
+  {
+    "title": "蝴蝶梦（甲方改稿版）",
+    "genre": "suspense",
+    "slug": "蝴蝶梦甲方改稿版",
+    "filename": "蝴蝶梦甲方改稿版.svg"
+  },
+  {
+    "title": "玫瑰的名字（物管）",
+    "genre": "suspense",
+    "slug": "玫瑰的名字物管",
+    "filename": "玫瑰的名字物管.svg"
+  },
+  {
+    "title": "鬼店（连锁加盟）",
+    "genre": "suspense",
+    "slug": "鬼店连锁加盟",
+    "filename": "鬼店连锁加盟.svg"
+  },
+  {
+    "title": "闪灵（物业报修）",
+    "genre": "suspense",
+    "slug": "闪灵物业报修",
+    "filename": "闪灵物业报修.svg"
+  },
+  {
+    "title": "肖申克的救赎（合规培训）",
+    "genre": "suspense",
+    "slug": "肖申克的救赎合规培训",
+    "filename": "肖申克的救赎合规培训.svg"
   },
   {
     "title": "关于排队：一项田野调查",
@@ -738,6 +852,108 @@
     "filename": "包法利夫人双语注解版.svg"
   },
   {
+    "title": "人的疆域",
+    "genre": "social-science",
+    "slug": "人的疆域",
+    "filename": "人的疆域.svg"
+  },
+  {
+    "title": "寂静的春天（市区版）",
+    "genre": "social-science",
+    "slug": "寂静的春天市区版",
+    "filename": "寂静的春天市区版.svg"
+  },
+  {
+    "title": "弗兰肯斯坦（HR版）",
+    "genre": "social-science",
+    "slug": "弗兰肯斯坦HR版",
+    "filename": "弗兰肯斯坦HR版.svg"
+  },
+  {
+    "title": "野性的呼唤（都市篇）",
+    "genre": "social-science",
+    "slug": "野性的呼唤都市篇",
+    "filename": "野性的呼唤都市篇.svg"
+  },
+  {
+    "title": "动物庄园（股份制改革）",
+    "genre": "social-science",
+    "slug": "动物庄园股份制改革",
+    "filename": "动物庄园股份制改革.svg"
+  },
+  {
+    "title": "美丽新世界（996版）",
+    "genre": "social-science",
+    "slug": "美丽新世界996版",
+    "filename": "美丽新世界996版.svg"
+  },
+  {
+    "title": "格列佛游记（短视频版）",
+    "genre": "social-science",
+    "slug": "格列佛游记短视频版",
+    "filename": "格列佛游记短视频版.svg"
+  },
+  {
+    "title": "堂吉诃德（互联网从业者）",
+    "genre": "social-science",
+    "slug": "堂吉诃德互联网从业者",
+    "filename": "堂吉诃德互联网从业者.svg"
+  },
+  {
+    "title": "神曲（弹幕版）",
+    "genre": "social-science",
+    "slug": "神曲弹幕版",
+    "filename": "神曲弹幕版.svg"
+  },
+  {
+    "title": "资本论（漫画解说版）",
+    "genre": "social-science",
+    "slug": "资本论漫画解说版",
+    "filename": "资本论漫画解说版.svg"
+  },
+  {
+    "title": "第二性（终于出版）",
+    "genre": "social-science",
+    "slug": "第二性终于出版",
+    "filename": "第二性终于出版.svg"
+  },
+  {
+    "title": "百年孤独（家谱附录版）",
+    "genre": "social-science",
+    "slug": "百年孤独家谱附录版",
+    "filename": "百年孤独家谱附录版.svg"
+  },
+  {
+    "title": "霍乱时期的爱情（疫苗版）",
+    "genre": "social-science",
+    "slug": "霍乱时期的爱情疫苗版",
+    "filename": "霍乱时期的爱情疫苗版.svg"
+  },
+  {
+    "title": "枯枝败叶（堆肥指南）",
+    "genre": "social-science",
+    "slug": "枯枝败叶堆肥指南",
+    "filename": "枯枝败叶堆肥指南.svg"
+  },
+  {
+    "title": "族长的秋天（退休生活）",
+    "genre": "social-science",
+    "slug": "族长的秋天退休生活",
+    "filename": "族长的秋天退休生活.svg"
+  },
+  {
+    "title": "傲慢与偏见与更偏见",
+    "genre": "social-science",
+    "slug": "傲慢与偏见与更偏见",
+    "filename": "傲慢与偏见与更偏见.svg"
+  },
+  {
+    "title": "白鲸（删减至中篇）",
+    "genre": "social-science",
+    "slug": "白鲸删减至中篇",
+    "filename": "白鲸删减至中篇.svg"
+  },
+  {
     "title": "AI刑警",
     "genre": "hybrid",
     "slug": "AI刑警",
@@ -886,6 +1102,72 @@
     "genre": "hybrid",
     "slug": "尤利西斯注音版",
     "filename": "尤利西斯注音版.svg"
+  },
+  {
+    "title": "千年热闹",
+    "genre": "hybrid",
+    "slug": "千年热闹",
+    "filename": "千年热闹.svg"
+  },
+  {
+    "title": "云图（散装版）",
+    "genre": "hybrid",
+    "slug": "云图散装版",
+    "filename": "云图散装版.svg"
+  },
+  {
+    "title": "少年派的奇幻漂流（事后访谈）",
+    "genre": "hybrid",
+    "slug": "少年派的奇幻漂流事后访谈",
+    "filename": "少年派的奇幻漂流事后访谈.svg"
+  },
+  {
+    "title": "午夜之子（正午出生）",
+    "genre": "hybrid",
+    "slug": "午夜之子正午出生",
+    "filename": "午夜之子正午出生.svg"
+  },
+  {
+    "title": "玫瑰的名字（香水专柜）",
+    "genre": "hybrid",
+    "slug": "玫瑰的名字香水专柜",
+    "filename": "玫瑰的名字香水专柜.svg"
+  },
+  {
+    "title": "风之影（电子书版）",
+    "genre": "hybrid",
+    "slug": "风之影电子书版",
+    "filename": "风之影电子书版.svg"
+  },
+  {
+    "title": "达芬奇密码（重置密码）",
+    "genre": "hybrid",
+    "slug": "达芬奇密码重置密码",
+    "filename": "达芬奇密码重置密码.svg"
+  },
+  {
+    "title": "百年孤独（马尔克斯看了沉默）",
+    "genre": "hybrid",
+    "slug": "百年孤独马尔克斯看了沉默",
+    "filename": "百年孤独马尔克斯看了沉默.svg"
+  },
+  {
+    "title": "霍乱时期的爱情（健康码绿色）",
+    "genre": "hybrid",
+    "slug": "霍乱时期的爱情健康码绿色",
+    "filename": "霍乱时期的爱情健康码绿色.svg"
+  },
+  {
+    "title": "寂静的春天（市区版）",
+    "genre": "hybrid",
+    "slug": "寂静的春天市区版",
+    "filename": "寂静的春天市区版.svg"
+  },
+  {
+    "title": "弗兰肯斯坦（HR版）",
+    "genre": "hybrid",
+    "slug": "弗兰肯斯坦HR版",
+    "filename": "弗兰肯斯坦HR版.svg"
   },
   {
     "title": "转生异世界但是便利店店员",

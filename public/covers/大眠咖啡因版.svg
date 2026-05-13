@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="560" viewBox="0 0 400 560">
+  <rect width="400" height="560" fill="#1a1a0f"/>
+  <defs><pattern id="p" width="40" height="560" patternUnits="userSpaceOnUse"><rect width="1" height="560" fill="#e6c97a" opacity="0.08"/></pattern><rect width="400" height="560" fill="url(#p)"/></defs>
+  <ellipse cx="200" cy="240" rx="103" ry="83" fill="#e6c97a" opacity="0.1" transform="rotate(23)"/>
+  <rect x="40" y="60" width="320" height="2" fill="#c9a84c" opacity="0.5"/>
+  <rect x="40" y="68" width="320" height="1" fill="#c9a84c" opacity="0.2"/>
+  
+  <rect x="40" y="490" width="320" height="1" fill="#c9a84c" opacity="0.2"/>
+  <rect x="40" y="498" width="320" height="2" fill="#c9a84c" opacity="0.5"/>
+</svg>
