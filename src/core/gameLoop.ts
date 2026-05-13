@@ -335,12 +335,14 @@ export function tick(world: GameWorldState): TickResult {
       if (newLevel > world.editorLevel) {
         world.editorLevel = newLevel
         const lines = [
-          `[Level Up] 编辑等级 Lv.${newLevel}！你看了一眼墙上的铜像——它们似乎也在微微颔首。或者只是灰尘。`,
-          `[Level Up] Lv.${newLevel}！你的红笔在纸面上多停留了半秒——不是因为犹豫，是因为在酝酿一句更精准的批注。`,
-          `[Level Up] Lv.${newLevel}！你又想起一个十九世纪的夜晚——那时候你连钢笔都没有，用削尖的树枝改稿。`,
-          `[Level Up] 你轻轻放下羽毛笔。Lv.${newLevel}。三百年来，这是你唯一用数字衡量的事。数字不骗人。`,
-          `[Level Up] Lv.${newLevel}！出版界一大步，人类一小步。对吸血鬼而言刚好相反。`,
-          `[Level Up] 你在镜子前停下来——什么都没看到，但你知道镜子里的人一定在笑。Lv.${newLevel}。`,
+          `[Lv.${newLevel}] 你感到一股熟悉的力量涌上指尖——就是那种连续退稿十七次依然心平气和的力量。`,
+          `[Lv.${newLevel}] 你的红笔现在可以在三米之外凭空画蝙蝠。仅限审稿时。不过已经够用了。`,
+          `[Lv.${newLevel}] 办公室的实习生偷偷在你的茶杯旁放了一包速溶咖啡。你礼貌地假装没看到。你喝的东西不需要速溶。`,
+          `[Lv.${newLevel}] 伯爵的画像在墙上咳了一声。是赞赏——也可能是灰尘。你决定当它是赞赏。`,
+          `[Lv.${newLevel}] 你的棺材板底下传来一阵轻微的震动——那是出版社两百年前的奠基石。它每提升一级就抖一下。没人知道为什么。你习惯了。`,
+          `[Lv.${newLevel}] 一位退休作者在远方忽然打了个喷嚏。他不知道为什么——但他感觉到世界的某个角落有一支红笔刚刚变得更强了。`,
+          `[Lv.${newLevel}] 你把脚翘在书桌上，对着天花板发了一会儿呆。不是偷懒——是思考。不同之处在于你不需要眨眼。`,
+          `[Lv.${newLevel}] 编辑部走廊里的灯泡闪了一下。实习生说"是不是电压不稳"。你说"不是"。你知道那是什么。`,
         ]
         result.toasts.push(createToast(pick(lines), 'levelUp'))
       }
