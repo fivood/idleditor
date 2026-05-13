@@ -68,7 +68,7 @@ const SCENES: Record<string, string[]> = {
   bookPublished: [
     '{title}正式出版。{intro}现在这本书是读者的问题了。{editorName}端起茶杯——里面当然是普通的红茶，不要再问了。',
     '{intro}印刷机隆隆作响。{title}被释放在毫无防备的世人面前。又一本。永远还有下一本。',
-    '一本新书加入了永夜的目录：《{title}》。书架又倾斜了一点。三百年来一直如此。',
+    '一本新书加入了永夜的目录：{title}。书架又倾斜了一点。三百年来一直如此。',
   ],
   bestseller: [
     '{title}正在排行榜上{verb_sell}。据目击，竞品出版社的编辑在办公室里{verb_read}自己的垃圾堆，面露绝望。',
