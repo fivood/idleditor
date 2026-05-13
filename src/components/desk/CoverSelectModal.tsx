@@ -8,7 +8,7 @@ interface Props {
 }
 
 export function CoverSelectModal({ manuscript, onConfirm, onCancel }: Props) {
-  const icon = GENRE_ICONS[manuscript.genre] ?? '📖'
+  const icon = GENRE_ICONS[manuscript.genre] ?? '/icons/misc/book.svg'
   const displayCover = manuscript.cover.src ?? null
 
   return (
@@ -31,7 +31,7 @@ export function CoverSelectModal({ manuscript, onConfirm, onCancel }: Props) {
               />
             ) : (
               <div className="flex flex-col items-center gap-1 md:gap-2">
-                <span className="text-3xl md:text-4xl">{icon}</span>
+                <img src={icon} alt="" className="w-12 h-12 md:w-16 md:h-16" />
                 <span className="text-[14px] md:text-xs text-muted font-mono">SVG 占位封面</span>
               </div>
             )}

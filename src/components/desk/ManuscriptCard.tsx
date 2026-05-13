@@ -31,7 +31,7 @@ export function ManuscriptCard({ manuscript }: Props) {
         {manuscript.cover.src ? (
           <img src={manuscript.cover.src} alt="" className="w-full h-full object-cover" />
         ) : (
-          icon
+          <img src={icon} alt="" className="w-4 h-4" />
         )}
       </div>
       <div className="flex-1 min-w-0">

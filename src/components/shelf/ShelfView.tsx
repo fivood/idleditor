@@ -90,7 +90,7 @@ function BookSpine({ book, onClick }: { book: Manuscript; onClick: () => void })
 }
 
 function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => void }) {
-  const icon = GENRE_ICONS[book.genre] ?? '📖'
+  const icon = GENRE_ICONS[book.genre] ?? '/icons/misc/book.svg'
   const spineColor = GENRE_COVER_COLORS[book.genre] ?? '#1a1a2e'
   const generateLlmEditorNote = useGameStore(s => s.generateLlmEditorNote)
   const llmCallsRemaining = useGameStore(s => s.llmCallsRemaining)
@@ -127,7 +127,7 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
                 className="w-full h-full flex flex-col items-center justify-center gap-2"
                 style={{ backgroundColor: spineColor + '33' }}
               >
-                <span className="text-4xl opacity-60">{icon}</span>
+                <img src={icon} alt="" className="w-12 h-12 opacity-60" />
                 <span className="text-[16px] md:text-xs text-muted font-mono px-2 text-center">{book.title}</span>
               </div>
             )}

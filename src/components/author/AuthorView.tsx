@@ -49,7 +49,7 @@ export function AuthorView() {
                   </span>
                 </p>
                 <p className="text-[15px] md:text-xs text-muted mt-0.5 font-mono">
-                  {GENRE_ICONS[author.genre]} {author.genre} · 才华 {author.talent} · 名气 {author.fame}
+                  <img src={GENRE_ICONS[author.genre] ?? '/icons/misc/book.svg'} alt="" className="inline w-4 h-4 md:w-3.5 md:h-3.5 align-text-bottom" /> {author.genre} · 才华 {author.talent} · 名气 {author.fame}
                   {author.cooldownUntil !== null && author.cooldownUntil > 0 && (
                     <span className="text-copper font-bold ml-1">· 休息中</span>
                   )}

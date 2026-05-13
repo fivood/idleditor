@@ -119,7 +119,7 @@ export function OfficeView() {
                 onClick={() => removePreferredGenre(g)}
                 className="text-[15px] md:text-xs px-1.5 md:px-2 py-0.5 md:py-1 bg-copper text-white border-2 border-border-dark font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[1px] active:translate-y-[1px] transition-all flex items-center gap-1"
               >
-                {GENRE_ICONS[g]} {GENRE_LABELS[g]} ×
+                <img src={GENRE_ICONS[g] ?? '/icons/misc/book.svg'} alt="" className="inline w-4 h-4 md:w-3.5 md:h-3.5 align-text-bottom" /> {GENRE_LABELS[g]} ×
               </button>
             ))}
           </div>
@@ -139,7 +139,7 @@ export function OfficeView() {
                 }`}
               >
                 <div className="flex items-center justify-center gap-1">
-                  <span className="text-xs md:text-sm">{GENRE_ICONS[genre]}</span>
+                  <img src={GENRE_ICONS[genre]} alt="" className="w-4 h-4 md:w-5 md:h-5" />
                   <span>{GENRE_LABELS[genre]}</span>
                   {prefCount > 0 && <span className="text-copper font-bold">×{prefCount}</span>}
                 </div>
