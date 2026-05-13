@@ -8,6 +8,7 @@ import type { GameWorldState } from '@/core/gameLoop'
 import { saveGameToDb, loadGameFromDb, hasExistingSave } from '@/db/saveManager'
 import { nanoid } from '@/utils/id'
 import { generateTemplateDecision } from '@/core/decisions'
+import { loadSynopsisPool } from '@/core/humor/synopsis'
 
 function serializeMapForDb(map: Map<unknown, unknown>): string {
   return JSON.stringify([...map.entries()])
@@ -188,6 +189,9 @@ export const useGameStore = create<GameStore>()((set, get) => ({
           set({ coversManifest: manifest })
         }
       } catch { /* manifest not available, use placeholders */ }
+
+      // Load LLM synopsis pool
+      loadSynopsisPool().catch(() => {})
 
       const existing = await hasExistingSave()
       if (existing) {

@@ -1,6 +1,22 @@
 ﻿import { pick, rangeInt } from '../../utils/random'
 import type { Genre } from '../types'
 
+// ──── LLM-generated synopsis pool (loaded at runtime) ────
+let synopsisPool: Record<string, string[]> | null = null
+
+export async function loadSynopsisPool() {
+  try {
+    const res = await fetch('/synopses/pool.json')
+    if (res.ok) synopsisPool = await res.json()
+  } catch { /* pool not available, use templates */ }
+}
+
+function sampleFromPool(genre: Genre): string | null {
+  const pool = synopsisPool?.[genre]
+  if (!pool || pool.length === 0) return null
+  return pool[Math.floor(Math.random() * pool.length)]
+}
+
 // ──── Curated synopses for parody classics ────
 const CURATED_SYNOPSES: Record<string, string> = {
   '四体': '三个太阳的世界里，文明在恐惧中轮回。游戏玩家在虚拟与现实间穿梭，发现宇宙的真相远比物理法则更荒诞——比如三颗恒星其实在轮流休假。致敬《三体》——但质子换成了有加班意识的AI。',
@@ -426,6 +442,11 @@ const GENRE_TEMPLATES: Record<Genre, string[]> = {
 export function generateSynopsis(genre: Genre, title?: string): string {
   if (title && CURATED_SYNOPSES[title]) {
     return CURATED_SYNOPSES[title]
+  }
+  // 40% chance to pull from LLM-generated pool
+  if (synopsisPool && Math.random() < 0.4) {
+    const pooled = sampleFromPool(genre)
+    if (pooled) return pooled
   }
   const templates = GENRE_TEMPLATES[genre] ?? HYBRID_TEMPLATES
   let synopsis = fillSlots(pick(templates), genre)
