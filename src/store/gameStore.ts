@@ -179,8 +179,8 @@ export interface GameStore extends GameWorldState {
   sendAuthorGift: (id: string) => void
   writeAuthorLetter: (id: string) => void
   rushAuthorCooldown: (id: string) => void
-  generateBookReview: (title: string, genre: string) => Promise<string | null>
-  generateAuthorQuote: (title: string, authorName: string, genre: string) => Promise<string | null>
+  generateBookReview: (title: string, genre: string) => Promise<{ text: string; poolSize: number } | null>
+  generateAuthorQuote: (title: string, authorName: string, genre: string) => Promise<{ text: string; poolSize: number } | null>
   hirePR: () => void
   renovateReadingRoom: () => void
   sponsorAward: () => void
@@ -910,20 +910,18 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   },
 
   generateBookReview: async (title, genre) => {
-    const prompt = `你是一位口味挑剔的吸血鬼读者（活了几百年）。请为一本名叫《${title}》的${genre}小说写一条读者短评。风格：冷幽默、一句话、像豆瓣/Goodreads上的那种。15-25字。不要书名号。`
     try {
-      const res = await fetch('/api/llm', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) })
+      const res = await fetch('/api/book-review', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, genre, type: 'review' }) })
       const data = await res.json()
-      return data.text || null
+      return data.text ? { text: data.text, poolSize: data.poolSize || 1 } : null
     } catch { return null }
   },
 
   generateAuthorQuote: async (title, authorName, genre) => {
-    const prompt = `你是一位名叫${authorName || '某作者'}的${genre}小说作者，刚出版了《${title}》。请模仿该作者的口吻，说一句关于这本书的访谈摘录。风格：冷幽默、谦虚或自嘲。15-25字。`
     try {
-      const res = await fetch('/api/llm', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) })
+      const res = await fetch('/api/book-review', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: `${title}（作者：${authorName}）`, genre, type: 'quote' }) })
       const data = await res.json()
-      return data.text || null
+      return data.text ? { text: data.text, poolSize: data.poolSize || 1 } : null
     } catch { return null }
   },
 

@@ -240,8 +240,8 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
   const greyColor = spineGrayForBook(book)
   const authorName = authors.get(book.authorId)?.name || '某作者'
 
-  const [readerReview, setReaderReview] = useState<string | null>(null)
-  const [authorQuote, setAuthorQuote] = useState<string | null>(null)
+  const [readerReview, setReaderReview] = useState<{ text: string; poolSize: number } | null>(null)
+  const [authorQuote, setAuthorQuote] = useState<{ text: string; poolSize: number } | null>(null)
   const [reviewLoading, setReviewLoading] = useState(false)
   const [quoteLoading, setQuoteLoading] = useState(false)
 
@@ -282,8 +282,8 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
           {/* LLM-generated content */}
           {readerReview ? (
             <div className="bg-cream-dark border-2 border-progress p-2 md:p-3 mb-2">
-              <p className="text-[14px] md:text-[16px] text-progress font-mono mb-0.5">读者短评</p>
-              <p className="text-[14px] md:text-xs text-ink leading-relaxed font-mono italic">"{readerReview}"</p>
+              <p className="text-[14px] md:text-[16px] text-progress font-mono mb-0.5">读者短评 ×{readerReview.poolSize}</p>
+              <p className="text-[14px] md:text-xs text-ink leading-relaxed font-mono italic">"{readerReview.text}"</p>
             </div>
           ) : (
             <button
@@ -291,14 +291,29 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
               disabled={reviewLoading}
               className="w-full text-[14px] md:text-xs px-3 py-1.5 border-2 border-border-dark text-progress font-mono cursor-pointer bg-cream hover:bg-cream-dark transition-all mb-2 disabled:opacity-50"
             >
-              {reviewLoading ? '生成中...' : 'LLM 生成读者短评'}
+              {reviewLoading ? '生成中...' : '读者短评'}
+            </button>
+          )}
+
+          {authorQuote ? (
+            <div className="bg-cream-dark border-2 border-progress p-2 md:p-3 mb-2">
+              <p className="text-[14px] md:text-[16px] text-progress font-mono mb-0.5">作者访谈 ×{authorQuote.poolSize}</p>
+              <p className="text-[14px] md:text-xs text-ink leading-relaxed font-mono italic">——{authorQuote.text}</p>
+            </div>
+          ) : (
+            <button
+              onClick={async () => { setQuoteLoading(true); const q = await generateAuthorQuote(book.title, authorName, book.genre); if (q) setAuthorQuote(q); setQuoteLoading(false) }}
+              disabled={quoteLoading}
+              className="w-full text-[14px] md:text-xs px-3 py-1.5 border-2 border-border-dark text-progress font-mono cursor-pointer bg-cream hover:bg-cream-dark transition-all mb-2 disabled:opacity-50"
+            >
+              {quoteLoading ? '生成中...' : '作者访谈'}
             </button>
           )}
 
           {authorQuote ? (
             <div className="bg-cream-dark border-2 border-progress p-2 md:p-3 mb-2">
               <p className="text-[14px] md:text-[16px] text-progress font-mono mb-0.5">作者访谈摘录</p>
-              <p className="text-[14px] md:text-xs text-ink leading-relaxed font-mono italic">——{authorQuote}</p>
+              <p className="text-[14px] md:text-xs text-ink leading-relaxed font-mono italic">——{authorQuote.text}</p>
             </div>
           ) : (
             <button
