@@ -36,6 +36,7 @@ const SLOTS: Record<string, SlotResolver> = {
   '{time_minutes}': () => String(rangeInt(5, 45)),
   '{time_hours}': () => String(rangeInt(1, 8)),
   '{time_days}': () => String(rangeInt(2, 14)),
+  '{he}': (ctx) => ctx.playerGender === 'female' ? '她' : '他',
 }
 
 function resolve(template: string, ctx: ToastContext): string {

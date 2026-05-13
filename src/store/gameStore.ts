@@ -131,6 +131,7 @@ export interface GameStore extends GameWorldState {
   activeCountScene: CountScene | null
   countEnding: string | null
   selectedTalents: Record<number, string> // tier -> talent id
+  playerGender: 'male' | 'female' | null
 
   // Actions: lifecycle
   initialize: () => Promise<void>
@@ -156,6 +157,7 @@ export interface GameStore extends GameWorldState {
   dismissEnding: () => void
   selectTalent: (talentId: string) => void
   getTalentBonuses: () => Talent['effects']
+  setPlayerGender: (gender: 'male' | 'female') => void
 
   // Actions: manuscript
   startReview: (id: string) => void
@@ -209,6 +211,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   activeCountScene: null,
   countEnding: null,
   selectedTalents: {},
+  playerGender: null,
 
   // ──── Lifecycle ────
   initialize: async () => {
@@ -295,6 +298,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       prActive: state.prActive,
       readingRoomRenovated: state.readingRoomRenovated,
       selectedTalents: state.selectedTalents,
+      playerGender: state.playerGender,
     }
     const result = tick(world)
 
@@ -474,6 +478,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   },
 
   dismissEnding: () => set({ countEnding: null }),
+
+  setPlayerGender: (gender) => set({ playerGender: gender }),
 
   selectTalent: (talentId: string) => {
     const talent = TALENTS.find(t => t.id === talentId)

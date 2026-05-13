@@ -43,6 +43,8 @@ export function OfficeView() {
   const selectedTalents = useGameStore(s => s.selectedTalents)
   const editorLevel = useGameStore(s => s.editorLevel)
   const selectTalent = useGameStore(s => s.selectTalent)
+  const playerGender = useGameStore(s => s.playerGender)
+  const setPlayerGender = useGameStore(s => s.setPlayerGender)
   const [showChangelog, setShowChangelog] = useState(false)
 
   const deptList = useMemo(() => [...departments.values()], [departments])
@@ -55,12 +57,19 @@ export function OfficeView() {
     <div className="h-full overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xs md:text-sm font-bold text-ink font-mono">办公室</h2>
-        <button
+        <div className="flex items-center gap-2">
+          {playerGender && (
+            <button onClick={() => setPlayerGender(playerGender === 'male' ? 'female' : 'male')} className="text-[14px] md:text-[16px] text-muted font-mono border border-border-medium px-1.5 py-0.5 bg-cream hover:text-ink cursor-pointer transition-colors">
+              {playerGender === 'male' ? '他' : '她'}
+            </button>
+          )}
+          <button
           onClick={() => setShowChangelog(true)}
           className="text-[14px] md:text-[16px] text-muted font-mono border border-border-medium px-1.5 py-0.5 bg-cream hover:text-ink cursor-pointer transition-colors"
         >
           开发日志
-        </button>
+          </button>
+        </div>
       </div>
 
       <div>

@@ -89,6 +89,7 @@ export interface GameWorldState {
   prActive: boolean
   readingRoomRenovated: boolean
   selectedTalents: Record<number, string>
+  playerGender: 'male' | 'female' | null
 }
 
 // ──── Title generation ────
@@ -167,6 +168,7 @@ export function createInitialWorld(): GameWorldState {
     prActive: false,
     readingRoomRenovated: false,
     selectedTalents: {},
+    playerGender: null,
   }
 }
 
@@ -258,6 +260,7 @@ export function tick(world: GameWorldState): TickResult {
         quality: String(m.quality),
         authorName: world.authors.get(m.authorId)?.name ?? 'Unknown',
         playerName: world.playerName,
+        playerGender: world.playerGender ?? '',
       }), 'info'))
     }
   }

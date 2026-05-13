@@ -14,7 +14,9 @@ export function WelcomeView() {
   const [cloudCode, setCloudCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [cloudMsg, setCloudMsg] = useState<string | null>(null)
+  const [gender, setGender] = useState<'male' | 'female'>('male')
   const setPlayerName = useGameStore(s => s.setPlayerName)
+  const setPlayerGender = useGameStore(s => s.setPlayerGender)
   const setTrait = useGameStore(s => s.setTrait)
   const startLoop = useGameStore(s => s.startLoop)
   const loadFromCloud = useGameStore(s => s.loadFromCloud)
@@ -43,7 +45,7 @@ export function WelcomeView() {
 
   async function handleStart(trait: EditorTrait) {
     setLoading(true)
-    // If cloud code is set and not loaded yet, try loading
+    setPlayerGender(gender)
     const code = cloudCode.trim()
     if (code) {
       const ok = await loadFromCloud(code)
@@ -82,6 +84,11 @@ export function WelcomeView() {
                 <span className="text-copper font-bold">217年</span>
                 的编辑。
               </p>
+
+              <div className="flex gap-2 mb-3">
+                <button onClick={() => setGender('male')} className={`flex-1 text-sm py-1.5 border-2 border-border-dark font-mono transition-all ${gender === 'male' ? 'bg-copper text-white' : 'bg-cream text-muted hover:bg-cream-dark'}`}>他</button>
+                <button onClick={() => setGender('female')} className={`flex-1 text-sm py-1.5 border-2 border-border-dark font-mono transition-all ${gender === 'female' ? 'bg-copper text-white' : 'bg-cream text-muted hover:bg-cream-dark'}`}>她</button>
+              </div>
 
               <input
                 type="text"
