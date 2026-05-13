@@ -53,6 +53,7 @@ import { TITLE_POOLS, getBaseTitle, titleToSlug } from './titlePools'
 import { xpForPublish, getLevelFromXP } from './leveling'
 import { COLLECTIONS } from './collections'
 import { RIVALS } from './rivals'
+import { TALENTS, type Talent } from './talents'
 
 // ──── State that the game loop reads/mutates ────
 export interface GameWorldState {
@@ -87,6 +88,7 @@ export interface GameWorldState {
   unlockedCollections: Set<string>
   prActive: boolean
   readingRoomRenovated: boolean
+  selectedTalents: Record<number, string>
 }
 
 // ──── Title generation ────
@@ -165,6 +167,7 @@ export function createInitialWorld(): GameWorldState {
     unlockedCollections: new Set(),
     prActive: false,
     readingRoomRenovated: false,
+    selectedTalents: {},
   }
 }
 
@@ -183,8 +186,10 @@ export function tick(world: GameWorldState): TickResult {
 
   // Trait & permanent bonuses
   const trait = world.trait ? EDITOR_TRAIT_BONUSES[world.trait] : { rpBonus: 0, qualityBonus: 0, speedBonus: 0 }
-  const effSpeedBonus = world.permanentBonuses.editingSpeedBonus + trait.speedBonus
-  const effRpBonus = trait.rpBonus
+  // Compute talent bonuses
+  const talentBonuses = getTalentEffects(world.selectedTalents)
+  const effSpeedBonus = world.permanentBonuses.editingSpeedBonus + trait.speedBonus + (talentBonuses.editSpeed || 0) + (talentBonuses.allStats || 0)
+  const effRpBonus = trait.rpBonus + (talentBonuses.allStats || 0)
 
   // Advance calendar every TICKS_PER_DAY ticks
   if (world.playTicks % TICKS_PER_DAY === 0) {
@@ -350,7 +355,8 @@ export function tick(world: GameWorldState): TickResult {
         }
         // Affection tracking
         const affMult = world.readingRoomRenovated ? 1.2 : 1
-        author.affection += Math.round(AFFECTION_PER_PUBLISH * affMult)
+        const talentAffMult = 1 + (talentBonuses.affectionGain || 0)
+        author.affection += Math.round(AFFECTION_PER_PUBLISH * affMult * talentAffMult)
         if (m.quality >= 60) author.affection += Math.round(AFFECTION_PER_QUALITY_PUBLISH * affMult)
         if (m.isUnsuitable) author.affection += AFFECTION_BAD_PUBLISH_PENALTY
         if (author.talent >= AFFECTION_ELITE_TALENT) author.affection += 2
@@ -370,13 +376,14 @@ export function tick(world: GameWorldState): TickResult {
   for (const m of world.manuscripts.values()) {
     if (m.status !== 'published') continue
     const royalty = royaltyPerTick(m, world.permanentBonuses.royaltyMultiplier, marketingEfficiency)
-    world.currencies.royalties += royalty
+    world.currencies.royalties += royalty * (1 + (talentBonuses.royaltyIncome || 0) + (talentBonuses.allStats || 0))
     result.royaltiesEarned += royalty
     const hasGenreBuff = world.activeDateEvent && (world.activeDateEvent.genre === null || world.activeDateEvent.genre === m.genre)
     const prefSalesBonus = 1 + world.preferredGenres.filter(g => g === m.genre).length * GENRE_PREFERENCE_SALES_BONUS
     const reissueBoost = (m.reissueBoostUntil && world.playTicks < m.reissueBoostUntil) ? 1.5 : 1
     const collectionBoost = getCollectionBoost(m.genre, world.unlockedCollections)
-    m.salesCount += salesPerTick(marketingEfficiency, m.quality) * (hasGenreBuff ? salesMult : 1) * prefSalesBonus * reissueBoost * collectionBoost
+    const talentSalesMult = 1 + (talentBonuses.salesBoost || 0) + (talentBonuses.allStats || 0)
+    m.salesCount += salesPerTick(marketingEfficiency, m.quality) * (hasGenreBuff ? salesMult : 1) * prefSalesBonus * reissueBoost * collectionBoost * talentSalesMult
 
     // Check bestseller
     if (!m.isBestseller && m.salesCount >= BESTSELLER_SALES) {
@@ -673,6 +680,18 @@ function getCollectionBoost(genre: string, unlocked: Set<string>): number {
     }
   }
   return boost
+}
+
+function getTalentEffects(selected: Record<number, string>): Talent['effects'] {
+  const effects: Record<string, number> = {}
+  for (const talentId of Object.values(selected)) {
+    const t = TALENTS.find(t => t.id === talentId)
+    if (!t) continue
+    for (const [k, v] of Object.entries(t.effects)) {
+      effects[k] = (effects[k] || 0) + v
+    }
+  }
+  return effects
 }
 
 // ──── Random Events ────

@@ -11,6 +11,7 @@ export function ManuscriptCard({ manuscript }: Props) {
   const startReview = useGameStore(s => s.startReview)
   const rejectManuscript = useGameStore(s => s.rejectManuscript)
   const shelveManuscript = useGameStore(s => s.shelveManuscript)
+  const getTalentBonuses = useGameStore(s => s.getTalentBonuses)
   const [viewed, setViewed] = useState(false)
   const [flipping, setFlipping] = useState(false)
   const [flipProgress, setFlipProgress] = useState(0)
@@ -20,7 +21,10 @@ export function ManuscriptCard({ manuscript }: Props) {
   // Animate flipping progress
   useEffect(() => {
     if (!flipping) return
-    const duration = 1000 + manuscript.wordCount * 0.005 // ~1.5-2.5s depending on word count
+    const bonuses = getTalentBonuses()
+    const speedMult = 1 + (bonuses.flipSpeed || 0) - (bonuses.flipSpeedPenalty || 0)
+    const baseDuration = 1000 + manuscript.wordCount * 0.005
+    const duration = baseDuration / Math.max(0.3, speedMult)
     const start = Date.now()
     const timer = setInterval(() => {
       const elapsed = Date.now() - start
@@ -33,7 +37,7 @@ export function ManuscriptCard({ manuscript }: Props) {
       }
     }, 30)
     return () => clearInterval(timer)
-  }, [flipping, manuscript.wordCount])
+  }, [flipping, manuscript.wordCount, getTalentBonuses])
 
   const isBlurred = !viewed && !flipping
 

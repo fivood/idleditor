@@ -3,6 +3,7 @@ import { getPreferenceSlots } from '@/store/gameStore'
 import type { DepartmentType, Genre } from '@/core/types'
 import { GENRE_ICONS } from '@/core/types'
 import { GENRE_PREFERENCE_THRESHOLDS, AUTO_REVIEW_DEPT_LEVEL, AUTO_COVER_PRESTIGE, AUTO_REJECT_PRESTIGE } from '@/core/constants'
+import { TALENTS, TALENT_UNLOCK_LEVELS } from '@/core/talents'
 import { useMemo, useState } from 'react'
 import { ChangelogModal } from './ChangelogModal'
 
@@ -39,6 +40,9 @@ export function OfficeView() {
   const hirePR = useGameStore(s => s.hirePR)
   const renovateReadingRoom = useGameStore(s => s.renovateReadingRoom)
   const sponsorAward = useGameStore(s => s.sponsorAward)
+  const selectedTalents = useGameStore(s => s.selectedTalents)
+  const editorLevel = useGameStore(s => s.editorLevel)
+  const selectTalent = useGameStore(s => s.selectTalent)
   const [showChangelog, setShowChangelog] = useState(false)
 
   const deptList = useMemo(() => [...departments.values()], [departments])
@@ -289,6 +293,46 @@ export function OfficeView() {
             enabled={autoRejectEnabled}
             onToggle={toggleAutoReject}
           />
+        </div>
+      </div>
+
+      {/* Talents */}
+      <div>
+        <h2 className="text-xs md:text-sm font-bold text-ink mb-1 font-mono">天赋树</h2>
+        <p className="text-[14px] md:text-[16px] text-muted mb-2 md:mb-3 font-mono">
+          编辑等级提升解锁天赋选择。每层只能选一个——选定了就会伴随你接下来的编辑生涯。
+        </p>
+        <div className="grid gap-1.5 md:gap-2">
+          {Object.entries(TALENT_UNLOCK_LEVELS).map(([tierStr, level]) => {
+            const tier = parseInt(tierStr)
+            const unlocked = editorLevel >= level
+            const selected = selectedTalents[tier]
+            const tierTalents = TALENTS.filter(t => t.tier === tier)
+            return (
+              <div key={tier} className={`border-2 p-2 md:p-3 ${unlocked ? 'bg-cream border-progress shadow-[3px_3px_0_#3a6491]' : 'bg-cream-dark border-border-dark opacity-50'}`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[12px] md:text-xs font-bold text-progress font-mono">T{tier}</span>
+                  <span className="text-[12px] md:text-xs text-muted font-mono">解锁 Lv.{level}</span>
+                  {selected && <span className="text-[12px] text-progress font-bold font-mono ml-auto">{TALENTS.find(t => t.id === selected)?.label} 已选</span>}
+                </div>
+                {unlocked && !selected && (
+                  <div className="grid grid-cols-3 gap-1">
+                    {tierTalents.map(t => (
+                      <button
+                        key={t.id}
+                        onClick={() => selectTalent(t.id)}
+                        className="text-left text-[12px] px-2 py-1.5 border-2 border-border-dark bg-cream hover:bg-cream-dark transition-all cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[1px] active:translate-y-[1px]"
+                        title={t.desc}
+                      >
+                        <p className="text-[12px] font-bold text-ink font-mono">{t.label}</p>
+                        <p className="text-[12px] text-muted font-mono mt-0.5">{t.desc.slice(0, 16)}...</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       </div>
 

@@ -50,6 +50,7 @@ export function useOfflineProgress() {
       unlockedCollections: new Set<string>(),
       prActive: false,
       readingRoomRenovated: false,
+      selectedTalents: {},
     }
 
     for (const [id, ms] of saved.manuscripts) world.manuscripts.set(id, ms)

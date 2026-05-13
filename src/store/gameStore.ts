@@ -10,6 +10,7 @@ import { nanoid } from '@/utils/id'
 import { generateTemplateDecision } from '@/core/decisions'
 import { loadSynopsisPool } from '@/core/humor/synopsis'
 import { COUNT_SCENES, type CountScene } from '@/core/countStory'
+import { TALENTS, TALENT_UNLOCK_LEVELS, type Talent } from '@/core/talents'
 import { COLLECTIONS } from '@/core/collections'
 
 function serializeMapForDb(map: Map<unknown, unknown>): string {
@@ -129,6 +130,7 @@ export interface GameStore extends GameWorldState {
   readingRoomRenovated: boolean
   activeCountScene: CountScene | null
   countEnding: string | null
+  selectedTalents: Record<number, string> // tier -> talent id
 
   // Actions: lifecycle
   initialize: () => Promise<void>
@@ -152,6 +154,8 @@ export interface GameStore extends GameWorldState {
   onCountSceneChoice: (choiceIndex: number) => void
   onCountGenderChoice: (gender: 'male' | 'female') => void
   dismissEnding: () => void
+  selectTalent: (talentId: string) => void
+  getTalentBonuses: () => Talent['effects']
 
   // Actions: manuscript
   startReview: (id: string) => void
@@ -204,6 +208,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   readingRoomRenovated: false,
   activeCountScene: null,
   countEnding: null,
+  selectedTalents: {},
 
   // ──── Lifecycle ────
   initialize: async () => {
@@ -289,6 +294,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       unlockedCollections: state.unlockedCollections,
       prActive: state.prActive,
       readingRoomRenovated: state.readingRoomRenovated,
+      selectedTalents: state.selectedTalents,
     }
     const result = tick(world)
 
@@ -423,6 +429,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       coversManifest: state.coversManifest,
       prActive: state.prActive,
       readingRoomRenovated: state.readingRoomRenovated,
+      selectedTalents: state.selectedTalents,
     })
 
     // Check for count scene
@@ -467,6 +474,29 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   },
 
   dismissEnding: () => set({ countEnding: null }),
+
+  selectTalent: (talentId: string) => {
+    const talent = TALENTS.find(t => t.id === talentId)
+    if (!talent) return
+    const state = get()
+    if (state.editorLevel < (TALENT_UNLOCK_LEVELS[talent.tier] ?? 99)) return
+    if (state.selectedTalents[talent.tier]) return // Already picked this tier
+    set({ selectedTalents: { ...state.selectedTalents, [talent.tier]: talentId } })
+    get().addToast({ id: nanoid(), text: `天赋解锁：${talent.label}！${talent.desc.slice(0, 20)}...`, type: 'milestone', createdAt: Date.now() })
+  },
+
+  getTalentBonuses: () => {
+    const state = get()
+    const bonuses: Talent['effects'] = {}
+    for (const talentId of Object.values(state.selectedTalents)) {
+      const t = TALENTS.find(t => t.id === talentId)
+      if (!t) continue
+      for (const [k, v] of Object.entries(t.effects)) {
+        (bonuses as Record<string, number>)[k] = ((bonuses as Record<string, number>)[k] || 0) + (v as number)
+      }
+    }
+    return bonuses
+  },
 
   // ──── Manuscript actions ────
   startReview: (id: string) => {
