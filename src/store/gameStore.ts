@@ -139,6 +139,8 @@ export interface GameStore extends GameWorldState {
   toggleAutoCover: () => void
   toggleAutoReject: () => void
   reissueBook: (id: string) => void
+  buyAuthorMeal: (id: string) => void
+  rushAuthorCooldown: (id: string) => void
 
   // Actions: manuscript
   startReview: (id: string) => void
@@ -705,6 +707,32 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       currencies: { ...state.currencies, royalties: state.currencies.royalties - cost },
     })
     get().addToast({ id: nanoid(), text: `"${ms.title}" 已再版！品质 +3，进入7天营销窗口期。`, type: 'milestone', createdAt: Date.now() })
+  },
+
+  buyAuthorMeal: (id) => {
+    const state = get()
+    const author = state.authors.get(id)
+    if (!author || state.currencies.revisionPoints < 20) return
+    author.affection = Math.min(100, author.affection + 15)
+    set({
+      authors: new Map(state.authors),
+      currencies: { ...state.currencies, revisionPoints: state.currencies.revisionPoints - 20 },
+    })
+    const meals = ['一起吃了顿深夜拉面，聊了聊下一本书的构思。', '在出版社对面的茶馆喝了杯茶，讨论了截稿日期——双方都默契地没有提具体的数字。', '去了家隐藏在小巷里的居酒屋，喝到第二杯的时候作者终于承认第三章写得不好。']
+    get().addToast({ id: nanoid(), text: `请${author.name}${meals[Math.floor(Math.random() * meals.length)]}好感 +15。`, type: 'info', createdAt: Date.now() })
+  },
+
+  rushAuthorCooldown: (id) => {
+    const state = get()
+    const author = state.authors.get(id)
+    if (!author || !author.cooldownUntil || author.cooldownUntil <= 0 || state.currencies.revisionPoints < 30) return
+    author.cooldownUntil = Math.max(0, Math.floor(author.cooldownUntil * 0.5))
+    author.affection = Math.max(0, author.affection - 5)
+    set({
+      authors: new Map(state.authors),
+      currencies: { ...state.currencies, revisionPoints: state.currencies.revisionPoints - 30 },
+    })
+    get().addToast({ id: nanoid(), text: `催稿成功！${author.name}的冷却时间减半。好感 -5。`, type: 'info', createdAt: Date.now() })
   },
 
   setPreferredGenre: (genre) => {
