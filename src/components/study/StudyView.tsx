@@ -73,7 +73,7 @@ export function StudyView() {
     <div className="h-full flex flex-col min-h-0">
       {reading ? (
         <div className="flex-1 grid grid-cols-[1fr_260px] min-h-0">
-          <ReaderInline novel={reading} onBack={() => { setReading(null); loadNovels() }} />
+          <ReaderInline novel={reading} />
           <BookInfoPanel novel={reading} novels={novels} onBack={() => { setReading(null); loadNovels() }} onSelect={setReading} />
         </div>
       ) : (
@@ -310,12 +310,11 @@ function UploadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =>
   )
 }
 
-function ReaderInline({ novel, onBack }: { novel: PlayerNovel; onBack: () => void }) {
+function ReaderInline({ novel }: { novel: PlayerNovel }) {
   const [position, setPosition] = useState(novel.readingProgress)
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(novel.bookmarks || [])
   const [showBookmarks, setShowBookmarks] = useState(false)
   const [newBookmarkName, setNewBookmarkName] = useState('')
-  const [showInfo, setShowInfo] = useState(true)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const total = novel.content.length
   const progress = total > 0 ? Math.round(position / total * 100) : 0
@@ -333,12 +332,6 @@ function ReaderInline({ novel, onBack }: { novel: PlayerNovel; onBack: () => voi
     const pct = el.scrollTop / (el.scrollHeight - el.clientHeight)
     const newPos = Math.round(pct * total)
     scheduleSave(newPos)
-  }
-
-  async function handleBack() {
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
-    await db.novels.update(novel.id, { readingProgress: position, bookmarks })
-    onBack()
   }
 
   async function addBookmark() {
@@ -417,86 +410,31 @@ function ReaderInline({ novel, onBack }: { novel: PlayerNovel; onBack: () => voi
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div className="flex items-center justify-between p-3 md:p-4 border-b-2 border-border-dark bg-cream-dark shrink-0">
-        <div className="min-w-0">
-          <h2 className="text-sm md:text-base font-bold text-ink truncate font-mono">{novel.title}</h2>
-          <p className="text-[12px] md:text-xs text-muted font-mono">{novel.author} · {total.toLocaleString()} 字 · {progress}%</p>
-        </div>
+      <div className="flex items-center justify-between px-3 md:px-4 py-1.5 border-b-2 border-border-dark bg-cream-dark shrink-0">
+        <span className="text-[12px] md:text-xs text-muted font-mono">{progress}%</span>
         <div className="flex items-center gap-2">
-        <button
-          onClick={handleBack}
-          className="text-[12px] md:text-xs px-3 py-1.5 bg-copper text-white border-2 border-border-dark font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
-        >
-          返回
-        </button>
-        <button
-          onClick={() => setShowBookmarks(!showBookmarks)}
-          className="text-[12px] md:text-xs px-2 py-1.5 border-2 border-border-dark text-muted font-mono cursor-pointer bg-cream shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
-        >
-          书签 ({bookmarks.length})
-        </button>
+          <button onClick={() => { setShowBookmarks(!showBookmarks) }} className="text-[12px] md:text-xs border-2 border-border-dark text-muted font-mono cursor-pointer bg-cream px-2 py-0.5">
+            书签 ({bookmarks.length})
+          </button>
         </div>
       </div>
 
-      {(novel.synopsis || novel.recommendation) && (
-        <>
-          <button
-            onClick={() => setShowInfo(!showInfo)}
-            className="w-full text-left px-3 md:px-4 py-1.5 border-b-2 border-border-dark bg-cream-dark text-[12px] md:text-xs text-muted font-mono hover:text-ink cursor-pointer transition-colors"
-          >
-            {showInfo ? '收起' : '展开'}简介与推荐语
-          </button>
-          {showInfo && (
-            <>
-              {novel.synopsis && (
-                <div className="bg-card-inset border-b-2 border-border-dark p-3 md:p-4">
-                  <p className="text-[12px] md:text-xs text-muted font-mono mb-1">简介</p>
-                  <p className="text-xs md:text-sm text-ink leading-relaxed font-mono">{novel.synopsis}</p>
-                </div>
-              )}
-              {novel.recommendation && (
-                <div className="bg-cream-dark border-b-2 border-border-dark p-3 md:p-4">
-                  <p className="text-[12px] md:text-xs text-muted font-mono mb-1">推荐语</p>
-                  <p className="text-xs md:text-sm text-ink-light leading-relaxed font-mono italic">"{novel.recommendation}"</p>
-                </div>
-              )}
-            </>
-          )}
-        </>
-      )}
-
       {showBookmarks && (
-        <div className="bg-cream-dark border-b-2 border-border-dark p-3 md:p-4">
-          <p className="text-[12px] md:text-xs text-muted font-mono mb-2">书签 ({bookmarks.length})</p>
+        <div className="bg-cream-dark border-b-2 border-border-dark p-2 md:p-3">
           <div className="flex gap-2 mb-2">
-            <input
-              value={newBookmarkName}
-              onChange={e => setNewBookmarkName(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && addBookmark()}
-              placeholder="书签名..."
-              className="flex-1 px-2 py-1 text-[12px] border-2 border-border-dark bg-card-inset text-ink font-mono focus:outline-none focus:border-copper"
-            />
-            <button
-              onClick={addBookmark}
-              className="text-[12px] px-3 py-1 bg-copper text-white border-2 border-border-dark font-mono cursor-pointer"
-            >
-              添加
-            </button>
+            <input value={newBookmarkName} onChange={e => setNewBookmarkName(e.target.value)} onKeyDown={e => e.key === 'Enter' && addBookmark()} placeholder="书签名..." className="flex-1 px-2 py-1 text-[12px] border-2 border-border-dark bg-card-inset text-ink font-mono focus:outline-none focus:border-copper" />
+            <button onClick={addBookmark} className="text-[12px] px-3 py-1 bg-copper text-white border-2 border-border-dark font-mono cursor-pointer">添加</button>
           </div>
           {bookmarks.length > 0 ? (
-            <div className="space-y-1 max-h-40 overflow-y-auto">
+            <div className="space-y-1 max-h-32 overflow-y-auto">
               {[...bookmarks].reverse().map((bm, i) => (
                 <div key={i} className="flex items-center justify-between text-[12px] font-mono">
-                  <button onClick={() => jumpToBookmark(bm)} className="text-progress hover:underline text-left">
-                    {bm.name} ({Math.round(bm.position / Math.max(1, total) * 100)}%)
-                  </button>
-                  <button onClick={() => removeBookmark(bookmarks.length - 1 - i)} className="text-muted hover:text-copper-dark">X</button>
+                  <button onClick={() => jumpToBookmark(bm)} className="text-progress hover:underline text-left">{bm.name} ({Math.round(bm.position / Math.max(1, total) * 100)}%)</button>
+                  <button onClick={() => removeBookmark(bookmarks.length - 1 - i)} className="text-muted">X</button>
                 </div>
               ))}
             </div>
-          ) : (
-            <p className="text-[12px] text-muted font-mono">暂无书签，输入名称后点添加</p>
-          )}
+          ) : <p className="text-[12px] text-muted font-mono">暂无书签</p>}
         </div>
       )}
 
