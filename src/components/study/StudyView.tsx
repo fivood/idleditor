@@ -260,6 +260,7 @@ function ReaderView({ novel, onClose }: { novel: PlayerNovel; onClose: () => voi
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(novel.bookmarks || [])
   const [showBookmarks, setShowBookmarks] = useState(false)
   const [newBookmarkName, setNewBookmarkName] = useState('')
+  const [showInfo, setShowInfo] = useState(true)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const total = novel.content.length
   const progress = total > 0 ? Math.round(position / total * 100) : 0
@@ -382,18 +383,31 @@ function ReaderView({ novel, onClose }: { novel: PlayerNovel; onClose: () => voi
         </button>
       </div>
 
-      {novel.synopsis && (
-        <div className="bg-card-inset border-b-2 border-border-dark p-3 md:p-4">
-          <p className="text-[12px] md:text-xs text-muted font-mono mb-1">简介</p>
-          <p className="text-xs md:text-sm text-ink leading-relaxed font-mono">{novel.synopsis}</p>
-        </div>
-      )}
-
-      {novel.recommendation && (
-        <div className="bg-cream-dark border-b-2 border-border-dark p-3 md:p-4">
-          <p className="text-[12px] md:text-xs text-muted font-mono mb-1">推荐语</p>
-          <p className="text-xs md:text-sm text-ink-light leading-relaxed font-mono italic">"{novel.recommendation}"</p>
-        </div>
+      {(novel.synopsis || novel.recommendation) && (
+        <>
+          <button
+            onClick={() => setShowInfo(!showInfo)}
+            className="w-full text-left px-3 md:px-4 py-1.5 border-b-2 border-border-dark bg-cream-dark text-[12px] md:text-xs text-muted font-mono hover:text-ink cursor-pointer transition-colors"
+          >
+            {showInfo ? '收起' : '展开'}简介与推荐语
+          </button>
+          {showInfo && (
+            <>
+              {novel.synopsis && (
+                <div className="bg-card-inset border-b-2 border-border-dark p-3 md:p-4">
+                  <p className="text-[12px] md:text-xs text-muted font-mono mb-1">简介</p>
+                  <p className="text-xs md:text-sm text-ink leading-relaxed font-mono">{novel.synopsis}</p>
+                </div>
+              )}
+              {novel.recommendation && (
+                <div className="bg-cream-dark border-b-2 border-border-dark p-3 md:p-4">
+                  <p className="text-[12px] md:text-xs text-muted font-mono mb-1">推荐语</p>
+                  <p className="text-xs md:text-sm text-ink-light leading-relaxed font-mono italic">"{novel.recommendation}"</p>
+                </div>
+              )}
+            </>
+          )}
+        </>
       )}
 
       {showBookmarks && (
