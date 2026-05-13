@@ -492,7 +492,7 @@ function createManuscript(world: GameWorldState): Manuscript {
     salesCount: 0,
     awards: [],
     cover: generateCover(title, genre, world.coversManifest),
-    synopsis: generateSynopsis(genre),
+    synopsis: generateSynopsis(genre, title),
     isUnsuitable: isClearlyUnsuitable(quality),
     rejectionReason: isClearlyUnsuitable(quality) ? generateRejectionReason() : '',
     meticulouslyEdited: false,
