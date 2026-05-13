@@ -73,6 +73,32 @@ async function tryTriggerDecision() {
   }
 }
 
+async function generateRebirthSummary(state: GameStore, statues: number): Promise<string | null> {
+  try {
+    const published = [...state.manuscripts.values()].filter(m => m.status === 'published')
+    const bestsellers = published.filter(m => m.isBestseller)
+    const authors = [...state.authors.values()]
+    const idols = authors.filter(a => a.tier === 'idol')
+    const stats = [
+      `第${statues}次转生。`,
+      `本世出版${published.length}本书，其中${bestsellers.length}本畅销书。`,
+      `累计退稿${state.totalRejections}次。`,
+      `雇佣了${authors.length}位作者，其中${idols.length}位成为传奇。`,
+      `最高声望达到${state.currencies.prestige}。`,
+      `编辑等级Lv.${state.editorLevel}。`,
+      `伯爵关系：${state.permanentBonuses.countRelation > 0 ? '亲近' : state.permanentBonuses.countRelation < 0 ? '疏远' : '中立'}。`,
+    ].join('\n')
+
+    const res = await fetch('/api/rebirth-summary', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stats }),
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    return data.text || null
+  } catch { return null }
+}
+
 async function syncToCloudImpl(state: GameStore): Promise<boolean> {
   if (!state.cloudSaveCode) return false
   try {
@@ -451,6 +477,11 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       const ending = relation >= 5 ? 'loyal' : relation <= -3 ? 'independent' : 'balanced'
       set({ countEnding: ending })
     }
+
+    // Fire LLM career summary
+    generateRebirthSummary(state, newStatues).then(text => {
+      if (text) get().addToast({ id: nanoid(), text, type: 'milestone', createdAt: Date.now() })
+    })
   },
 
   onCountSceneChoice: (choiceIndex: number) => {
