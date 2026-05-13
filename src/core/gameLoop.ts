@@ -600,11 +600,11 @@ function createRandomAuthor(_world: GameWorldState): Author {
   ] as const
   const persona = pick([...personaList] as unknown as string[]) as AuthorPersona
   const names: Record<string, string[]> = {
-    'retired-professor': ['沈默然', '林怀瑾', '顾知秋', '苏砚清', '叶知秋', '孟晚舟', '秦观海'],
-    'basement-scifi-geek': ['星野零', '陆星辰', '方代码', '季银河', '夏宇尘', '云起时'],
-    'ex-intelligence-officer': ['陈深', '秦墨', '韩隐', '洛铮', '石藏锋', '冷无言'],
-    'sociology-phd': ['周知行博士', '温如言博士', '许观澜博士', '李问策博士', '郑观潮博士'],
-    'anxious-debut': ['小透明', '宋迟迟', '姜未名', '沈惴惴', '贺小怯', '莫彷徨'],
+    'retired-professor': ['沈默然', '林怀瑾', '顾知秋', '苏砚清', '叶知秋', '孟晚舟', '秦观海', '陶退之', '谢半生', '裴未老'],
+    'basement-scifi-geek': ['星野零', '陆星辰', '方代码', '季银河', '夏宇尘', '云起时', '钟离渊', '上官惑', '端木奇'],
+    'ex-intelligence-officer': ['陈深', '秦墨', '韩隐', '洛铮', '石藏锋', '冷无言', '段无名', '尉迟默', '慕容简'],
+    'sociology-phd': ['周知行博士', '温如言博士', '许观澜博士', '李问策博士', '郑观潮博士', '柳问津博士', '司马见微博士'],
+    'anxious-debut': ['小透明', '宋迟迟', '姜未名', '沈惴惴', '贺小怯', '莫彷徨', '简不安', '顾忐忑', '叶微颤'],
     'reclusive-latam-writer': ['Gabriel·Manana（加布里埃尔·明日复明日）', 'Mario·Llama（马里奥·没灵感）', 'Julio·Taza（胡里奥·一杯茶写一页）'],
     'nordic-crime-queen': ['Ingrid·Frost（英格丽·冷飕飕）', 'Astrid·Winter（阿斯特丽德·冻死人）', 'Sigrid·Snow（西格丽德·下大雪）'],
     'american-bestseller-machine': ['Jack·Bestsell（杰克·畅销王）', 'Emily·Pageturn（艾米丽·翻页快）', 'Taylor·Delay（泰勒·拖延症）'],
@@ -632,17 +632,19 @@ function createRandomAuthor(_world: GameWorldState): Author {
   const bias = genreBias[persona]
   const genre = bias && Math.random() < 0.7 ? pick(bias) : pick(GENRES)
 
-  // Pick a unique name (retry, then add suffix if exhausted)
+  // Pick a unique name (retry, then fallback to quirky pen names)
   const existingNames = new Set([..._world.authors.values()].map(a => a.name))
   let name = pick(names[persona])
-  for (let i = 0; i < 10 && existingNames.has(name); i++) {
+  for (let i = 0; i < 15 && existingNames.has(name); i++) {
     name = pick(names[persona])
   }
-  // If all names for this persona are taken, append a number
   if (existingNames.has(name)) {
-    let suffix = 2
-    while (existingNames.has(`${name} ${suffix}`) && suffix < 20) suffix++
-    name = `${name} ${suffix}`
+    const penPool = [
+      '匿名先生', '某不知名作者', '编辑部对面的那个', '一个不愿透露姓名的人',
+      '前任咖啡店店员', '自称是猫的人', '失眠写作爱好者', '深夜打字机',
+      '欠稿费的人', '上周来过茶水间的', '被你退过两次稿的人',
+    ]
+    name = pick(penPool)
   }
 
   return {
