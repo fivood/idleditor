@@ -47,6 +47,7 @@ export function useOfflineProgress() {
       autoReviewEnabled: saved.autoReviewEnabled ?? true,
       autoCoverEnabled: saved.autoCoverEnabled ?? true,
       autoRejectEnabled: saved.autoRejectEnabled ?? true,
+      unlockedCollections: new Set<string>(),
     }
 
     for (const [id, ms] of saved.manuscripts) world.manuscripts.set(id, ms)

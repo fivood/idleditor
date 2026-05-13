@@ -51,6 +51,7 @@ import { checkDateEvent, type DateEvent } from './dateEvents'
 import type { GameCalendar } from './calendar'
 import { TITLE_POOLS, getBaseTitle, titleToSlug } from './titlePools'
 import { xpForPublish, getLevelFromXP } from './leveling'
+import { COLLECTIONS } from './collections'
 
 // ──── State that the game loop reads/mutates ────
 export interface GameWorldState {
@@ -82,6 +83,7 @@ export interface GameWorldState {
   autoReviewEnabled: boolean
   autoCoverEnabled: boolean
   autoRejectEnabled: boolean
+  unlockedCollections: Set<string>
 }
 
 // ──── Title generation ────
@@ -155,6 +157,7 @@ export function createInitialWorld(): GameWorldState {
     autoReviewEnabled: true,
     autoCoverEnabled: true,
     autoRejectEnabled: true,
+    unlockedCollections: new Set(),
   }
 }
 
@@ -357,7 +360,9 @@ export function tick(world: GameWorldState): TickResult {
     result.royaltiesEarned += royalty
     const hasGenreBuff = world.activeDateEvent && (world.activeDateEvent.genre === null || world.activeDateEvent.genre === m.genre)
     const prefSalesBonus = 1 + world.preferredGenres.filter(g => g === m.genre).length * GENRE_PREFERENCE_SALES_BONUS
-    m.salesCount += salesPerTick(marketingEfficiency, m.quality) * (hasGenreBuff ? salesMult : 1) * prefSalesBonus
+    const reissueBoost = (m.reissueBoostUntil && world.playTicks < m.reissueBoostUntil) ? 1.5 : 1
+    const collectionBoost = getCollectionBoost(m.genre, world.unlockedCollections)
+    m.salesCount += salesPerTick(marketingEfficiency, m.quality) * (hasGenreBuff ? salesMult : 1) * prefSalesBonus * reissueBoost * collectionBoost
 
     // Check bestseller
     if (!m.isBestseller && m.salesCount >= BESTSELLER_SALES) {
@@ -374,6 +379,7 @@ export function tick(world: GameWorldState): TickResult {
 
   // 7. Tick author cooldowns
   for (const author of world.authors.values()) {
+    if (author.poached) continue // Gone to a rival publisher
     if (author.cooldownUntil !== null && author.cooldownUntil > 0) {
       author.cooldownUntil--
       if (author.cooldownUntil <= 0) {
@@ -495,7 +501,7 @@ function createManuscript(world: GameWorldState): Manuscript {
     world.authors.set(author.id, author)
     authorId = author.id
   } else {
-    const activeAuthors = [...world.authors.values()].filter(a => a.cooldownUntil === null)
+    const activeAuthors = [...world.authors.values()].filter(a => a.cooldownUntil === null && !a.poached)
     if (activeAuthors.length > 0) {
       authorId = pick(activeAuthors).id
     } else {
@@ -526,6 +532,7 @@ function createManuscript(world: GameWorldState): Manuscript {
     rejectionReason: isClearlyUnsuitable(quality) ? generateRejectionReason() : '',
     meticulouslyEdited: false,
     shelvedAt: null,
+    reissueBoostUntil: null,
   }
 }
 
@@ -558,6 +565,7 @@ function createManuscriptForAuthor(world: GameWorldState, author: Author): Manus
     rejectionReason: isClearlyUnsuitable(quality) ? generateRejectionReason() : '',
     meticulouslyEdited: false,
     shelvedAt: null,
+    reissueBoostUntil: null,
   }
 }
 
@@ -621,6 +629,7 @@ function createRandomAuthor(_world: GameWorldState): Author {
     rejectedCount: 0,
     signaturePhrase: pick(phrases[persona]),
     affection: 0,
+    poached: false,
   }
 }
 
@@ -639,6 +648,17 @@ function getDeptLevel(world: GameWorldState, type: string): number {
     if (dept.type === type) return dept.level
   }
   return 0
+}
+
+function getCollectionBoost(genre: string, unlocked: Set<string>): number {
+  let boost = 1
+  for (const c of COLLECTIONS) {
+    if (unlocked.has(c.id) && c.genre === genre) {
+      if (c.id === 'mystery-5') boost *= 1.05
+      if (c.id === 'hybrid-2') boost *= 1.05
+    }
+  }
+  return boost
 }
 
 // ──── Random Events ────
@@ -750,6 +770,18 @@ function rollRandomEvent(world: GameWorldState): string | null {
     () => `📸 一位知名书评人发了张自拍，背景里——模糊但可辨认——是出版社的大楼。配文："接下来三个月我最期待的事"。编辑们默默截图了。`,
     () => `🎂 今天是出版社的「永生茶话会」——每百年一次的团建活动。伯爵说了两句祝词，然后回棺材补觉了。`,
     () => `📬 一封寄给"永夜出版社全体员工"的匿名信。内容是一首关于破晓的十四行诗。编辑部一致同意：写得不错。但这不改变寄件人不知道我们是吸血鬼的事实。`,
+
+    // ── Rival publisher news ──
+    () => {
+      const poached = [...world.authors.values()].filter(a => a.poached)
+      if (poached.length === 0) return null
+      const a = poached[Math.floor(Math.random() * poached.length)]
+      const prestige = rangeInt(5, 10)
+      world.currencies.prestige += prestige
+      const rivalNames = ['晨曦出版社', '新纪元文学', '星辰书坊', '破晓文化', '万象出版']
+      const rival = rivalNames[Math.floor(Math.random() * rivalNames.length)]
+      return `📰 ${a.name}在${rival}出版了一本新书。书评人说还不错——至少比上次被退掉那本强。作为前编辑，你获得 ${prestige} 声望。`
+    },
 
     // ── Affection events ──
     () => {

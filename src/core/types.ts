@@ -87,6 +87,7 @@ export interface Manuscript {
   rejectionReason: string
   meticulouslyEdited: boolean
   shelvedAt: number | null
+  reissueBoostUntil: number | null
 }
 
 export interface BookCover {
@@ -112,6 +113,7 @@ export interface Author {
   rejectedCount: number
   signaturePhrase: string
   affection: number
+  poached: boolean
 }
 
 export interface Department {

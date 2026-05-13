@@ -132,6 +132,7 @@ function BookSpine({ book, onClick }: { book: Manuscript; onClick: () => void })
 function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => void }) {
   const icon = GENRE_ICONS[book.genre] ?? '/icons/misc/book.svg'
   const spineColor = GENRE_COVER_COLORS[book.genre] ?? '#1a1a2e'
+  const reissueBook = useGameStore(s => s.reissueBook)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -193,12 +194,29 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
             </p>
           </div>
 
-          <button
-            onClick={onClose}
-            className="w-full py-2 md:py-2.5 text-xs md:text-sm border-2 border-border-dark bg-copper text-white font-mono cursor-pointer shadow-[3px_3px_0_#4a3728] active:shadow-none active:translate-x-[3px] active:translate-y-[3px] transition-all"
-          >
-            放回书架
-          </button>
+          {book.reissueBoostUntil && (
+            <p className="text-[14px] md:text-[16px] text-progress font-mono mb-2">营销窗口期中 · 销量 ×1.5</p>
+          )}
+
+          <div className="flex gap-1.5 md:gap-2">
+            <button
+              onClick={() => reissueBook(book.id)}
+              disabled={book.meticulouslyEdited}
+              className={`flex-1 text-[14px] md:text-xs px-3 md:px-4 py-1.5 md:py-2 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${
+                book.meticulouslyEdited
+                  ? 'bg-cream-dark text-muted cursor-not-allowed'
+                  : 'bg-progress text-white'
+              }`}
+            >
+              {book.meticulouslyEdited ? '已再版' : `再版 (${200 + Math.floor(book.quality * 5)} 税)`}
+            </button>
+            <button
+              onClick={onClose}
+              className="flex-1 text-[14px] md:text-xs px-3 md:px-4 py-1.5 md:py-2 border-2 border-border-dark bg-copper text-white font-mono cursor-pointer shadow-[3px_3px_0_#4a3728] active:shadow-none active:translate-x-[3px] active:translate-y-[3px] transition-all"
+            >
+              放回书架
+            </button>
+          </div>
         </div>
       </div>
     </div>

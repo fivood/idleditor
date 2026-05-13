@@ -9,6 +9,7 @@ import { saveGameToDb, loadGameFromDb, hasExistingSave } from '@/db/saveManager'
 import { nanoid } from '@/utils/id'
 import { generateTemplateDecision } from '@/core/decisions'
 import { loadSynopsisPool } from '@/core/humor/synopsis'
+import { COLLECTIONS } from '@/core/collections'
 
 function serializeMapForDb(map: Map<unknown, unknown>): string {
   return JSON.stringify([...map.entries()])
@@ -122,6 +123,7 @@ export interface GameStore extends GameWorldState {
   autoReviewEnabled: boolean
   autoCoverEnabled: boolean
   autoRejectEnabled: boolean
+  unlockedCollections: Set<string>
 
   // Actions: lifecycle
   initialize: () => Promise<void>
@@ -136,6 +138,7 @@ export interface GameStore extends GameWorldState {
   toggleAutoReview: () => void
   toggleAutoCover: () => void
   toggleAutoReject: () => void
+  reissueBook: (id: string) => void
 
   // Actions: manuscript
   startReview: (id: string) => void
@@ -183,6 +186,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   autoReviewEnabled: true,
   autoCoverEnabled: true,
   autoRejectEnabled: true,
+  unlockedCollections: new Set(),
 
   // ──── Lifecycle ────
   initialize: async () => {
@@ -265,6 +269,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       autoReviewEnabled: state.autoReviewEnabled,
       autoCoverEnabled: state.autoCoverEnabled,
       autoRejectEnabled: state.autoRejectEnabled,
+      unlockedCollections: state.unlockedCollections,
     }
     const result = tick(world)
 
@@ -289,9 +294,27 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       autoReviewEnabled: world.autoReviewEnabled,
       autoCoverEnabled: world.autoCoverEnabled,
       autoRejectEnabled: world.autoRejectEnabled,
+      unlockedCollections: new Set(world.unlockedCollections),
       decisionCooldown: Math.max(0, state.decisionCooldown - 1),
       toasts: [...state.toasts, ...result.toasts].slice(-100),
     })
+
+    // Check collection achievements
+    for (const collection of COLLECTIONS) {
+      if (state.unlockedCollections.has(collection.id)) continue
+      const count = [...world.manuscripts.values()].filter(m => m.status === 'published' && m.genre === collection.genre).length
+      if (count >= collection.threshold) {
+        const newState = get()
+        newState.unlockedCollections.add(collection.id)
+        set({ unlockedCollections: new Set(newState.unlockedCollections) })
+        newState.addToast({
+          id: nanoid(),
+          text: collection.toastText,
+          type: 'milestone',
+          createdAt: Date.now(),
+        })
+      }
+    }
 
     // Decision trigger: every 600 ticks (~10 min), if no pending decision
     const newState = get()
@@ -410,6 +433,10 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       author.rejectedCount++
       author.cooldownUntil = 1800 + author.rejectedCount * 300
       author.affection += -10 // rejection penalty
+      // Good author rejected: 30% chance poached by rival
+      if (!wasUnsuitable && Math.random() < 0.3) {
+        author.poached = true
+      }
     }
     set({
       manuscripts: new Map(state.manuscripts),
@@ -660,6 +687,25 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   toggleAutoReview: () => set(s => ({ autoReviewEnabled: !s.autoReviewEnabled })),
   toggleAutoCover: () => set(s => ({ autoCoverEnabled: !s.autoCoverEnabled })),
   toggleAutoReject: () => set(s => ({ autoRejectEnabled: !s.autoRejectEnabled })),
+
+  reissueBook: (id) => {
+    const state = get()
+    const ms = state.manuscripts.get(id)
+    if (!ms || ms.status !== 'published') return
+    const cost = 200 + Math.floor(ms.quality * 5)
+    if (state.currencies.royalties < cost) {
+      get().addToast({ id: nanoid(), text: `再版需要 ${cost} 版税，当前不足。`, type: 'info', createdAt: Date.now() })
+      return
+    }
+    ms.quality = Math.min(100, ms.quality + 3)
+    ms.meticulouslyEdited = true
+    ms.reissueBoostUntil = state.playTicks + 420 // 7 game-day marketing window
+    set({
+      manuscripts: new Map(state.manuscripts),
+      currencies: { ...state.currencies, royalties: state.currencies.royalties - cost },
+    })
+    get().addToast({ id: nanoid(), text: `"${ms.title}" 已再版！品质 +3，进入7天营销窗口期。`, type: 'milestone', createdAt: Date.now() })
+  },
 
   setPreferredGenre: (genre) => {
     const state = get()
