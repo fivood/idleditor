@@ -97,6 +97,24 @@ function UploadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =>
     onClose()
   }
 
+  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 5 * 1024 * 1024) {
+      alert('文件不能超过 5MB（纯文本小说通常远小于这个限制）')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = () => {
+      const text = reader.result as string
+      setContent(text)
+      if (!title && file.name.endsWith('.txt')) {
+        setTitle(file.name.replace('.txt', ''))
+      }
+    }
+    reader.readAsText(file)
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="bg-cream border-2 border-border-dark w-full max-w-[500px] max-h-[90vh] overflow-y-auto shadow-[6px_6px_0_#4a3728]">
@@ -123,7 +141,17 @@ function UploadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =>
           </div>
           <div>
             <label className="text-[12px] md:text-xs text-muted font-mono mb-1 block">正文 *</label>
-            <textarea value={content} onChange={e => setContent(e.target.value)} rows={12} className="w-full px-3 py-1.5 text-xs border-2 border-border-dark bg-card-inset text-ink font-mono focus:outline-none focus:border-copper resize-y" placeholder="粘贴小说全文..." />
+            <div className="flex items-center gap-2 mb-1.5">
+              <label className="text-[12px] md:text-xs text-progress font-mono cursor-pointer hover:underline">
+                <input type="file" accept=".txt" onChange={handleFileUpload} className="hidden" />
+                上传 .txt
+              </label>
+              <span className="text-[12px] text-muted font-mono">或直接粘贴</span>
+            </div>
+            <p className="text-[12px] text-muted font-mono mb-1 leading-relaxed">
+              数据存储在浏览器本地（IndexedDB），不上传服务器。换浏览器需重新导入。单本上限 ~5MB（《战争与和平》全文仅 3MB）。
+            </p>
+            <textarea value={content} onChange={e => setContent(e.target.value)} rows={12} className="w-full px-3 py-1.5 text-xs border-2 border-border-dark bg-card-inset text-ink font-mono focus:outline-none focus:border-copper resize-y" placeholder="粘贴小说全文，或将 .txt 拖入上方区域..." />
           </div>
           <button
             onClick={handleSave}
