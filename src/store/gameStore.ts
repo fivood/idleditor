@@ -146,6 +146,7 @@ export interface GameStore extends GameWorldState {
   activeTab: 'desk' | 'shelf' | 'authors' | 'office' | 'study'
   cloudSaveCode: string | null
   llmCallsRemaining: number
+  llmMonthLastReset: number
   pendingDecision: Decision | null
   decisionCooldown: number
   publishingQuotaUpgrades: number
@@ -230,6 +231,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   activeTab: 'desk',
   cloudSaveCode: null,
   llmCallsRemaining: 30,
+  llmMonthLastReset: 0,
   pendingDecision: null,
   decisionCooldown: 900,
   publishingQuotaUpgrades: 0,
@@ -366,6 +368,11 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       departments: new Map(world.departments),
       toasts: [...state.toasts, ...result.toasts].slice(-100),
     })
+
+    // LLM calls reset per game month
+    if (world.calendar.month !== state.llmMonthLastReset) {
+      set({ llmCallsRemaining: 30, llmMonthLastReset: world.calendar.month })
+    }
 
     // Check collection achievements
     for (const collection of COLLECTIONS) {
