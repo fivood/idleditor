@@ -544,10 +544,10 @@ function createRandomAuthor(_world: GameWorldState): Author {
     'ex-intelligence-officer': ['陈深', '秦墨', '韩隐', '洛铮'],
     'sociology-phd': ['周知行博士', '温如言博士', '许观澜博士'],
     'anxious-debut': ['小透明', '宋迟迟', '姜未名', '沈惴惴'],
-    'reclusive-latam-writer': ['加夫列尔·神', '马里奥·略哈', '胡里奥·塔萨'],
-    'nordic-crime-queen': ['英格丽·凛', '阿斯特丽德·寒', '西格丽德·霜'],
-    'american-bestseller-machine': ['杰克·麦克畅销', '艾米丽·页翻', '泰勒·排行榜'],
-    'japanese-lightnovel-otaku': ['田中ライト', '鈴木ノベル', '佐藤異世界'],
+    'reclusive-latam-writer': ['Gabriel·Manana（加布里埃尔·明日复明日）', 'Mario·Llama（马里奥·没灵感）', 'Julio·Taza（胡里奥·一杯茶写一页）'],
+    'nordic-crime-queen': ['Ingrid·Frost（英格丽·冷飕飕）', 'Astrid·Winter（阿斯特丽德·冻死人）', 'Sigrid·Snow（西格丽德·下大雪）'],
+    'american-bestseller-machine': ['Jack·Bestsell（杰克·畅销王）', 'Emily·Pageturn（艾米丽·翻页快）', 'Taylor·Delay（泰勒·拖延症）'],
+    'japanese-lightnovel-otaku': ['Tanaka Light（田中·这也太长了）', 'Suzuki Novel（铃木·连载中）', 'Sato Isekai（佐藤·又穿越了）'],
   }
   const phrases: Record<string, string[]> = {
     'retired-professor': ['"截稿日期，说到底，只是一种建议。"', '"急什么。"'],
@@ -571,9 +571,16 @@ function createRandomAuthor(_world: GameWorldState): Author {
   const bias = genreBias[persona]
   const genre = bias && Math.random() < 0.7 ? pick(bias) : pick(GENRES)
 
+  // Pick a unique name (retry max 5 times)
+  let name = pick(names[persona])
+  const existingNames = new Set([..._world.authors.values()].map(a => a.name))
+  for (let i = 0; i < 5 && existingNames.has(name); i++) {
+    name = pick(names[persona])
+  }
+
   return {
     id: nanoid(8),
-    name: pick(names[persona]),
+    name,
     persona,
     genre,
     tier: 'new',
