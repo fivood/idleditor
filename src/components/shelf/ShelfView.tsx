@@ -6,11 +6,10 @@ import { GENRE_COVER_COLORS } from '@/core/constants'
 
 export function ShelfView() {
   const manuscripts = useGameStore(s => s.manuscripts)
-  const playTicks = useGameStore(s => s.playTicks)
 
   const books = useMemo(
     () => [...manuscripts.values()].filter(m => m.status === 'published'),
-    [manuscripts, playTicks],
+    [manuscripts],
   )
 
   const [selectedBook, setSelectedBook] = useState<Manuscript | null>(null)
@@ -92,17 +91,6 @@ function BookSpine({ book, onClick }: { book: Manuscript; onClick: () => void })
 function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => void }) {
   const icon = GENRE_ICONS[book.genre] ?? '/icons/misc/book.svg'
   const spineColor = GENRE_COVER_COLORS[book.genre] ?? '#1a1a2e'
-  const generateLlmEditorNote = useGameStore(s => s.generateLlmEditorNote)
-  const llmCallsRemaining = useGameStore(s => s.llmCallsRemaining)
-  const [aiNote, setAiNote] = useState<string | null>(null)
-  const [aiLoading, setAiLoading] = useState(false)
-
-  async function handleAiNote() {
-    setAiLoading(true)
-    const note = await generateLlmEditorNote(book.id)
-    if (note) setAiNote(note)
-    setAiLoading(false)
-  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -158,20 +146,9 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
 
           {/* Editor notes */}
           <div className="bg-card-inset border-2 border-border-dark p-2 md:p-3 mb-3 md:mb-4">
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-[14px] md:text-[16px] text-muted font-mono">编辑批语：</p>
-              {llmCallsRemaining > 0 && (
-                <button
-                  onClick={handleAiNote}
-                  disabled={aiLoading}
-                  className="text-[14px] md:text-[16px] text-progress font-mono cursor-pointer hover:underline disabled:opacity-50"
-                >
-                  {aiLoading ? '...' : `🤖AI评语(${llmCallsRemaining})`}
-                </button>
-              )}
-            </div>
+            <p className="text-[14px] md:text-[16px] text-muted font-mono mb-1">编辑批语：</p>
             <p className="text-[16px] md:text-xs text-ink-light leading-relaxed font-mono italic">
-              {aiNote || generateEditorNote(book)}
+              {generateEditorNote(book)}
             </p>
           </div>
 
