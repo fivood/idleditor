@@ -55,7 +55,7 @@ export function DeskView() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-2 md:gap-3 flex-1 min-h-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3 flex-1 min-h-0">
           <div className="flex flex-col min-h-0">
             <h2 className="text-[16px] md:text-xs font-bold text-muted uppercase tracking-wider mb-1 md:mb-2 shrink-0 font-mono">📥 投稿池</h2>
             <div className="flex-1 overflow-y-auto space-y-1.5 md:space-y-2 pr-1">

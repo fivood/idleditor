@@ -13,7 +13,7 @@ const ALL_GENRES: Genre[] = ['sci-fi', 'mystery', 'suspense', 'social-science', 
 function BookInfoPanel({ novel, novels, onBack, onSelect }: { novel: PlayerNovel; novels: PlayerNovel[]; onBack: () => void; onSelect: (n: PlayerNovel) => void }) {
   const [showInfo, setShowInfo] = useState(true)
   return (
-    <div className="border-l-2 border-border-dark bg-cream-dark overflow-y-auto flex flex-col">
+    <div className="border-t-2 md:border-t-0 md:border-l-2 border-border-dark bg-cream-dark overflow-y-auto flex flex-col max-h-[40vh] md:max-h-none">
       <div className="p-3 border-b-2 border-border-dark">
         <div className="flex items-center justify-between mb-1">
           <h3 className="text-[12px] font-bold text-ink truncate font-mono">{novel.title}</h3>
@@ -72,7 +72,7 @@ export function StudyView() {
   return (
     <div className="h-full flex flex-col min-h-0">
       {reading ? (
-        <div className="flex-1 grid grid-cols-[1fr_260px] min-h-0">
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-[1fr_260px] min-h-0">
           <ReaderInline novel={reading} />
           <BookInfoPanel novel={reading} novels={novels} onBack={() => { setReading(null); loadNovels() }} onSelect={setReading} />
         </div>

@@ -325,7 +325,7 @@ export function OfficeView() {
                   {selected && <span className="text-[12px] text-progress font-bold font-mono ml-auto">{TALENTS.find(t => t.id === selected)?.label} 已选</span>}
                 </div>
                 {unlocked && !selected && (
-                  <div className="grid grid-cols-3 gap-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-1">
                     {tierTalents.map(t => (
                       <button
                         key={t.id}

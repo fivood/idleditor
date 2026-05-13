@@ -33,7 +33,7 @@ export function TopBar() {
           </span>
         </div>
 
-        <div className="flex items-center gap-2 md:gap-4 text-[16px] md:text-xs font-mono">
+        <div className="flex items-center gap-2 md:gap-4 text-[13px] md:text-xs font-mono">
           <CurrencyBadge label="RP" value={currencies.revisionPoints} />
           <CurrencyBadge label="声" value={currencies.prestige} />
           <CurrencyBadge label="税" value={currencies.royalties} />

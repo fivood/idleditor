@@ -130,7 +130,7 @@ export function ShelfView() {
       {newest.length > 0 && (
         <div className="shrink-0 border-b-2 border-border-dark px-3 md:px-4 py-2" style={{ background: 'linear-gradient(180deg, #f0ece4 0%, #e8e4dc 100%)' }}>
           <p className="text-[14px] md:text-xs text-muted font-mono mb-1.5">新鲜出炉</p>
-          <div className="flex gap-2 md:gap-3">
+          <div className="flex gap-2 md:gap-3 overflow-x-auto">
             {newest.map(book => (
               <button key={book.id} onClick={() => setSelectedBook(book)} className="flex items-center gap-2 border-2 border-border-dark bg-cream p-1.5 shadow-[2px_2px_0_#4a3728] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_#4a3728] transition-all cursor-pointer">
                 <div className="w-10 h-14 md:w-12 md:h-16 border border-border-dark overflow-hidden flex-shrink-0" style={{ backgroundColor: spineGrayForBook(book) + '44' }}>
