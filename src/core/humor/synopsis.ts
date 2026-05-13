@@ -76,10 +76,10 @@ const CURATED_SYNOPSES: Record<string, string> = {
 // ──── Expanded Slots ────
 
 const CHARACTERS = [
-  '林远', '苏晚', '陈深', '白露', '沈默', '方舟', '温晴', '顾野', '洛星河', '季晚',
-  '何夕', '姜不言', '余烬', '唐霜', '楚吟', '萧燃', '柳未央', '裴无咎',
-  'Kai', 'Nova', 'Zephyr', 'Vega', 'Orion', 'Lyra', 'Cipher', 'Nyx',
+  '林远', '苏晚', '陈深', '白露', '沈默', '方舟', '温晴',
+  'Kai', 'Nova', 'Zephyr', 'Vega', 'Orion', 'Lyra', 'Cipher', 'Nyx', 'Atlas', 'Echo',
   'Elena Marchetti', 'Marcus Webb', 'Irene Volkova', 'Dimitri Kwan',
+  'Sofia Reyes', 'Henrik Larsson', 'Yuki Tanaka', 'Priya Sharma', 'Liam O\'Brien',
 ]
 const MINOR_CHARS = ['邻居住着一个{profession}', '死者的前任', '最后一个见到她的人', '一个从不出门的房东', '总是准时出现的送奶工', '那个卖旧书的女人', '对门的邻居——搬来三年只说过一句话', '每天下午三点在楼下喂鸽子的人']
 const PROFESSIONS = [
