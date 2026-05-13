@@ -122,7 +122,8 @@ function generateCover(title: string, genre: string, coversManifest: Record<stri
   const baseTitle = getBaseTitle(title)
   const slug = titleToSlug(baseTitle)
   const entry = coversManifest?.[slug]
-  const localSrc = entry ? `/covers/${entry.replace('.svg', '.png')}` : null
+  // Use manifest if available, otherwise try direct .png path
+  const localSrc = entry ? `/covers/${entry.replace('.svg', '.png')}` : `/covers/${slug}.png`
   return {
     type: 'generated',
     src: localSrc,
