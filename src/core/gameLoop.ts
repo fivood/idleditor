@@ -398,6 +398,14 @@ export function tick(world: GameWorldState): TickResult {
     const talentSalesMult = 1 + (talentBonuses.salesBoost || 0) + (talentBonuses.allStats || 0)
     m.salesCount += salesPerTick(marketingEfficiency, m.quality) * (hasGenreBuff ? salesMult : 1) * prefSalesBonus * reissueBoost * collectionBoost * talentSalesMult
 
+    // Passive affection gain from good sales (1% chance per tick)
+    if (Math.random() < 0.01 && m.salesCount > 1000) {
+      const author = world.authors.get(m.authorId)
+      if (author && author.affection < 100) {
+        author.affection = Math.min(100, author.affection + 1)
+      }
+    }
+
     // Check bestseller
     if (!m.isBestseller && m.salesCount >= BESTSELLER_SALES) {
       m.isBestseller = true

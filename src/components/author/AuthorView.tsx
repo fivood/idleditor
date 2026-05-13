@@ -21,6 +21,8 @@ export function AuthorView() {
   const manuscripts = useGameStore(s => s.manuscripts)
   const signAuthor = useGameStore(s => s.signAuthor)
   const buyAuthorMeal = useGameStore(s => s.buyAuthorMeal)
+  const sendAuthorGift = useGameStore(s => s.sendAuthorGift)
+  const writeAuthorLetter = useGameStore(s => s.writeAuthorLetter)
   const rushAuthorCooldown = useGameStore(s => s.rushAuthorCooldown)
   const [selectedAuthor, setSelectedAuthor] = useState<Author | null>(null)
 
@@ -88,6 +90,8 @@ export function AuthorView() {
           manuscripts={manuscripts}
           onClose={() => setSelectedAuthor(null)}
           onBuyMeal={() => { buyAuthorMeal(selectedAuthor.id); setSelectedAuthor(null); setSelectedAuthor(selectedAuthor) }}
+          onSendGift={() => { sendAuthorGift(selectedAuthor.id); setSelectedAuthor(null); setSelectedAuthor(selectedAuthor) }}
+          onWriteLetter={() => { writeAuthorLetter(selectedAuthor.id); setSelectedAuthor(null); setSelectedAuthor(selectedAuthor) }}
           onRushCooldown={() => { rushAuthorCooldown(selectedAuthor.id); setSelectedAuthor(null); setSelectedAuthor(selectedAuthor) }}
           currencies={useGameStore.getState().currencies}
         />
@@ -113,8 +117,8 @@ function FameBar({ author }: { author: Author }) {
   )
 }
 
-function AuthorDetailModal({ author, manuscripts, onClose, onBuyMeal, onRushCooldown, currencies }: {
-  author: Author; manuscripts: Map<string, unknown>; onClose: () => void; onBuyMeal: () => void; onRushCooldown: () => void; currencies: { revisionPoints: number }
+function AuthorDetailModal({ author, manuscripts, onClose, onBuyMeal, onSendGift, onWriteLetter, onRushCooldown, currencies }: {
+  author: Author; manuscripts: Map<string, unknown>; onClose: () => void; onBuyMeal: () => void; onSendGift: () => void; onWriteLetter: () => void; onRushCooldown: () => void; currencies: { revisionPoints: number }
 }) {
   const isLoyal = author.affection >= 100
   const affectionPct = Math.min(100, Math.round(author.affection / 100 * 100))
@@ -171,20 +175,38 @@ function AuthorDetailModal({ author, manuscripts, onClose, onBuyMeal, onRushCool
           </div>
 
           {/* Actions */}
-          <div className="flex gap-1.5 md:gap-2">
+          <div className="grid grid-cols-2 gap-1.5 md:gap-2">
             <button
               onClick={onBuyMeal}
               disabled={currencies.revisionPoints < 20}
-              className={`flex-1 text-[14px] md:text-xs px-3 py-1.5 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${
+              className={`text-[14px] md:text-xs px-3 py-1.5 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${
                 currencies.revisionPoints >= 20 ? 'bg-copper text-white' : 'bg-cream-dark text-muted cursor-not-allowed'
               }`}
             >
               请吃饭 · 20 RP
             </button>
             <button
+              onClick={onSendGift}
+              disabled={currencies.revisionPoints < 15}
+              className={`text-[14px] md:text-xs px-3 py-1.5 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${
+                currencies.revisionPoints >= 15 ? 'bg-copper text-white' : 'bg-cream-dark text-muted cursor-not-allowed'
+              }`}
+            >
+              寄样书 · 15 RP
+            </button>
+            <button
+              onClick={onWriteLetter}
+              disabled={currencies.revisionPoints < 10}
+              className={`text-[14px] md:text-xs px-3 py-1.5 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${
+                currencies.revisionPoints >= 10 ? 'bg-copper text-white' : 'bg-cream-dark text-muted cursor-not-allowed'
+              }`}
+            >
+              手写回信 · 10 RP
+            </button>
+            <button
               onClick={onRushCooldown}
               disabled={!onCooldown || currencies.revisionPoints < 30}
-              className={`flex-1 text-[14px] md:text-xs px-3 py-1.5 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${
+              className={`text-[14px] md:text-xs px-3 py-1.5 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${
                 onCooldown && currencies.revisionPoints >= 30 ? 'bg-progress text-white' : 'bg-cream-dark text-muted cursor-not-allowed'
               }`}
             >

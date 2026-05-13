@@ -175,6 +175,8 @@ export interface GameStore extends GameWorldState {
   toggleAutoReject: () => void
   reissueBook: (id: string) => void
   buyAuthorMeal: (id: string) => void
+  sendAuthorGift: (id: string) => void
+  writeAuthorLetter: (id: string) => void
   rushAuthorCooldown: (id: string) => void
   hirePR: () => void
   renovateReadingRoom: () => void
@@ -573,10 +575,13 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     if (author) {
       author.rejectedCount++
       author.cooldownUntil = 1800 + author.rejectedCount * 300
-      author.affection += -10 // rejection penalty
-      // Good author rejected: 30% chance poached by rival
-      if (!wasUnsuitable && Math.random() < 0.3) {
-        author.poached = true
+      author.affection += -10
+      // Poached probability based on affection
+      if (!wasUnsuitable) {
+        const poachChance = author.affection >= 50 ? 0.1 : author.affection >= 20 ? 0.25 : 0.5
+        if (Math.random() < poachChance) {
+          author.poached = true
+        }
       }
     }
     set({
@@ -867,6 +872,32 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     })
     const meals = ['一起吃了顿深夜拉面，聊了聊下一本书的构思。', '在出版社对面的茶馆喝了杯茶，讨论了截稿日期——双方都默契地没有提具体的数字。', '去了家隐藏在小巷里的居酒屋，喝到第二杯的时候作者终于承认第三章写得不好。']
     get().addToast({ id: nanoid(), text: `请${author.name}${meals[Math.floor(Math.random() * meals.length)]}好感 +15。`, type: 'info', createdAt: Date.now() })
+  },
+
+  sendAuthorGift: (id) => {
+    const state = get()
+    const author = state.authors.get(id)
+    if (!author || state.currencies.revisionPoints < 15) return
+    author.affection = Math.min(100, author.affection + 10)
+    set({
+      authors: new Map(state.authors),
+      currencies: { ...state.currencies, revisionPoints: state.currencies.revisionPoints - 15 },
+    })
+    const gifts = ['寄了一本永夜出版社的经典样书——扉页上只写了"请继续写"。', '送了一支旧羽毛笔，据说是19世纪的。附言："这支笔写过更糟的稿子。别担心。"', '把最新一期的《永夜文学报》夹在一本新书里寄了过去。报纸上有一篇匿名书评——作者看完后哭了。', '寄了一盒红茶——不是你以为的那种红。普通的英式红茶。附卡片："休息一下。你写得太多了。"']
+    get().addToast({ id: nanoid(), text: `${author.name}${gifts[Math.floor(Math.random() * gifts.length)]}好感 +10。`, type: 'info', createdAt: Date.now() })
+  },
+
+  writeAuthorLetter: (id) => {
+    const state = get()
+    const author = state.authors.get(id)
+    if (!author || state.currencies.revisionPoints < 10) return
+    author.affection = Math.min(100, author.affection + 8)
+    set({
+      authors: new Map(state.authors),
+      currencies: { ...state.currencies, revisionPoints: state.currencies.revisionPoints - 10 },
+    })
+    const letters = ['写了一封手写回信，措辞认真到连标点符号都检查了三遍。', '回了封短信——只有五行字。但作者读了之后在工作室里踱步了半小时。', '在回信的末尾画了一只蝙蝠。作者回了一封邮件：只有一个问号。但ta显然被逗笑了。']
+    get().addToast({ id: nanoid(), text: `${author.name}${letters[Math.floor(Math.random() * letters.length)]}好感 +8。`, type: 'info', createdAt: Date.now() })
   },
 
   rushAuthorCooldown: (id) => {
