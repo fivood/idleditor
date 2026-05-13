@@ -334,7 +334,15 @@ export function tick(world: GameWorldState): TickResult {
       const newLevel = getLevelFromXP(world.editorXP)
       if (newLevel > world.editorLevel) {
         world.editorLevel = newLevel
-        result.toasts.push(createToast(`[Level Up] 编辑等级提升！你现在是 Lv.${newLevel}。`, 'milestone'))
+        const lines = [
+          `[Level Up] 编辑等级 Lv.${newLevel}！你看了一眼墙上的铜像——它们似乎也在微微颔首。或者只是灰尘。`,
+          `[Level Up] Lv.${newLevel}！你的红笔在纸面上多停留了半秒——不是因为犹豫，是因为在酝酿一句更精准的批注。`,
+          `[Level Up] Lv.${newLevel}！你又想起一个十九世纪的夜晚——那时候你连钢笔都没有，用削尖的树枝改稿。`,
+          `[Level Up] 你轻轻放下羽毛笔。Lv.${newLevel}。三百年来，这是你唯一用数字衡量的事。数字不骗人。`,
+          `[Level Up] Lv.${newLevel}！出版界一大步，人类一小步。对吸血鬼而言刚好相反。`,
+          `[Level Up] 你在镜子前停下来——什么都没看到，但你知道镜子里的人一定在笑。Lv.${newLevel}。`,
+        ]
+        result.toasts.push(createToast(pick(lines), 'levelUp'))
       }
       result.publishedBooks.push(m)
       if (m.isUnsuitable) {

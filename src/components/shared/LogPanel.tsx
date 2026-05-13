@@ -53,13 +53,16 @@ export function LogPanel() {
           </p>
         ) : (
           active.map(toast => (
-            <div key={toast.id} className="text-[15px] md:text-xs leading-relaxed font-mono">
+            <div key={toast.id} className={`text-[15px] md:text-xs leading-relaxed font-mono ${
+              toast.type === 'levelUp' ? 'border-2 border-amber-400 bg-amber-50 p-1.5 shadow-[2px_2px_0_#b87333]' : ''
+            }`}>
               <span className={`inline-block mr-1 ${
                 toast.type === 'milestone' ? 'text-copper' :
                 toast.type === 'award' ? 'text-green-600' :
+                toast.type === 'levelUp' ? 'text-amber-600' :
                 'text-muted'
               }`}>
-                {toast.type === 'milestone' ? '◆' : toast.type === 'award' ? '★' : '·'}
+                {toast.type === 'milestone' ? '◆' : toast.type === 'award' ? '★' : toast.type === 'levelUp' ? '⬆' : '·'}
               </span>
               <span className="text-ink">{toast.text}</span>
             </div>

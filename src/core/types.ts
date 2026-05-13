@@ -56,7 +56,7 @@ export type DepartmentType = 'editing' | 'design' | 'marketing' | 'rights'
 export type EventType = 'market_trend' | 'literary_award' | 'author_break' | 'delivery_delay'
 
 // ──── Toast notification types ────
-export type ToastType = 'info' | 'milestone' | 'award' | 'humor' | 'rejection'
+export type ToastType = 'info' | 'milestone' | 'award' | 'humor' | 'rejection' | 'levelUp'
 
 // ──── Rejection style (purely cosmetic) ────
 export type RejectionStyle = 'polite' | 'witty' | 'terse'

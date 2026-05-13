@@ -25,6 +25,8 @@ export function ToastContainer() {
               ? 'bg-cream border-copper'
               : toast.type === 'award'
               ? 'bg-cream border-green-600'
+              : toast.type === 'levelUp'
+              ? 'bg-amber-50 border-amber-500 shadow-[3px_3px_0_#b87333]'
               : 'bg-cream border-border-dark'
           }`}
         >
