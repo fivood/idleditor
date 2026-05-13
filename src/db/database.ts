@@ -35,12 +35,26 @@ export interface SavedGame {
   updatedAt: number
 }
 
-const db = new Dexie('IdleEditorDB') as Dexie & {
-  saves: EntityTable<SavedGame, 'id'>
+export interface PlayerNovel {
+  id: string
+  title: string
+  author: string
+  synopsis: string
+  recommendation: string
+  content: string
+  createdAt: number
+  readingProgress: number
+  wordCount: number
 }
 
-db.version(1).stores({
+const db = new Dexie('IdleEditorDB') as Dexie & {
+  saves: EntityTable<SavedGame, 'id'>
+  novels: EntityTable<PlayerNovel, 'id'>
+}
+
+db.version(2).stores({
   saves: 'id, updatedAt',
+  novels: 'id, createdAt',
 })
 
 export { db }
