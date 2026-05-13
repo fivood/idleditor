@@ -19,6 +19,23 @@ export function WelcomeView() {
   const startLoop = useGameStore(s => s.startLoop)
   const loadFromCloud = useGameStore(s => s.loadFromCloud)
 
+  async function handleLoadCloud() {
+    const code = cloudCode.trim()
+    if (!code) return
+    setLoading(true)
+    setCloudMsg(null)
+    const ok = await loadFromCloud(code)
+    setLoading(false)
+    if (ok) {
+      setCloudMsg('存档已加载！正在进入出版社……')
+      setTimeout(() => {
+        startLoop()
+      }, 800)
+    } else {
+      setCloudMsg('未找到存档，请检查存档码或先在此设备上保存过。')
+    }
+  }
+
   function handleNext() {
     if (!name.trim()) return
     setStep('trait')
@@ -26,25 +43,18 @@ export function WelcomeView() {
 
   async function handleStart(trait: EditorTrait) {
     setLoading(true)
-    setCloudMsg(null)
-
+    // If cloud code is set and not loaded yet, try loading
     const code = cloudCode.trim()
     if (code) {
       const ok = await loadFromCloud(code)
       if (ok) {
-        setCloudMsg('已从云端恢复存档')
-        setTimeout(() => {
-          setPlayerName(name.trim())
-          setTrait(trait)
-          startLoop()
-        }, 600)
+        setPlayerName(name.trim())
+        setTrait(trait)
+        startLoop()
         return
-      } else {
-        setCloudMsg('未找到存档，将创建新存档')
-        setTimeout(() => setCloudMsg(null), 2000)
       }
     }
-
+    // New game with optional cloud code
     setPlayerName(name.trim())
     setTrait(trait)
     startLoop()
@@ -70,11 +80,7 @@ export function WelcomeView() {
               <p className="text-sm text-ink mb-4 font-mono">
                 你是一位在永夜出版社工作了
                 <span className="text-copper font-bold">217年</span>
-                的编辑。永生很无聊，但审稿——审稿永远有新的惊喜。
-              </p>
-
-              <p className="text-xs text-muted mb-4 font-mono">
-                在开始之前，请告诉我们你的名字。
+                的编辑。
               </p>
 
               <input
@@ -88,24 +94,39 @@ export function WelcomeView() {
                 autoFocus
               />
 
-              <details className="mb-4">
-                <summary className="text-[16px] text-muted font-mono cursor-pointer hover:text-ink-light">
-                  云存档（可选）
-                </summary>
-                <div className="mt-2">
-                  <p className="text-[16px] text-muted mb-1.5 font-mono leading-relaxed">
-                    输入一个只有你知道的码，存档自动同步到云端。
-                  </p>
+              {/* Cloud save section */}
+              <div className="border-2 border-border-dark bg-cream p-3 mb-4">
+                <p className="text-xs text-ink font-bold font-mono mb-2">云存档</p>
+                <p className="text-[12px] text-muted mb-2 font-mono leading-relaxed">
+                  输入存档码，可从其他设备恢复进度。存档每5分钟自动同步。
+                </p>
+                <div className="flex gap-2">
                   <input
                     type="text"
                     value={cloudCode}
                     onChange={e => setCloudCode(e.target.value)}
                     placeholder="存档码..."
                     maxLength={32}
-                    className="w-full px-3 py-2 text-xs border-2 border-border-dark bg-card-inset text-ink placeholder:text-muted/50 focus:outline-none focus:border-copper font-mono"
+                    className="flex-1 px-3 py-1.5 text-xs border-2 border-border-dark bg-card-inset text-ink placeholder:text-muted/50 font-mono focus:outline-none focus:border-copper"
                   />
+                  <button
+                    onClick={handleLoadCloud}
+                    disabled={loading || !cloudCode.trim()}
+                    className={`text-xs px-3 py-1.5 border-2 border-border-dark font-mono transition-all cursor-pointer ${
+                      loading || !cloudCode.trim()
+                        ? 'bg-cream-dark text-muted cursor-not-allowed'
+                        : 'bg-progress text-white shadow-[2px_2px_0_#3a6491] active:shadow-none active:translate-x-[1px] active:translate-y-[1px]'
+                    }`}
+                  >
+                    {loading ? '加载中...' : '加载存档'}
+                  </button>
                 </div>
-              </details>
+                {cloudMsg && (
+                  <p className={`text-[12px] font-mono mt-2 ${cloudMsg.includes('已加载') || cloudMsg.includes('恢复') ? 'text-green-600' : 'text-copper'}`}>
+                    {cloudMsg}
+                  </p>
+                )}
+              </div>
 
               <button
                 onClick={handleNext}
@@ -140,17 +161,11 @@ export function WelcomeView() {
                       <span className="text-lg">{t.icon}</span>
                       <span className="text-sm font-bold text-ink font-mono">{t.label}</span>
                     </div>
-                    <p className="text-[16px] text-muted font-mono">{t.desc}</p>
-                    <p className="text-[16px] text-copper font-bold font-mono mt-0.5">{t.effects}</p>
+                    <p className="text-[12px] text-muted font-mono">{t.desc}</p>
+                    <p className="text-[12px] text-copper font-bold font-mono mt-0.5">{t.effects}</p>
                   </button>
                 ))}
               </div>
-
-              {cloudMsg && (
-                <p className={`text-[16px] font-mono ${cloudMsg.includes('恢复') ? 'text-green-600' : 'text-copper'}`}>
-                  {cloudMsg}
-                </p>
-              )}
 
               <button
                 onClick={() => setStep('name')}
