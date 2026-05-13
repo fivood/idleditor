@@ -52,11 +52,11 @@ export function Shell() {
     <div className="w-full h-dvh flex flex-col bg-cream md:border-2 md:border-border-dark md:shadow-[6px_6px_0_#4a3728] overflow-hidden">
       <TopBar />
       <main className="flex-1 overflow-hidden flex flex-col min-h-0">
-        {activeTab === 'desk' && <DeskView />}
-        {activeTab === 'shelf' && <ShelfView />}
-        {activeTab === 'authors' && <AuthorView />}
-        {activeTab === 'office' && <OfficeView />}
-        {activeTab === 'study' && <StudyView />}
+        <div hidden={activeTab !== 'desk'} className="flex-1 min-h-0">{activeTab === 'desk' && <DeskView />}</div>
+        <div hidden={activeTab !== 'shelf'} className="flex-1 min-h-0">{activeTab === 'shelf' && <ShelfView />}</div>
+        <div hidden={activeTab !== 'authors'} className="flex-1 min-h-0">{activeTab === 'authors' && <AuthorView />}</div>
+        <div hidden={activeTab !== 'office'} className="flex-1 min-h-0">{activeTab === 'office' && <OfficeView />}</div>
+        <div hidden={activeTab !== 'study'} className="flex-1 min-h-0">{activeTab === 'study' && <StudyView />}</div>
       </main>
       <nav className="h-11 md:h-12 border-t-2 border-border-dark bg-cream-dark flex items-center shrink-0">
         {[
