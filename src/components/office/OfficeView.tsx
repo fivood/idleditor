@@ -28,6 +28,8 @@ export function OfficeView() {
   const upgradeDepartment = useGameStore(s => s.upgradeDepartment)
   const setPreferredGenre = useGameStore(s => s.setPreferredGenre)
   const removePreferredGenre = useGameStore(s => s.removePreferredGenre)
+  const upgradePublishingQuota = useGameStore(s => s.upgradePublishingQuota)
+  const publishingQuotaUpgrades = useGameStore(s => s.publishingQuotaUpgrades || 0)
   const [showChangelog, setShowChangelog] = useState(false)
 
   const deptList = useMemo(() => [...departments.values()], [departments])
@@ -147,6 +149,38 @@ export function OfficeView() {
             )
           })}
         </div>
+      </div>
+
+      {/* Royalty Spend */}
+      <div>
+        <h2 className="text-xs md:text-sm font-bold text-ink mb-1 font-mono">版税消费</h2>
+        <p className="text-[12px] md:text-[13px] text-muted mb-2 md:mb-3 font-mono">
+          版税不是用来存的——是用来花的。以下升级用版税购买。
+        </p>
+        {(() => {
+          const cost = 100 * Math.pow(2, publishingQuotaUpgrades)
+          const canAfford = currencies.royalties >= cost
+          return (
+            <div className={`border-2 p-2 md:p-3 ${canAfford ? 'bg-cream border-progress shadow-[3px_3px_0_#3a6491]' : 'bg-cream-dark border-border-dark opacity-50'}`}>
+              <div className="flex items-center gap-2">
+                <span className="text-sm md:text-lg">+1</span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[12px] md:text-xs font-bold text-ink font-mono">扩展出版额度</span>
+                  <p className="text-[12px] md:text-[13px] text-muted font-mono">每月出版上限 +1（当前 {10 + publishingQuotaUpgrades}/月）</p>
+                </div>
+                <button
+                  onClick={upgradePublishingQuota}
+                  disabled={!canAfford}
+                  className={`text-[12px] md:text-xs px-3 py-1 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${
+                    canAfford ? 'bg-progress text-white' : 'bg-cream-dark text-muted cursor-not-allowed'
+                  }`}
+                >
+                  {Math.floor(cost)} 税
+                </button>
+              </div>
+            </div>
+          )
+        })()}
       </div>
 
       {/* Automation Perks */}

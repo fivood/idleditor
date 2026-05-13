@@ -28,6 +28,7 @@ export interface SavedGame {
   booksPublishedThisMonth: number
   editorXP: number
   editorLevel: number
+  publishingQuotaUpgrades: number
   // Serialized maps
   manuscriptsJson: string
   authorsJson: string

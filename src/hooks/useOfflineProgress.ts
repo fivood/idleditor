@@ -43,6 +43,7 @@ export function useOfflineProgress() {
       publishedTitles: new Set<string>(),
       editorXP: saved.editorXP ?? 0,
       editorLevel: saved.editorLevel ?? 1,
+      publishingQuotaUpgrades: saved.publishingQuotaUpgrades ?? 0,
     }
 
     for (const [id, ms] of saved.manuscripts) world.manuscripts.set(id, ms)

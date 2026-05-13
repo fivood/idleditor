@@ -14,6 +14,7 @@ export function TopBar() {
   const stopLoop = useGameStore(s => s.stopLoop)
   const cloudSaveCode = useGameStore(s => s.cloudSaveCode)
   const booksPublishedThisMonth = useGameStore(s => s.booksPublishedThisMonth)
+  const publishingQuotaUpgrades = useGameStore(s => s.publishingQuotaUpgrades || 0)
   const totalBestsellers = useGameStore(s => s.totalBestsellers)
   const permanentBonuses = useGameStore(s => s.permanentBonuses)
   const editorXP = useGameStore(s => s.editorXP)
@@ -42,7 +43,7 @@ export function TopBar() {
           <CurrencyBadge label="税" value={currencies.royalties} />
           <StatueDisplay count={currencies.statues} />
           <span className="text-[14px] md:text-xs text-muted font-mono">
-            📚 {booksPublishedThisMonth}/10
+            {booksPublishedThisMonth}/{10 + publishingQuotaUpgrades}
           </span>
         </div>
 

@@ -108,6 +108,7 @@ export interface GameStore extends GameWorldState {
   llmCallsRemaining: number
   pendingDecision: Decision | null
   decisionCooldown: number
+  publishingQuotaUpgrades: number
 
   // Actions: lifecycle
   initialize: () => Promise<void>
@@ -118,6 +119,7 @@ export interface GameStore extends GameWorldState {
   reborn: () => void
   syncToCloud: () => Promise<boolean>
   loadFromCloud: (code: string) => Promise<boolean>
+  upgradePublishingQuota: () => void
 
   // Actions: manuscript
   startReview: (id: string) => void
@@ -160,6 +162,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   llmCallsRemaining: 30,
   pendingDecision: null,
   decisionCooldown: 900,
+  publishingQuotaUpgrades: 0,
 
   // ──── Lifecycle ────
   initialize: async () => {
@@ -235,6 +238,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       publishedTitles: state.publishedTitles,
       editorXP: state.editorXP,
       editorLevel: state.editorLevel,
+      publishingQuotaUpgrades: state.publishingQuotaUpgrades,
     }
     const result = tick(world)
 
@@ -255,6 +259,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       publishedTitles: new Set(world.publishedTitles),
       editorXP: world.editorXP,
       editorLevel: world.editorLevel,
+      publishingQuotaUpgrades: world.publishingQuotaUpgrades,
       decisionCooldown: Math.max(0, state.decisionCooldown - 1),
       toasts: [...state.toasts, ...result.toasts].slice(-100),
     })
@@ -280,6 +285,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         booksPublishedThisMonth: world.booksPublishedThisMonth,
         editorXP: world.editorXP,
         editorLevel: world.editorLevel,
+        publishingQuotaUpgrades: world.publishingQuotaUpgrades,
         triggeredMilestones: world.triggeredMilestones,
         manuscripts: world.manuscripts,
         authors: world.authors,
@@ -431,7 +437,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     const state = get()
     const ms = state.manuscripts.get(id)
     if (!ms || ms.status !== 'cover_select') return
-    if (state.booksPublishedThisMonth >= 10) {
+    if (state.booksPublishedThisMonth >= 10 + (state.publishingQuotaUpgrades || 0)) {
       state.addToast({
         id: nanoid(),
         text: '本月出版额度已用完！下个月再来吧。',
@@ -582,6 +588,25 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     set({
       pendingDecision: null,
       decisionCooldown: 900,
+    })
+  },
+
+  upgradePublishingQuota: () => {
+    const state = get()
+    const cost = 100 * Math.pow(2, state.publishingQuotaUpgrades || 0)
+    if (state.currencies.royalties < cost) return
+    set({
+      publishingQuotaUpgrades: (state.publishingQuotaUpgrades || 0) + 1,
+      currencies: {
+        ...state.currencies,
+        royalties: state.currencies.royalties - cost,
+      },
+    })
+    get().addToast({
+      id: nanoid(),
+      text: `每月出版额度 +1！现在为 ${10 + (state.publishingQuotaUpgrades || 0) + 1} 本/月。`,
+      type: 'milestone',
+      createdAt: Date.now(),
     })
   },
 

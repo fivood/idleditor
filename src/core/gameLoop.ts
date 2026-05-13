@@ -23,7 +23,6 @@ import {
   GENRE_PREFERENCE_SALES_BONUS,
   MAX_SUBMITTED_QUEUE,
   MILESTONES,
-  PUBLISHING_QUOTA_PER_MONTH,
 } from './constants'
 import {
   authorQualityBoost,
@@ -79,6 +78,7 @@ export interface GameWorldState {
   publishedTitles: Set<string>
   editorXP: number
   editorLevel: number
+  publishingQuotaUpgrades: number
 }
 
 // ──── Title generation ────
@@ -148,6 +148,7 @@ export function createInitialWorld(): GameWorldState {
     publishedTitles: new Set(),
     editorXP: 0,
     editorLevel: 1,
+    publishingQuotaUpgrades: 0,
   }
 }
 
@@ -410,7 +411,7 @@ export function tick(world: GameWorldState): TickResult {
   }
 
   // Auto-cover: prestige >= 100
-  if (prestige >= AUTO_COVER_PRESTIGE && world.booksPublishedThisMonth < PUBLISHING_QUOTA_PER_MONTH) {
+  if (prestige >= AUTO_COVER_PRESTIGE && world.booksPublishedThisMonth < 10 + world.publishingQuotaUpgrades) {
     const awaitingCover = [...world.manuscripts.values()].filter(m => m.status === 'cover_select')
     if (awaitingCover.length > 0) {
       const ms = awaitingCover[0]
