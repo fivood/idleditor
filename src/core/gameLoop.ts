@@ -899,6 +899,31 @@ function rollRandomEvent(world: GameWorldState): string | null {
     () => `📝 你发现一支1848年的羽毛笔还能写字。墨水是当时的配方——混了五分之一鸽子血。血比例太低了，但你不打算跟作者解释。`,
     () => `🕊️ 鸽子们已经开始认识你了。每天傍晚你在窗台上放一把谷物——它们回报以安静。你审稿的时候，它们帮你盯着。大部分时候它们是对的。`,
 
+    // ── Affection decay events ──
+    () => {
+      const signed = [...world.authors.values()].filter(a => a.tier !== 'new' && a.tier === 'signed' && a.cooldownUntil === null)
+      if (signed.length === 0) return null
+      const a = signed[Math.floor(Math.random() * signed.length)]
+      a.affection = Math.max(0, a.affection - 3)
+      return `📉 ${a.name}在采访中含蓄地提到"希望编辑更常回邮件"。好感 -3。`
+    },
+    () => {
+      const allAuthors = [...world.authors.values()].filter(a => a.tier !== 'new')
+      if (allAuthors.length === 0) return null
+      const a = allAuthors[Math.floor(Math.random() * allAuthors.length)]
+      const lastBook = [...world.manuscripts.values()].find(m => m.authorId === a.id && m.status === 'published')
+      if (!lastBook || world.playTicks - (lastBook.publishTime || 0) < 600) return null
+      a.affection = Math.max(0, a.affection - 5)
+      return `⌛ ${a.name}已经很久没出新书了。不是你的错——但作者显然觉得是。好感 -5。`
+    },
+    () => {
+      const signed = [...world.authors.values()].filter(a => a.tier !== 'new' && a.affection >= 30)
+      if (signed.length === 0) return null
+      const a = signed[Math.floor(Math.random() * signed.length)]
+      a.affection = Math.max(0, a.affection - 2)
+      return `📚 ${a.name}路过书店，看到自己的书被放在"打折清仓"区。她拍了张照片发给你——没有文字，只有一个省略号。好感 -2。`
+    },
+
     // ── Author interaction events ──
     () => {
       const signed = [...world.authors.values()].filter(a => a.tier !== 'new' && !a.poached && a.cooldownUntil === null)

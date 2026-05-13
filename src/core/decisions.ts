@@ -193,4 +193,62 @@ const ALL_TEMPLATES: DecisionTemplate[] = [
       ],
     }),
   },
+
+  // ── Affection-risk decisions ──
+  {
+    condition: (s) => [...s.authors.values()].some(a => a.tier !== 'new' && a.tier !== 'idol'),
+    generate: (s) => {
+      const author = pick([...s.authors.values()].filter(a => a.tier !== 'new' && a.tier !== 'idol'))
+      return {
+        id: '', title: `${author.name}想换类型`,
+        description: `${author.name}发来邮件说想尝试完全不同的类型——离开擅长的${author.genre}。支持的话下本书可能风格奇怪，但作者会很感激。拒绝的话……你懂的。`,
+        options: [
+          { label: '支持冒险', description: '作者好感度变化（效果未知）' },
+          { label: '建议专注本行', description: '作者可能接受，也可能不高兴' },
+        ],
+      }
+    },
+  },
+  {
+    condition: (s) => [...s.authors.values()].some(a => a.tier !== 'new'),
+    generate: (s) => {
+      const author = pick([...s.authors.values()].filter(a => a.tier !== 'new'))
+      return {
+        id: '', title: `截稿日冲突`,
+        description: `${author.name}说下本书需要再推两周。如果不催，书会更好但出版社的流水线空着。如果催……你知道作者们怎么评价催稿的编辑。`,
+        options: [
+          { label: '再给两周', description: '作者感谢，但流水线空转' },
+          { label: '坚持原定日期', description: '流水线继续，但作者……' },
+        ],
+      }
+    },
+  },
+  {
+    condition: (s) => [...s.authors.values()].some(a => a.affection >= 50),
+    generate: (s) => {
+      const author = pick([...s.authors.values()].filter(a => a.affection >= 50))
+      return {
+        id: '', title: `${author.name}的私人请求`,
+        description: `${author.name}请你帮忙看一篇朋友的稿子。不是永夜出版社的——是另一家出版社的。看的话可能得罪那家出版社，不看的话……你们之间的信任会受损。`,
+        options: [
+          { label: '帮忙看看', description: '跨社的人情。风险未知。' },
+          { label: '礼貌拒绝', description: '作者可能会理解——也可能不会。' },
+        ],
+      }
+    },
+  },
+  {
+    condition: (s) => [...s.authors.values()].some(a => a.tier === 'signed' || a.tier === 'known'),
+    generate: (s) => {
+      const author = pick([...s.authors.values()].filter(a => a.tier === 'signed' || a.tier === 'known'))
+      return {
+        id: '', title: `${author.name}的社交媒体`,
+        description: `${author.name}在社交媒体上发了一条可能有争议的帖子。现在有读者要求出版社表态。沉默是金，但沉默也意味着你不支持作者。`,
+        options: [
+          { label: '公开支持作者', description: '声望可能增加，也可能减少' },
+          { label: '保持沉默', description: '作者可能会注意到你的沉默' },
+        ],
+      }
+    },
+  },
 ]

@@ -1212,6 +1212,50 @@ function applyDecisionEffect(_id: string, title: string, optionIndex: number, st
     }
     return
   }
+
+  // ── Affection-risk decision effects ──
+  if (title.includes('想换类型')) {
+    const author = [...state.authors.values()].find(a => a.tier !== 'new' && a.tier !== 'idol')
+    if (author) {
+      if (optionIndex === 0) { author.affection = Math.min(100, author.affection + 10); addToast(`${author.name}很感激你的支持。好感 +10。`) }
+      else { author.affection = Math.max(0, author.affection - 5); addToast(`${author.name}表示理解。好感 -5。`) }
+      set({ authors: new Map(state.authors) })
+    }
+    return
+  }
+  if (title.includes('截稿日冲突')) {
+    const author = [...state.authors.values()].find(a => a.tier !== 'new')
+    if (author) {
+      if (optionIndex === 0) { author.affection = Math.min(100, author.affection + 8); addToast(`再给两周。好感 +8。`) }
+      else { author.affection = Math.max(0, author.affection - 8); author.cooldownUntil = 600; addToast(`勉强接受。好感 -8。`) }
+      set({ authors: new Map(state.authors) })
+    }
+    return
+  }
+  if (title.includes('私人请求')) {
+    const author = [...state.authors.values()].find(a => a.affection >= 50)
+    if (author) {
+      if (optionIndex === 0) { author.affection = Math.min(100, author.affection + 5); addToast(`帮忙看了稿子。好感 +5。`) }
+      else { author.affection = Math.max(0, author.affection - 5); addToast(`拒绝了。好感 -5。`) }
+      set({ authors: new Map(state.authors) })
+    }
+    return
+  }
+  if (title.includes('社交媒体')) {
+    const author = [...state.authors.values()].find(a => a.tier === 'signed' || a.tier === 'known')
+    if (author) {
+      if (optionIndex === 0) {
+        const prestige = Math.random() < 0.5 ? 15 : -5
+        set({ currencies: { ...state.currencies, prestige: state.currencies.prestige + prestige } })
+        addToast(`公开支持。舆论：${prestige > 0 ? '正面' : '翻车'}。`)
+      } else {
+        author.affection = Math.max(0, author.affection - 5)
+        set({ authors: new Map(state.authors) })
+        addToast(`保持沉默。好感 -5。`)
+      }
+    }
+    return
+  }
   addToast(`决策已执行：${title}`)
 }
 
