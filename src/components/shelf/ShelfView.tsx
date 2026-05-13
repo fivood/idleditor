@@ -4,6 +4,11 @@ import type { Manuscript } from '@/core/types'
 import { GENRE_ICONS } from '@/core/types'
 import { GENRE_COVER_COLORS } from '@/core/constants'
 
+const GENRE_LABELS: Record<string, string> = {
+  'sci-fi': '科幻', mystery: '推理', suspense: '悬疑',
+  'social-science': '社科', hybrid: '混合', 'light-novel': '轻小说',
+}
+
 export function ShelfView() {
   const manuscripts = useGameStore(s => s.manuscripts)
 
@@ -13,6 +18,25 @@ export function ShelfView() {
   )
 
   const [selectedBook, setSelectedBook] = useState<Manuscript | null>(null)
+  const [sortBy, setSortBy] = useState<'sales' | 'quality' | 'recent'>('recent')
+  const [filterGenre, setFilterGenre] = useState<string | null>(null)
+
+  const sorted = useMemo(() => {
+    let list = [...books]
+    if (filterGenre) list = list.filter(b => b.genre === filterGenre)
+    if (sortBy === 'sales') list.sort((a, b) => b.salesCount - a.salesCount)
+    else if (sortBy === 'quality') list.sort((a, b) => b.quality - a.quality)
+    else list.sort((a, b) => (b.publishTime || 0) - (a.publishTime || 0))
+    return list
+  }, [books, sortBy, filterGenre])
+
+  const stats = useMemo(() => {
+    const totalSales = books.reduce((s, b) => s + b.salesCount, 0)
+    const bestseller = books.reduce((best, b) => b.salesCount > (best?.salesCount || 0) ? b : best, books[0] || null)
+    const genreCounts: Record<string, number> = {}
+    books.forEach(b => { genreCounts[b.genre] = (genreCounts[b.genre] || 0) + 1 })
+    return { totalSales, bestseller, genreCounts, total: books.length }
+  }, [books])
 
   if (books.length === 0) {
     return (
@@ -26,12 +50,29 @@ export function ShelfView() {
   return (
     <div className="h-full overflow-y-auto p-3 md:p-4">
       <div className="flex items-center justify-between mb-2 md:mb-3">
-        <h2 className="text-xs md:text-sm font-bold text-ink font-mono">{books.length} 本书已出版</h2>
+        <h2 className="text-xs md:text-sm font-bold text-ink font-mono">{sorted.length} 本书</h2>
+        <div className="flex gap-1">
+          <select value={sortBy} onChange={e => setSortBy(e.target.value as typeof sortBy)} className="text-[14px] md:text-xs px-2 py-0.5 border-2 border-border-dark bg-cream text-ink font-mono cursor-pointer">
+            <option value="recent">最近</option>
+            <option value="sales">销量</option>
+            <option value="quality">品质</option>
+          </select>
+          <select value={filterGenre || ''} onChange={e => setFilterGenre(e.target.value || null)} className="text-[14px] md:text-xs px-2 py-0.5 border-2 border-border-dark bg-cream text-ink font-mono cursor-pointer">
+            <option value="">全部</option>
+            {Object.entries(GENRE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+        </div>
+      </div>
+
+      {/* Stats bar */}
+      <div className="flex items-center gap-3 md:gap-4 mb-2 md:mb-3 text-[14px] md:text-xs font-mono text-muted bg-card-inset border-2 border-border-dark p-2">
+        <span>总销量 {Math.round(stats.totalSales).toLocaleString()} 册</span>
+        {stats.bestseller && <span>畅销王 《{stats.bestseller.title.slice(0, 6)}》</span>}
       </div>
 
       {/* Book spines */}
       <div className="flex flex-wrap gap-1.5 md:gap-2 items-end">
-        {books.map(book => (
+        {sorted.map(book => (
           <BookSpine key={book.id} book={book} onClick={() => setSelectedBook(book)} />
         ))}
       </div>
