@@ -41,9 +41,13 @@ export function ManuscriptCard({ manuscript }: Props) {
   }, [flipping, manuscript.wordCount, getTalentBonuses])
 
   const isBlurred = !viewed && !flipping
+  const author = authors.get(manuscript.authorId)
+  const isSignedAuthor = author && author.tier !== 'new'
 
   return (
-    <div className={`bg-cream border-2 p-2 md:p-3 flex gap-2 md:gap-3 items-start transition-all ${
+    <div className={`border-2 p-2 md:p-3 flex gap-2 md:gap-3 items-start transition-all ${
+      isSignedAuthor ? 'bg-cream border-l-4 border-l-copper' : 'bg-cream'
+    } ${
       viewed ? 'border-border-dark shadow-[3px_3px_0_#4a3728] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_#4a3728]' :
       flipping ? 'border-progress shadow-[3px_3px_0_#3a6491]' :
       'border-border-medium'
