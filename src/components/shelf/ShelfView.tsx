@@ -2,11 +2,23 @@
 import { useGameStore } from '@/store/gameStore'
 import type { Manuscript } from '@/core/types'
 import { GENRE_ICONS } from '@/core/types'
-import { GENRE_COVER_COLORS } from '@/core/constants'
 
 const GENRE_LABELS: Record<string, string> = {
   'sci-fi': '科幻', mystery: '推理', suspense: '悬疑',
   'social-science': '社科', hybrid: '混合', 'light-novel': '轻小说',
+}
+
+// Light grayscale spine palette
+const SPINE_GRAYS = ['#e8e8e4', '#e0e0dc', '#dcdcd8', '#d6d6d2', '#d0d0cc', '#ccccca', '#c6c6c4', '#c0c0be']
+
+function spineGrayForBook(book: Manuscript): string {
+  // Hash-based stable assignment
+  let h = 0
+  for (let i = 0; i < book.id.length; i++) h = ((h << 5) - h) + book.id.charCodeAt(i)
+  // Age factor: older books get slightly darker/warmer tone
+  const age = (book.publishTime || 0) > 0 ? 1 : 0
+  const idx = (Math.abs(h) + age * 2) % SPINE_GRAYS.length
+  return SPINE_GRAYS[idx]
 }
 
 export function ShelfView() {
@@ -20,6 +32,7 @@ export function ShelfView() {
   const [selectedBook, setSelectedBook] = useState<Manuscript | null>(null)
   const [sortBy, setSortBy] = useState<'sales' | 'quality' | 'recent'>('recent')
   const [filterGenre, setFilterGenre] = useState<string | null>(null)
+  const [showGenreLabels, setShowGenreLabels] = useState(true)
 
   const sorted = useMemo(() => {
     let list = [...books]
@@ -36,27 +49,46 @@ export function ShelfView() {
     return { totalSales, bestseller, total: books.length }
   }, [books])
 
-  // Calculate books per shelf row based on available width
+  // Newest books (last 3 published)
+  const newest = useMemo(() => {
+    return [...books].sort((a, b) => (b.publishTime || 0) - (a.publishTime || 0)).slice(0, 3)
+  }, [books])
+
+  // Books per shelf row
   const containerRef = useRef<HTMLDivElement>(null)
   const [booksPerRow, setBooksPerRow] = useState(10)
   useEffect(() => {
     function update() {
       const w = containerRef.current?.clientWidth || 400
-      setBooksPerRow(Math.max(4, Math.floor((w - 32) / 24))) // ~24px per spine
+      setBooksPerRow(Math.max(4, Math.floor((w - 32) / 24)))
     }
     update()
     window.addEventListener('resize', update)
     return () => window.removeEventListener('resize', update)
   }, [])
 
-  // Group books into shelf rows
+  // Group into shelves, with optional genre labels
   const shelves = useMemo(() => {
-    const rows: Manuscript[][] = []
-    for (let i = 0; i < sorted.length; i += booksPerRow) {
-      rows.push(sorted.slice(i, i + booksPerRow))
+    const rows: { genre: string | null; books: Manuscript[] }[] = []
+    if (showGenreLabels && !filterGenre) {
+      // Group by genre
+      const groups: Record<string, Manuscript[]> = {}
+      for (const b of sorted) {
+        groups[b.genre] = groups[b.genre] || []
+        groups[b.genre].push(b)
+      }
+      for (const [genre, genreBooks] of Object.entries(groups)) {
+        for (let i = 0; i < genreBooks.length; i += booksPerRow) {
+          rows.push({ genre: i === 0 ? genre : null, books: genreBooks.slice(i, i + booksPerRow) })
+        }
+      }
+    } else {
+      for (let i = 0; i < sorted.length; i += booksPerRow) {
+        rows.push({ genre: null, books: sorted.slice(i, i + booksPerRow) })
+      }
     }
     return rows
-  }, [sorted, booksPerRow])
+  }, [sorted, booksPerRow, showGenreLabels, filterGenre])
 
   if (books.length === 0) {
     return (
@@ -72,7 +104,10 @@ export function ShelfView() {
       {/* Header */}
       <div className="flex items-center justify-between px-3 md:px-4 py-2 md:py-3 shrink-0">
         <h2 className="text-xs md:text-sm font-bold text-ink font-mono">{sorted.length} 本书</h2>
-        <div className="flex gap-1">
+        <div className="flex gap-1 items-center">
+          <button onClick={() => setShowGenreLabels(!showGenreLabels)} className={`text-[14px] md:text-xs px-2 py-0.5 border-2 border-border-dark font-mono cursor-pointer transition-all ${showGenreLabels ? 'bg-copper text-white' : 'bg-cream text-muted'}`}>
+            分类
+          </button>
           <select value={sortBy} onChange={e => setSortBy(e.target.value as typeof sortBy)} className="text-[14px] md:text-xs px-2 py-0.5 border-2 border-border-dark bg-cream text-ink font-mono cursor-pointer">
             <option value="recent">最近</option>
             <option value="sales">销量</option>
@@ -91,80 +126,105 @@ export function ShelfView() {
         {stats.bestseller && <span>畅销王 《{stats.bestseller.title.slice(0, 6)}》</span>}
       </div>
 
+      {/* Featured new arrivals strip */}
+      {newest.length > 0 && (
+        <div className="shrink-0 border-b-2 border-border-dark px-3 md:px-4 py-2" style={{ background: 'linear-gradient(180deg, #f0ece4 0%, #e8e4dc 100%)' }}>
+          <p className="text-[14px] md:text-xs text-muted font-mono mb-1.5">新鲜出炉</p>
+          <div className="flex gap-2 md:gap-3">
+            {newest.map(book => (
+              <button key={book.id} onClick={() => setSelectedBook(book)} className="flex items-center gap-2 border-2 border-border-dark bg-cream p-1.5 shadow-[2px_2px_0_#4a3728] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_#4a3728] transition-all cursor-pointer">
+                <div className="w-10 h-14 md:w-12 md:h-16 border border-border-dark overflow-hidden flex-shrink-0" style={{ backgroundColor: spineGrayForBook(book) + '44' }}>
+                  {book.cover.src ? (
+                    <img src={book.cover.src} alt="" className="w-full h-full object-cover" onError={(e) => { const el = e.currentTarget; if (el.src.endsWith('.png')) el.src = el.src.replace('.png', '.svg'); else el.style.display = 'none' }} />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-lg opacity-40">{GENRE_ICONS[book.genre] ?? '📖'}</div>
+                  )}
+                </div>
+                <div className="text-left min-w-0">
+                  <p className="text-[12px] md:text-xs font-bold text-ink font-mono truncate" style={{ maxWidth: 120 }}>{book.title}</p>
+                  <p className="text-[12px] text-muted font-mono">Q{book.quality} · {Math.round(book.salesCount).toLocaleString()}册</p>
+                  {book.isBestseller && <p className="text-[12px] text-copper font-bold font-mono">★ 畅销</p>}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Bookshelf */}
-      <div className="flex-1 overflow-y-auto"
-        style={{
-          background: 'linear-gradient(180deg, #3d2b1f 0%, #4a3728 2px, #3d2b1f 4px, #3d2b1f 100%)',
-          backgroundSize: '100% 8px',
-        }}
-      >
+      <div className="flex-1 overflow-y-auto" style={{ background: 'linear-gradient(180deg, #3d2b1f 0%, #4a3728 2px, #3d2b1f 4px, #3d2b1f 100%)', backgroundSize: '100% 8px' }}>
         {shelves.map((row, rowIdx) => (
           <div key={rowIdx} className="relative">
+            {/* Genre label */}
+            {row.genre && (
+              <div className="px-3 md:px-4 pt-2 pb-0">
+                <span className="text-[14px] md:text-xs font-bold text-copper-light font-mono bg-cream-dark/80 px-2 py-0.5 border border-border-medium">{GENRE_LABELS[row.genre]}</span>
+              </div>
+            )}
             {/* Books on this shelf */}
             <div className="flex items-end gap-0.5 md:gap-1 px-2 md:px-3 py-1" style={{ minHeight: 110 }}>
-              {row.map(book => (
+              {row.books.map(book => (
                 <BookSpine key={book.id} book={book} onClick={() => setSelectedBook(book)} />
               ))}
             </div>
             {/* Shelf board */}
-            <div
-              className="h-3 md:h-4 w-full"
-              style={{
-                background: 'linear-gradient(180deg, #6b4c30 0%, #8b6914 1px, #5a3d22 2px, #3d2b1f 3px, #4a3728 100%)',
-                borderTop: '2px solid #8b6914',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)',
-              }}
+            <div className="h-3 md:h-4 w-full"
+              style={{ background: 'linear-gradient(180deg, #6b4c30 0%, #8b6914 1px, #5a3d22 2px, #3d2b1f 3px, #4a3728 100%)', borderTop: '2px solid #8b6914', boxShadow: '0 2px 4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)' }}
             />
           </div>
         ))}
       </div>
 
-      {/* Book detail modal */}
-      {selectedBook && (
-        <BookDetailModal book={selectedBook} onClose={() => setSelectedBook(null)} />
-      )}
+      {selectedBook && <BookDetailModal book={selectedBook} onClose={() => setSelectedBook(null)} />}
     </div>
   )
 }
 
 function BookSpine({ book, onClick }: { book: Manuscript; onClick: () => void }) {
-  const spineColor = GENRE_COVER_COLORS[book.genre] ?? '#1a1a2e'
+  const spineColor = spineGrayForBook(book)
   const spineW = 16
-  const spineH = 70 + (book.quality % 30)
+  const spineH = 70 + (Math.abs(book.id.charCodeAt(0) || 0) % 30)
+  const [showTitle, setShowTitle] = useState(false)
 
   return (
     <button
       onClick={onClick}
-      className="flex flex-col items-center cursor-pointer hover:-translate-y-[2px] transition-all shrink-0 group"
+      onMouseEnter={() => setShowTitle(true)}
+      onMouseLeave={() => setShowTitle(false)}
+      className="flex flex-col items-center cursor-pointer hover:-translate-y-[2px] transition-all shrink-0 group relative"
       style={{ width: `${spineW + 6}px` }}
     >
       <div
-        className="border-2 border-border-dark shadow-[2px_2px_0_#4a3728] overflow-hidden transition-all group-hover:shadow-[3px_3px_0_#4a3728]"
+        className="border border-border-medium overflow-hidden transition-all group-hover:shadow-[3px_3px_0_#4a3728]"
         style={{
           width: `${spineW}px`,
           height: `${spineH}px`,
-          background: `linear-gradient(135deg, ${spineColor}88 0%, ${spineColor} 50%, ${spineColor}44 100%)`,
+          background: `linear-gradient(135deg, ${spineColor} 0%, ${spineColor}dd 50%, ${spineColor}aa 100%)`,
+          borderBottom: '2px solid rgba(0,0,0,0.15)',
         }}
       >
         {book.cover.src ? (
-          <img
-            src={book.cover.src}
-            alt=""
-            className="w-full h-full object-cover"
+          <img src={book.cover.src} alt="" className="w-full h-full object-cover opacity-40"
             style={{ objectPosition: '20% 50%' }}
             onError={(e) => { const el = e.currentTarget; if (el.src.endsWith('.png')) el.src = el.src.replace('.png', '.svg'); else el.style.display = 'none' }}
           />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center opacity-60">
-            <span className="text-[12px]" style={{ writingMode: 'vertical-rl' }}>
-              {book.title.slice(0, 3)}
-            </span>
-          </div>
-        )}
+        ) : null}
+        {/* Spine title (vertical) */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-[10px] text-ink-light opacity-60 font-mono" style={{ writingMode: 'vertical-rl' }}>
+            {book.title.slice(0, 4)}
+          </span>
+        </div>
         {book.isBestseller && (
-          <div className="absolute -top-1 -right-1 text-[14px]">★</div>
+          <div className="absolute -top-1 -right-1 text-[12px]">★</div>
         )}
       </div>
+      {/* Hover tooltip */}
+      {showTitle && (
+        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-ink text-cream text-[12px] font-mono px-2 py-0.5 border border-border-dark whitespace-nowrap z-10 pointer-events-none shadow-[2px_2px_0_#4a3728]">
+          {book.title}
+        </div>
+      )}
       <span className="text-[12px] md:text-xs text-muted font-mono mt-1 text-center leading-tight truncate" style={{ width: `${spineW + 4}px` }}>
         {book.title.slice(0, 3)}
       </span>
@@ -172,11 +232,9 @@ function BookSpine({ book, onClick }: { book: Manuscript; onClick: () => void })
   )
 }
 
-// BookDetailModal and generateEditorNote unchanged below...
 function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => void }) {
-  const icon = GENRE_ICONS[book.genre] ?? '/icons/misc/book.svg'
-  const spineColor = GENRE_COVER_COLORS[book.genre] ?? '#1a1a2e'
   const reissueBook = useGameStore(s => s.reissueBook)
+  const greyColor = spineGrayForBook(book)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -190,8 +248,7 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
             {book.cover.src ? (
               <img src={book.cover.src} alt="" className="w-full h-full object-cover" onError={(e) => { const el = e.currentTarget; if (el.src.endsWith('.png')) el.src = el.src.replace('.png', '.svg'); else el.style.display = 'none' }} />
             ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center gap-2" style={{ backgroundColor: spineColor + '33' }}>
-                <img src={icon} alt="" className="w-12 h-12 opacity-60" />
+              <div className="w-full h-full flex flex-col items-center justify-center gap-2" style={{ backgroundColor: greyColor + '33' }}>
                 <span className="text-[16px] md:text-xs text-muted font-mono px-2 text-center">{book.title}</span>
               </div>
             )}
