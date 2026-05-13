@@ -891,6 +891,36 @@ function rollRandomEvent(world: GameWorldState): string | null {
     () => `📝 你发现一支1848年的羽毛笔还能写字。墨水是当时的配方——混了五分之一鸽子血。血比例太低了，但你不打算跟作者解释。`,
     () => `🕊️ 鸽子们已经开始认识你了。每天傍晚你在窗台上放一把谷物——它们回报以安静。你审稿的时候，它们帮你盯着。大部分时候它们是对的。`,
 
+    // ── Author interaction events ──
+    () => {
+      const signed = [...world.authors.values()].filter(a => a.tier !== 'new' && !a.poached && a.cooldownUntil === null)
+      if (signed.length === 0) return null
+      const a = signed[Math.floor(Math.random() * signed.length)]
+      const prestige = rangeInt(3, 8)
+      world.currencies.prestige += prestige
+      const msgs = [
+        `${a.name}发来一封邮件，标题是"关于截稿日期的理解"。正文只有一行字："下周之前是不可能的。"声望 +${prestige}（因为至少他诚实）。`,
+        `${a.name}在工作室里种了一盆罗勒。据说不为了吃——是为了在打字时看。你收到了照片。盆栽长得不错。声望 +${prestige}。`,
+        `${a.name}寄来一份手写的修改方案——字迹潦草但内容扎实。你在边缘画了一只蝙蝠表示认可。声望 +${prestige}。`,
+        `${a.name}在凌晨三点发了一条朋友圈："新章节写完了。可能是我写过最好的东西。也可能是最烂的。天亮以后再看。"你点了赞。声望 +${prestige}。`,
+        `${a.name}邀请你去喝杯茶——"这次是真的茶，不是你的那种红"。你婉拒但很感动。声望 +${prestige}。`,
+      ]
+      return pick(msgs)
+    },
+    () => {
+      const signed = [...world.authors.values()].filter(a => a.tier !== 'new' && !a.poached)
+      if (signed.length === 0) return null
+      const a = signed[Math.floor(Math.random() * signed.length)]
+      const prestige = rangeInt(5, 12)
+      world.currencies.prestige += prestige
+      const msgs = [
+        `${a.name}接受了文学杂志的专访。整篇文章里有三段在夸永夜出版社。编辑部主任把它打印出来贴在了茶水间。声望 +${prestige}。`,
+        `${a.name}的新书封面上了某设计网站的头条。"封面设计太棒了"——评论里有人问是哪个出版社做的。你没有回答，但在心里记了一笔。声望 +${prestige}。`,
+        `${a.name}在签售会上被问到"最喜欢的编辑是谁"——他说了一个两百年的人名。没有人知道那是你。声望 +${prestige}。`,
+      ]
+      return pick(msgs)
+    },
+
     // ── Affection events ──
     () => {
       const loved = [...world.authors.values()].filter(a => a.affection >= AFFECTION_LETTER)

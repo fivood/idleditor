@@ -11,6 +11,7 @@ export function ManuscriptCard({ manuscript }: Props) {
   const startReview = useGameStore(s => s.startReview)
   const rejectManuscript = useGameStore(s => s.rejectManuscript)
   const shelveManuscript = useGameStore(s => s.shelveManuscript)
+  const authors = useGameStore(s => s.authors)
   const getTalentBonuses = useGameStore(s => s.getTalentBonuses)
   const [viewed, setViewed] = useState(false)
   const [flipping, setFlipping] = useState(false)
@@ -71,6 +72,13 @@ export function ManuscriptCard({ manuscript }: Props) {
         <h3 className="text-xs md:text-sm font-bold text-ink truncate font-mono">{manuscript.title}</h3>
         <p className="text-[14px] md:text-[16px] text-muted mt-0.5 font-mono">
           {manuscript.genre} · {Math.round(manuscript.wordCount / 1000)}K字
+          {(() => {
+            const author = authors.get(manuscript.authorId)
+            if (!author) return null
+            const tierLabel = author.tier === 'new' ? '' : author.tier === 'signed' ? '· 已签约' : author.tier === 'known' ? '· 知名作者' : '· 传奇作者'
+            return <span className="text-copper font-bold ml-1">{author.name}{tierLabel}</span>
+          })()}
+          {!viewed && manuscript.marketPotential > 60 && <span className="text-progress ml-1">· 潜力高</span>}
         </p>
 
         {flipping ? (

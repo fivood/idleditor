@@ -588,18 +588,20 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     })
     const state2 = get()
     if (wasUnsuitable) {
+      const authorNote = author?.tier !== 'new' && author ? ` · ${author.name}好感 -10` : ''
       state2.addToast({
         id: nanoid(),
-        text: `"${ms.title}" 被果断退回。编辑的眼光又救了一次出版社。+${rpReward} 修订点 +${prestigeReward} 声誉`,
+        text: `"${ms.title}" 被果断退回。编辑的眼光又救了一次出版社。+${rpReward} 修订点 +${prestigeReward} 声誉${authorNote}`,
         type: 'info',
         createdAt: Date.now(),
       })
       // LLM rejection commentary
       state2.llmCommentary(ms.title, ms.genre, '被退稿')
     } else {
+      const authorNote = author?.tier !== 'new' && author ? ` · ${author.name}好感 -10` : ''
       state2.addToast({
         id: nanoid(),
-        text: `"${ms.title}" 已被退回。作者面露不悦——这本书本来还不错。声望 -5`,
+        text: `"${ms.title}" 已被退回。作者面露不悦——这本书本来还不错。声望 -5${authorNote}`,
         type: 'rejection',
         createdAt: Date.now(),
       })
