@@ -41,6 +41,8 @@ export function useOfflineProgress() {
       preferredGenres: [],
       booksPublishedThisMonth: saved.booksPublishedThisMonth ?? 0,
       publishedTitles: new Set<string>(),
+      editorXP: saved.editorXP ?? 0,
+      editorLevel: saved.editorLevel ?? 1,
     }
 
     for (const [id, ms] of saved.manuscripts) world.manuscripts.set(id, ms)
@@ -52,6 +54,8 @@ export function useOfflineProgress() {
 
     // Generate humorous offline events
     const elapsedMinutes = Math.round(ticksSinceSave / 60)
+    const offlineXP = Math.floor(elapsedMinutes * 1) // 1 XP/min offline
+    world.editorXP += offlineXP
     const newPublished = result.publishedBooks.length
     const newRejected = world.totalRejections - prevRejected
 
@@ -63,7 +67,7 @@ export function useOfflineProgress() {
     } else if (elapsedMinutes >= 10) {
       eventMsgs.push(`你离开了${elapsedMinutes}分钟。茶水间的咖啡机爆炸了两次——编辑们已经开始用冷水泡茶了。`)
     } else {
-      eventMsgs.push(`短暂离开。还好，出版社没有在你不在的时候被火焰吞噬（这次没有）。`)
+      eventMsgs.push(`离线期间积累经验：+${offlineXP} XP（在线效率约15倍）`)
     }
 
     if (newPublished > 0) {

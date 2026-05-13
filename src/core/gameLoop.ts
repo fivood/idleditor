@@ -51,6 +51,7 @@ import { createCalendar, advanceCalendar, TICKS_PER_DAY } from './calendar'
 import { checkDateEvent, type DateEvent } from './dateEvents'
 import type { GameCalendar } from './calendar'
 import { TITLE_POOLS, getBaseTitle, titleToSlug } from './titlePools'
+import { xpForPublish, getLevelFromXP } from './leveling'
 
 // ──── State that the game loop reads/mutates ────
 export interface GameWorldState {
@@ -76,6 +77,8 @@ export interface GameWorldState {
   preferredGenres: Genre[]
   booksPublishedThisMonth: number
   publishedTitles: Set<string>
+  editorXP: number
+  editorLevel: number
 }
 
 // ──── Title generation ────
@@ -143,6 +146,8 @@ export function createInitialWorld(): GameWorldState {
     preferredGenres: [],
     booksPublishedThisMonth: 0,
     publishedTitles: new Set(),
+    editorXP: 0,
+    editorLevel: 1,
   }
 }
 
@@ -281,6 +286,15 @@ export function tick(world: GameWorldState): TickResult {
       world.currencies.prestige += pubPrestige
       world.booksPublishedThisMonth++
       world.publishedTitles.add(m.title)
+
+      // XP gain
+      const xpEarned = xpForPublish(m.quality)
+      world.editorXP += xpEarned
+      const newLevel = getLevelFromXP(world.editorXP)
+      if (newLevel > world.editorLevel) {
+        world.editorLevel = newLevel
+        result.toasts.push(createToast(`[Level Up] 编辑等级提升！你现在是 Lv.${newLevel}。`, 'milestone'))
+      }
       result.publishedBooks.push(m)
       if (m.isUnsuitable) {
         result.toasts.push(createToast(

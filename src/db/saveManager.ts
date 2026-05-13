@@ -15,6 +15,8 @@ export interface GameSaveData {
   totalBestsellers: number
   totalRejections: number
   booksPublishedThisMonth: number
+  editorXP: number
+  editorLevel: number
   triggeredMilestones: Set<number>
   manuscripts: Map<string, Manuscript>
   authors: Map<string, Author>
@@ -38,6 +40,8 @@ export async function saveGameToDb(data: GameSaveData): Promise<void> {
     totalRejections: data.totalRejections,
     triggeredMilestones: [...data.triggeredMilestones],
     booksPublishedThisMonth: data.booksPublishedThisMonth,
+    editorXP: data.editorXP,
+    editorLevel: data.editorLevel,
     manuscriptsJson: serializeMap(data.manuscripts),
     authorsJson: serializeMap(data.authors),
     departmentsJson: serializeMap(data.departments),
@@ -61,6 +65,8 @@ export async function loadGameFromDb(): Promise<GameSaveData | null> {
     totalBestsellers: save.totalBestsellers,
     totalRejections: save.totalRejections,
     booksPublishedThisMonth: save.booksPublishedThisMonth ?? 0,
+    editorXP: save.editorXP ?? 0,
+    editorLevel: save.editorLevel ?? 1,
     triggeredMilestones: new Set(save.triggeredMilestones),
     manuscripts: deserializeMap<string, Manuscript>(save.manuscriptsJson),
     authors: deserializeMap<string, Author>(save.authorsJson),

@@ -2,6 +2,7 @@
 import { useGameStore } from '@/store/gameStore'
 import { formatNumber } from '@/utils/format'
 import { formatDate } from '@/core/calendar'
+import { xpProgressInLevel } from '@/core/leveling'
 
 export function TopBar() {
   const currencies = useGameStore(s => s.currencies)
@@ -15,6 +16,7 @@ export function TopBar() {
   const booksPublishedThisMonth = useGameStore(s => s.booksPublishedThisMonth)
   const totalBestsellers = useGameStore(s => s.totalBestsellers)
   const permanentBonuses = useGameStore(s => s.permanentBonuses)
+  const editorXP = useGameStore(s => s.editorXP)
   const reborn = useGameStore(s => s.reborn)
   const trait = useGameStore(s => s.trait)
   const [showRebirth, setShowRebirth] = useState(false)
@@ -45,6 +47,17 @@ export function TopBar() {
         </div>
 
         <div className="flex items-center gap-1.5 md:gap-3">
+          {(() => {
+            const p = xpProgressInLevel(editorXP)
+            return (
+              <span className="hidden md:flex items-center gap-1" title={`Lv.${p.level} (${p.current}/${p.needed} XP)`}>
+                <span className="text-[14px] md:text-xs text-progress font-bold font-mono">Lv.{p.level}</span>
+                <span className="h-2 w-16 md:w-20 bg-card-inset border border-border-dark overflow-hidden">
+                  <span className="block h-full bg-progress transition-all" style={{ width: `${Math.min(100, Math.round(p.current / p.needed * 100))}%` }} />
+                </span>
+              </span>
+            )
+          })()}
           <span className="hidden md:inline text-[16px] text-muted font-mono">{playerName}</span>
           {cloudSaveCode && (
             <span className="text-[16px] text-muted font-mono" title={`云存档：${cloudSaveCode}`}>

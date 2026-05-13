@@ -26,6 +26,8 @@ export interface SavedGame {
   totalRejections: number
   triggeredMilestones: number[]
   booksPublishedThisMonth: number
+  editorXP: number
+  editorLevel: number
   // Serialized maps
   manuscriptsJson: string
   authorsJson: string

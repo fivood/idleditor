@@ -231,6 +231,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       preferredGenres: state.preferredGenres,
       booksPublishedThisMonth: state.booksPublishedThisMonth,
       publishedTitles: state.publishedTitles,
+      editorXP: state.editorXP,
+      editorLevel: state.editorLevel,
     }
     const result = tick(world)
 
@@ -249,6 +251,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       activeDateEvent: world.activeDateEvent,
       booksPublishedThisMonth: world.booksPublishedThisMonth,
       publishedTitles: new Set(world.publishedTitles),
+      editorXP: world.editorXP,
+      editorLevel: world.editorLevel,
       decisionCooldown: Math.max(0, state.decisionCooldown - 1),
       toasts: [...state.toasts, ...result.toasts].slice(-100),
     })
@@ -272,6 +276,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         totalBestsellers: world.totalBestsellers,
         totalRejections: world.totalRejections,
         booksPublishedThisMonth: world.booksPublishedThisMonth,
+        editorXP: world.editorXP,
+        editorLevel: world.editorLevel,
         triggeredMilestones: world.triggeredMilestones,
         manuscripts: world.manuscripts,
         authors: world.authors,
@@ -362,6 +368,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       manuscripts: new Map(state.manuscripts),
       authors: new Map(state.authors),
       totalRejections: state.totalRejections + 1,
+      editorXP: state.editorXP + 2,
       currencies: {
         ...state.currencies,
         revisionPoints: state.currencies.revisionPoints + rpReward,
