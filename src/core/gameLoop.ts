@@ -52,6 +52,7 @@ import type { GameCalendar } from './calendar'
 import { TITLE_POOLS, getBaseTitle, titleToSlug } from './titlePools'
 import { xpForPublish, getLevelFromXP } from './leveling'
 import { COLLECTIONS } from './collections'
+import { RIVALS } from './rivals'
 
 // ──── State that the game loop reads/mutates ────
 export interface GameWorldState {
@@ -791,9 +792,42 @@ function rollRandomEvent(world: GameWorldState): string | null {
       const a = poached[Math.floor(Math.random() * poached.length)]
       const prestige = rangeInt(5, 10)
       world.currencies.prestige += prestige
-      const rivalNames = ['晨曦出版社', '新纪元文学', '星辰书坊', '破晓文化', '万象出版']
-      const rival = rivalNames[Math.floor(Math.random() * rivalNames.length)]
-      return `📰 ${a.name}在${rival}出版了一本新书。书评人说还不错——至少比上次被退掉那本强。作为前编辑，你获得 ${prestige} 声望。`
+      const rival = RIVALS[Math.floor(Math.random() * RIVALS.length)]
+      return `📰 ${a.name}在${rival.name}出版了一本新书。书评人说还不错——至少比上次被退掉那本强。作为前编辑，你获得 ${prestige} 声望。`
+    },
+    () => {
+      const rival = RIVALS[Math.floor(Math.random() * RIVALS.length)]
+      const newsItems = [
+        `${rival.name}本周推出了一个新书系。市场部紧急开会讨论。结论：先看看他们能撑多久。`,
+        `${rival.name}的编辑在采访中提到永夜出版社，措辞相当客气——"有品位的竞品"。翻译：比不过。`,
+        `${rival.name}签下了一位网红作者。据说首印十万册。永夜的编辑们看了一眼样稿，各自默默喝了一口茶。`,
+        `${rival.name}的年度报告显示他们去年出版了${rangeInt(50, 300)}本书。其中${rangeInt(1, 10)}本进入过榜单。`,
+        `图书展上，${rival.name}的展位离永夜只隔了一条通道。双方编辑在茶歇区进行了三分钟的礼貌交锋——话题包括天气、咖啡质量，以及"那个作者到底怎么回事"。`,
+      ]
+      return pick(newsItems)
+    },
+    () => {
+      const rival = RIVALS[Math.floor(Math.random() * RIVALS.length)]
+      const bestsellers = [...world.manuscripts.values()].filter(m => m.status === 'published' && m.isBestseller)
+      if (bestsellers.length === 0) return null
+      const book = bestsellers[Math.floor(Math.random() * bestsellers.length)]
+      return `🏆 ${rival.name}宣布他们将推出《${book.title.slice(0, 8)}》的竞品版。永夜编辑回应："祝好运。"`
+    },
+    () => {
+      const rival = RIVALS[Math.floor(Math.random() * RIVALS.length)]
+      const authors = [...world.authors.values()].filter(a => a.tier === 'signed' || a.tier === 'known')
+      if (authors.length === 0) return null
+      const a = authors[Math.floor(Math.random() * authors.length)]
+      return `📢 据传${rival.name}向${a.name}发出了邀约——更高的版税、更好的茶歇。${a.name}目前尚未回应。`
+    },
+    () => {
+      const rival = RIVALS[Math.floor(Math.random() * RIVALS.length)]
+      const authors = [...world.authors.values()].filter(a => a.tier === 'idol')
+      if (authors.length === 0) return null
+      const a = authors[Math.floor(Math.random() * authors.length)]
+      const prestige = rangeInt(10, 20)
+      world.currencies.prestige += prestige
+      return `🏅 ${rival.name}公开称赞了永夜出版社的传奇作者${a.name}。"如果能签到她——"对方主编在采访中叹了口气。"但显然不太可能。"声望 +${prestige}。`
     },
 
     // ── Affection events ──
