@@ -198,15 +198,48 @@ const EDITOR_NOTES = [
   '（编辑注：稿纸背面是一份外卖订单。辣子鸡，不要洋葱。）',
   '（编辑注：该文引用了372条参考文献。其中371条是该作者自己之前的作品。）',
   '（编辑注：故事在第208页突然换人称——至今不确定是不是故意的。）',
-  '（编辑注：作者来信强调"此手稿必须用血红色墨水印刷"。我们建议了黑墨水。作者不太高兴。）',
   '（编辑注：结局炸掉了出版社大楼。感觉作者对出版流程有些意见。）',
-  '（编辑注：情节可用。错别字数量令人困惑——"宇宙"一词写了七种拼法。）',
-  '（编辑注：这应该算是小说。字面意思上——每个词都是"这"和"那"的排列重组。）',
-  '（编辑注：第223页有一整段用emoji写的对白。不是翻译问题——原稿就这样。）',
-  '（编辑注：审完这篇稿子的编辑请了半天假。说是要"想想宇宙"。）',
   '（编辑注：推荐阅读。但不要在睡前读。我们认真的。）',
   '（编辑注：如果这本书被改编成电影，字幕组可能需要一个哲学学位。）',
 ]
+
+// ──── Multi-style template mixins ────
+const STYLE_MIXINS = {
+  excerpt: [
+    '"……{character}看了一眼{discovery}，然后做出了一个在之后的{punch_review}里会被反复提起的决定：假装没看见。" ——选自本书第三章',
+    '"那天晚上的第三个错误——也是最大的那个——是{character}决定打开{object}。" ——选自本书开头',
+    '"如果你发现{discovery}，不要告诉任何人。{character}没有听。下面是代价。" ——选自封底',
+    '"所谓的出版是个错误。但我已经签了合同。" ——正文第一行',
+  ],
+  review: [
+    '（节选自《永夜文学报》匿名评语："{character}从第一页开始就{verb_read}，看到最后也没想明白自己在读什么。但奇怪的是——停不下来。"）',
+    '（书评人{character}：\"我给了五星。有些书你没法解释为什么好——{title}就是其中之一。\"）',
+    '（某位编辑在午休时间的口头评价："这稿子可以。但不能让作者知道我说可以。否则她会交更多。"）',
+    '（内部评审意见："{adj_pos}的叙事，但第三章那四十页关于天气的描写建议删掉。{editorName}已经几次提过了。"）',
+  ],
+  blurb: [
+    '"如果你今年只读一本书——那你确实太忙了。但也许可以加一本。" ——永夜出版社编辑部',
+    '"本书入选《永夜文学报》\'编辑们不好意思不推荐\'名单。" ——市场营销部',
+    '"耗时{time_hours}小时阅毕。花{time_minutes}分钟向朋友推荐。花了几百年——{editorName}还在想它。"',
+    '"已售{time_days}万册。据不完全统计，其中{time_minutes}%的读者在第{time_hours}章哭过。或者至少——眼圈红了。"',
+  ],
+}
+
+function applyStyleMixin(synopsis: string, genre: Genre): string {
+  const templates = STYLE_MIXINS[genre as keyof typeof STYLE_MIXINS]
+  if (!templates || Math.random() > 0.15) return synopsis
+  const mixin = fillSlots(pick(templates), genre)
+  // Replace placeholder slots that might be in the mixin
+  return mixin
+    .replace(/\{editorName\}/g, '编辑部主任')
+    .replace(/\{title\}/g, '这本书')
+    .replace(/\{punch_review\}/g, '审稿意见')
+    .replace(/\{verb_read\}/g, '认真读')
+    .replace(/\{time_hours\}/g, () => String(rangeInt(2, 48)))
+    .replace(/\{time_minutes\}/g, () => String(rangeInt(5, 45)))
+    .replace(/\{time_days\}/g, () => String(rangeInt(10, 200)))
+    .replace(/\{adj_pos\}/g, '精彩')
+}
 
 // ──── Genre templates (20 per genre) ────
 
@@ -391,13 +424,18 @@ const GENRE_TEMPLATES: Record<Genre, string[]> = {
 }
 
 export function generateSynopsis(genre: Genre, title?: string): string {
-  // Check curated parodies first
   if (title && CURATED_SYNOPSES[title]) {
     return CURATED_SYNOPSES[title]
   }
   const templates = GENRE_TEMPLATES[genre] ?? HYBRID_TEMPLATES
   let synopsis = fillSlots(pick(templates), genre)
-  if (Math.random() < 0.3) {
+
+  // Mix in alternate styles occasionally
+  if (Math.random() < 0.12) {
+    synopsis = applyStyleMixin(synopsis, genre)
+  }
+
+  if (Math.random() < 0.25) {
     synopsis += ' ' + pick(EDITOR_NOTES)
   }
   return synopsis
