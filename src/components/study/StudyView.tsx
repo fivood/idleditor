@@ -23,7 +23,11 @@ export function StudyView() {
   useEffect(() => { loadNovels() }, [loadNovels])
 
   return (
-    <div className="h-full overflow-y-auto p-3 md:p-4">
+    <div className="h-full flex flex-col min-h-0">
+      {reading ? (
+        <ReaderInline novel={reading} onBack={() => { setReading(null); loadNovels() }} />
+      ) : (
+        <div className="h-full overflow-y-auto p-3 md:p-4">
       <div className="flex items-center justify-between mb-3 md:mb-4">
         <h2 className="text-xs md:text-sm font-bold text-ink font-mono">书房 ({novels.length})</h2>
         <button
@@ -75,7 +79,8 @@ export function StudyView() {
       )}
 
       {showUpload && <UploadModal onClose={() => setShowUpload(false)} onSaved={loadNovels} />}
-      {reading && <ReaderView novel={reading} onClose={() => { setReading(null); loadNovels() }} />}
+        </div>
+      )}
     </div>
   )
 }
@@ -255,7 +260,7 @@ function UploadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =>
   )
 }
 
-function ReaderView({ novel, onClose }: { novel: PlayerNovel; onClose: () => void }) {
+function ReaderInline({ novel, onBack }: { novel: PlayerNovel; onBack: () => void }) {
   const [position, setPosition] = useState(novel.readingProgress)
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(novel.bookmarks || [])
   const [showBookmarks, setShowBookmarks] = useState(false)
@@ -265,7 +270,6 @@ function ReaderView({ novel, onClose }: { novel: PlayerNovel; onClose: () => voi
   const total = novel.content.length
   const progress = total > 0 ? Math.round(position / total * 100) : 0
 
-  // Auto-save every 5 seconds
   function scheduleSave(pos: number) {
     setPosition(pos)
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
@@ -281,10 +285,10 @@ function ReaderView({ novel, onClose }: { novel: PlayerNovel; onClose: () => voi
     scheduleSave(newPos)
   }
 
-  async function handleClose() {
+  async function handleBack() {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     await db.novels.update(novel.id, { readingProgress: position, bookmarks })
-    onClose()
+    onBack()
   }
 
   async function addBookmark() {
@@ -310,7 +314,6 @@ function ReaderView({ novel, onClose }: { novel: PlayerNovel; onClose: () => voi
     setShowBookmarks(false)
   }
 
-  // Save progress on unmount
   useEffect(() => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     return () => {
@@ -363,17 +366,18 @@ function ReaderView({ novel, onClose }: { novel: PlayerNovel; onClose: () => voi
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-cream">
+    <div className="flex-1 flex flex-col min-h-0">
       <div className="flex items-center justify-between p-3 md:p-4 border-b-2 border-border-dark bg-cream-dark shrink-0">
         <div className="min-w-0">
           <h2 className="text-sm md:text-base font-bold text-ink truncate font-mono">{novel.title}</h2>
           <p className="text-[12px] md:text-xs text-muted font-mono">{novel.author} · {total.toLocaleString()} 字 · {progress}%</p>
         </div>
+        <div className="flex items-center gap-2">
         <button
-          onClick={handleClose}
+          onClick={handleBack}
           className="text-[12px] md:text-xs px-3 py-1.5 bg-copper text-white border-2 border-border-dark font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
         >
-          关闭
+          返回
         </button>
         <button
           onClick={() => setShowBookmarks(!showBookmarks)}
@@ -381,6 +385,7 @@ function ReaderView({ novel, onClose }: { novel: PlayerNovel; onClose: () => voi
         >
           书签 ({bookmarks.length})
         </button>
+        </div>
       </div>
 
       {(novel.synopsis || novel.recommendation) && (
