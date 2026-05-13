@@ -181,11 +181,13 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       if (existing) {
         const saved = await loadGameFromDb()
         if (saved) {
+          const currentManifest = get().coversManifest
           clearTimeout(safetyTimeout)
           set({
             ...createInitialWorld(),
             ...saved,
             trait: (saved.trait as EditorTrait) ?? null,
+            coversManifest: currentManifest,
             isInitialized: true,
           })
           return
