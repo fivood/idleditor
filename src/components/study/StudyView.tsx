@@ -10,6 +10,53 @@ const GENRE_LABELS: Record<string, string> = {
 }
 const ALL_GENRES: Genre[] = ['sci-fi', 'mystery', 'suspense', 'social-science', 'hybrid', 'light-novel']
 
+function BookInfoPanel({ novel, novels, onBack, onSelect }: { novel: PlayerNovel; novels: PlayerNovel[]; onBack: () => void; onSelect: (n: PlayerNovel) => void }) {
+  const [showInfo, setShowInfo] = useState(true)
+  return (
+    <div className="border-l-2 border-border-dark bg-cream-dark overflow-y-auto flex flex-col">
+      <div className="p-3 border-b-2 border-border-dark">
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="text-[12px] font-bold text-ink truncate font-mono">{novel.title}</h3>
+          <button onClick={onBack} className="text-[12px] px-2 py-0.5 bg-copper text-white border-2 border-border-dark font-mono cursor-pointer">返回</button>
+        </div>
+        <p className="text-[12px] text-muted font-mono">{novel.author} · {GENRE_LABELS[novel.genre] || novel.genre} · {novel.wordCount.toLocaleString()} 字</p>
+      </div>
+      {(novel.synopsis || novel.recommendation) && (
+        <div className="border-b-2 border-border-dark">
+          <button onClick={() => setShowInfo(!showInfo)} className="w-full text-left px-3 py-1.5 text-[12px] text-muted font-mono hover:text-ink cursor-pointer">{showInfo ? '收起' : '展开'}简介与推荐语</button>
+          {showInfo && (
+            <div className="px-3 pb-3 space-y-2">
+              {novel.synopsis && <div className="bg-card-inset border-2 border-border-dark p-2"><p className="text-[12px] text-ink leading-relaxed font-mono">{novel.synopsis}</p></div>}
+              {novel.recommendation && <div className="bg-cream border-2 border-border-dark p-2"><p className="text-[12px] text-ink-light leading-relaxed font-mono italic">"{novel.recommendation}"</p></div>}
+            </div>
+          )}
+        </div>
+      )}
+      {((novel.bookmarks || []).length > 0) && (
+        <div className="border-b-2 border-border-dark px-3 py-2">
+          <p className="text-[12px] text-muted font-mono mb-1">书签 ({(novel.bookmarks || []).length})</p>
+          {[...(novel.bookmarks || [])].reverse().map((bm, i) => (
+            <p key={i} className="text-[12px] text-muted font-mono">{bm.name} · {Math.round(bm.position / Math.max(1, novel.content.length) * 100)}%</p>
+          ))}
+        </div>
+      )}
+      <div className="flex-1 overflow-y-auto">
+        <div className="px-3 py-2 text-[12px] text-muted font-mono border-b border-border-dark">书架 ({novels.length})</div>
+        {novels.map(n => {
+          const isActive = n.id === novel.id
+          const prog = n.wordCount > 0 ? Math.round(n.readingProgress / n.wordCount * 100) : 0
+          return (
+            <button key={n.id} onClick={() => onSelect(n)} className={`w-full text-left px-3 py-1.5 text-[12px] font-mono transition-colors ${isActive ? 'bg-copper text-white' : 'hover:bg-cream text-ink'}`}>
+              <span className="truncate block">{n.title}</span>
+              {prog > 0 && <span className="text-[12px] opacity-60">{prog}%</span>}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export function StudyView() {
   const [novels, setNovels] = useState<PlayerNovel[]>([])
   const [showUpload, setShowUpload] = useState(false)
@@ -25,7 +72,10 @@ export function StudyView() {
   return (
     <div className="h-full flex flex-col min-h-0">
       {reading ? (
-        <ReaderInline novel={reading} onBack={() => { setReading(null); loadNovels() }} />
+        <div className="flex-1 grid grid-cols-[1fr_260px] min-h-0">
+          <ReaderInline novel={reading} onBack={() => { setReading(null); loadNovels() }} />
+          <BookInfoPanel novel={reading} novels={novels} onBack={() => { setReading(null); loadNovels() }} onSelect={setReading} />
+        </div>
       ) : (
         <div className="h-full overflow-y-auto p-3 md:p-4">
       <div className="flex items-center justify-between mb-3 md:mb-4">
