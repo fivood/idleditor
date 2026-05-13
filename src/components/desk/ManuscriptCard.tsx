@@ -52,7 +52,17 @@ export function ManuscriptCard({ manuscript }: Props) {
         style={{ backgroundColor: manuscript.cover.placeholder.bgColor + '22' }}
       >
         {manuscript.cover.src ? (
-          <img src={manuscript.cover.src} alt="" className="w-full h-full object-cover" />
+          <img src={manuscript.cover.src} alt="" className="w-full h-full object-cover"
+            onError={(e) => {
+              const el = e.currentTarget
+              // Try SVG fallback
+              if (el.src.endsWith('.png')) {
+                el.src = el.src.replace('.png', '.svg')
+              } else {
+                el.style.display = 'none'
+              }
+            }}
+          />
         ) : (
           <img src={icon} alt="" className="w-4 h-4" />
         )}

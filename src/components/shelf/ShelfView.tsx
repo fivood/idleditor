@@ -104,13 +104,10 @@ function BookSpine({ book, onClick }: { book: Manuscript; onClick: () => void })
           backgroundColor: spineColor + '88',
         }}
       >
-        {book.cover.src ? (
-          <img
-            src={book.cover.src}
-            alt=""
-            className="w-full h-full object-cover"
-            style={{ objectPosition: '20% 50%' }}
-          />
+            {book.cover.src ? (
+              <img src={book.cover.src} alt="" className="w-full h-full object-cover"
+                onError={(e) => { const el = e.currentTarget; if (el.src.endsWith('.png')) el.src = el.src.replace('.png', '.svg'); else el.style.display = 'none' }}
+              />
         ) : (
           <div className="w-full h-full flex items-center justify-center opacity-60">
             <span className="text-[14px]" style={{ writingMode: 'vertical-rl' }}>
