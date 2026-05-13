@@ -6,11 +6,11 @@ import { GENRE_PREFERENCE_THRESHOLDS, AUTO_REVIEW_DEPT_LEVEL, AUTO_COVER_PRESTIG
 import { useMemo, useState } from 'react'
 import { ChangelogModal } from './ChangelogModal'
 
-const DEPT_INFO: Record<DepartmentType, { label: string; icon: string; desc: string }> = {
-  editing: { label: '编辑部', icon: '✍️', desc: '加快审稿、编辑和校对速度。' },
-  design: { label: '设计部', icon: '🎨', desc: '提升封面和排版质量。' },
-  marketing: { label: '市场部', icon: '📢', desc: '提高书籍销量和版税收入。' },
-  rights: { label: '版权部', icon: '📜', desc: '随时间自动产生被动声望。' },
+const DEPT_INFO: Record<DepartmentType, { label: string; icon: string; getEffect: (level: number) => string }> = {
+  editing: { label: '编辑部', icon: '✍️', getEffect: (l) => l === 0 ? '未雇佣' : `流水线速度 +${l * 5}%` },
+  design: { label: '设计部', icon: '🎨', getEffect: (l) => l === 0 ? '未雇佣' : `封面品质 +${l * 3}%` },
+  marketing: { label: '市场部', icon: '📢', getEffect: (l) => l === 0 ? '未雇佣' : `书籍销量 +${l * 3}%` },
+  rights: { label: '版权部', icon: '📜', getEffect: (l) => l === 0 ? '未雇佣' : `每分钟被动声望 +${(l * 0.15).toFixed(1)}` },
 }
 
 const GENRE_LABELS: Record<string, string> = {
@@ -36,6 +36,9 @@ export function OfficeView() {
   const autoCoverEnabled = useGameStore(s => s.autoCoverEnabled)
   const autoRejectEnabled = useGameStore(s => s.autoRejectEnabled)
   const publishingQuotaUpgrades = useGameStore(s => s.publishingQuotaUpgrades || 0)
+  const hirePR = useGameStore(s => s.hirePR)
+  const renovateReadingRoom = useGameStore(s => s.renovateReadingRoom)
+  const sponsorAward = useGameStore(s => s.sponsorAward)
   const [showChangelog, setShowChangelog] = useState(false)
 
   const deptList = useMemo(() => [...departments.values()], [departments])
@@ -68,7 +71,7 @@ export function OfficeView() {
                   <span className="text-xs md:text-sm font-bold text-ink font-mono">{info.label}</span>
                   {dept && <span className="text-[16px] md:text-xs text-copper font-bold ml-auto font-mono">Lv.{dept.level}</span>}
                 </div>
-                <p className="text-[16px] md:text-xs text-muted mb-1.5 md:mb-2 font-mono">{info.desc}</p>
+                <p className="text-[16px] md:text-xs text-muted mb-1.5 md:mb-2 font-mono">{info.getEffect(dept?.level ?? 0)}</p>
                 {!dept ? (
                   <button
                     onClick={() => createDepartment(type as DepartmentType)}
@@ -151,6 +154,9 @@ export function OfficeView() {
                   <span>{GENRE_LABELS[genre]}</span>
                   {prefCount > 0 && <span className="text-copper font-bold">×{prefCount}</span>}
                 </div>
+                {!isFull && (
+                  <p className="text-[12px] text-progress font-mono text-center mt-0.5">品质 +5 · 销量 +10%</p>
+                )}
               </button>
             )
           })}
@@ -182,6 +188,66 @@ export function OfficeView() {
                   }`}
                 >
                   {Math.floor(cost)} 税
+                </button>
+              </div>
+            </div>
+          )
+        })()}
+
+        {/* Hire PR */}
+        {(() => {
+          const cost = 200
+          const canAfford = currencies.royalties >= cost
+          return (
+            <div className={`border-2 p-2 md:p-3 mt-1.5 ${canAfford ? 'bg-cream border-progress shadow-[3px_3px_0_#3a6491]' : 'bg-cream-dark border-border-dark opacity-50'}`}>
+              <div className="flex items-center gap-2">
+                <span className="text-sm md:text-lg">D</span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[12px] md:text-xs font-bold text-ink font-mono">雇佣公关</span>
+                  <p className="text-[12px] md:text-[13px] text-muted font-mono">下一本出版的书自动进入热销窗口（3天 ×1.5销量）</p>
+                </div>
+                <button onClick={hirePR} disabled={!canAfford} className={`text-[12px] md:text-xs px-3 py-1 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${canAfford ? 'bg-progress text-white' : 'bg-cream-dark text-muted cursor-not-allowed'}`}>
+                  {cost} 税
+                </button>
+              </div>
+            </div>
+          )
+        })()}
+
+        {/* Renovate Reading Room */}
+        {(() => {
+          const cost = 500
+          const canAfford = currencies.royalties >= cost
+          return (
+            <div className={`border-2 p-2 md:p-3 mt-1.5 ${canAfford ? 'bg-cream border-progress shadow-[3px_3px_0_#3a6491]' : 'bg-cream-dark border-border-dark opacity-50'}`}>
+              <div className="flex items-center gap-2">
+                <span className="text-sm md:text-lg">E</span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[12px] md:text-xs font-bold text-ink font-mono">装修阅览室</span>
+                  <p className="text-[12px] md:text-[13px] text-muted font-mono">作者好感获取永久 +20%</p>
+                </div>
+                <button onClick={renovateReadingRoom} disabled={!canAfford} className={`text-[12px] md:text-xs px-3 py-1 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${canAfford ? 'bg-progress text-white' : 'bg-cream-dark text-muted cursor-not-allowed'}`}>
+                  {cost} 税
+                </button>
+              </div>
+            </div>
+          )
+        })()}
+
+        {/* Sponsor Award */}
+        {(() => {
+          const cost = 1000
+          const canAfford = currencies.royalties >= cost
+          return (
+            <div className={`border-2 p-2 md:p-3 mt-1.5 ${canAfford ? 'bg-cream border-progress shadow-[3px_3px_0_#3a6491]' : 'bg-cream-dark border-border-dark opacity-50'}`}>
+              <div className="flex items-center gap-2">
+                <span className="text-sm md:text-lg">F</span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[12px] md:text-xs font-bold text-ink font-mono">赞助文学奖</span>
+                  <p className="text-[12px] md:text-[13px] text-muted font-mono">随机一本畅销书获得 +50 声望</p>
+                </div>
+                <button onClick={sponsorAward} disabled={!canAfford} className={`text-[12px] md:text-xs px-3 py-1 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${canAfford ? 'bg-progress text-white' : 'bg-cream-dark text-muted cursor-not-allowed'}`}>
+                  {cost} 税
                 </button>
               </div>
             </div>

@@ -124,6 +124,8 @@ export interface GameStore extends GameWorldState {
   autoCoverEnabled: boolean
   autoRejectEnabled: boolean
   unlockedCollections: Set<string>
+  prActive: boolean
+  readingRoomRenovated: boolean
 
   // Actions: lifecycle
   initialize: () => Promise<void>
@@ -141,6 +143,9 @@ export interface GameStore extends GameWorldState {
   reissueBook: (id: string) => void
   buyAuthorMeal: (id: string) => void
   rushAuthorCooldown: (id: string) => void
+  hirePR: () => void
+  renovateReadingRoom: () => void
+  sponsorAward: () => void
 
   // Actions: manuscript
   startReview: (id: string) => void
@@ -189,6 +194,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   autoCoverEnabled: true,
   autoRejectEnabled: true,
   unlockedCollections: new Set(),
+  prActive: false,
+  readingRoomRenovated: false,
 
   // ──── Lifecycle ────
   initialize: async () => {
@@ -272,6 +279,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       autoCoverEnabled: state.autoCoverEnabled,
       autoRejectEnabled: state.autoRejectEnabled,
       unlockedCollections: state.unlockedCollections,
+      prActive: state.prActive,
+      readingRoomRenovated: state.readingRoomRenovated,
     }
     const result = tick(world)
 
@@ -297,6 +306,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       autoCoverEnabled: world.autoCoverEnabled,
       autoRejectEnabled: world.autoRejectEnabled,
       unlockedCollections: new Set(world.unlockedCollections),
+      prActive: world.prActive,
+      readingRoomRenovated: world.readingRoomRenovated,
       decisionCooldown: Math.max(0, state.decisionCooldown - 1),
       toasts: [...state.toasts, ...result.toasts].slice(-100),
     })
@@ -733,6 +744,38 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       currencies: { ...state.currencies, revisionPoints: state.currencies.revisionPoints - 30 },
     })
     get().addToast({ id: nanoid(), text: `催稿成功！${author.name}的冷却时间减半。好感 -5。`, type: 'info', createdAt: Date.now() })
+  },
+
+  hirePR: () => {
+    const state = get()
+    if (state.currencies.royalties < 200) return
+    set({
+      currencies: { ...state.currencies, royalties: state.currencies.royalties - 200 },
+      prActive: true,
+    })
+    get().addToast({ id: nanoid(), text: '公关团队已就位！下一本出版的新书将自动进入热销窗口（3天，销量 ×1.5）。', type: 'milestone', createdAt: Date.now() })
+  },
+
+  renovateReadingRoom: () => {
+    const state = get()
+    if (state.currencies.royalties < 500) return
+    set({
+      currencies: { ...state.currencies, royalties: state.currencies.royalties - 500 },
+      readingRoomRenovated: true,
+    })
+    get().addToast({ id: nanoid(), text: '阅览室焕然一新！作者好感获取永久 +20%。', type: 'milestone', createdAt: Date.now() })
+  },
+
+  sponsorAward: () => {
+    const state = get()
+    if (state.currencies.royalties < 1000) return
+    const bestsellers = [...state.manuscripts.values()].filter(m => m.status === 'published' && m.isBestseller)
+    if (bestsellers.length === 0) return
+    const book = bestsellers[Math.floor(Math.random() * bestsellers.length)]
+    set({
+      currencies: { ...state.currencies, royalties: state.currencies.royalties - 1000, prestige: state.currencies.prestige + 50 },
+    })
+    get().addToast({ id: nanoid(), text: `赞助文学奖！《${book.title}》获得 +50 声望。`, type: 'milestone', createdAt: Date.now() })
   },
 
   setPreferredGenre: (genre) => {

@@ -84,6 +84,8 @@ export interface GameWorldState {
   autoCoverEnabled: boolean
   autoRejectEnabled: boolean
   unlockedCollections: Set<string>
+  prActive: boolean
+  readingRoomRenovated: boolean
 }
 
 // ──── Title generation ────
@@ -158,6 +160,8 @@ export function createInitialWorld(): GameWorldState {
     autoCoverEnabled: true,
     autoRejectEnabled: true,
     unlockedCollections: new Set(),
+    prActive: false,
+    readingRoomRenovated: false,
   }
 }
 
@@ -297,6 +301,12 @@ export function tick(world: GameWorldState): TickResult {
       world.booksPublishedThisMonth++
       world.publishedTitles.add(m.title)
 
+      // PR boost: auto-apply to first published book
+      if (world.prActive) {
+        m.reissueBoostUntil = world.playTicks + 420
+        world.prActive = false
+      }
+
       // XP gain
       const xpEarned = xpForPublish(m.quality)
       world.editorXP += xpEarned
@@ -336,8 +346,9 @@ export function tick(world: GameWorldState): TickResult {
           author.affection += AFFECTION_PER_PROMOTION
         }
         // Affection tracking
-        author.affection += AFFECTION_PER_PUBLISH
-        if (m.quality >= 60) author.affection += AFFECTION_PER_QUALITY_PUBLISH
+        const affMult = world.readingRoomRenovated ? 1.2 : 1
+        author.affection += Math.round(AFFECTION_PER_PUBLISH * affMult)
+        if (m.quality >= 60) author.affection += Math.round(AFFECTION_PER_QUALITY_PUBLISH * affMult)
         if (m.isUnsuitable) author.affection += AFFECTION_BAD_PUBLISH_PENALTY
         if (author.talent >= AFFECTION_ELITE_TALENT) author.affection += 2
         // Loyalty check
