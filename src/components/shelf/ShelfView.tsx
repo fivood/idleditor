@@ -234,7 +234,16 @@ function BookSpine({ book, onClick }: { book: Manuscript; onClick: () => void })
 
 function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => void }) {
   const reissueBook = useGameStore(s => s.reissueBook)
+  const generateBookReview = useGameStore(s => s.generateBookReview)
+  const generateAuthorQuote = useGameStore(s => s.generateAuthorQuote)
+  const authors = useGameStore(s => s.authors)
   const greyColor = spineGrayForBook(book)
+  const authorName = authors.get(book.authorId)?.name || '某作者'
+
+  const [readerReview, setReaderReview] = useState<string | null>(null)
+  const [authorQuote, setAuthorQuote] = useState<string | null>(null)
+  const [reviewLoading, setReviewLoading] = useState(false)
+  const [quoteLoading, setQuoteLoading] = useState(false)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -269,6 +278,38 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
             <p className="text-[14px] md:text-[16px] text-muted font-mono mb-1">编辑批语：</p>
             <p className="text-[16px] md:text-xs text-ink-light leading-relaxed font-mono italic">{generateEditorNote(book)}</p>
           </div>
+
+          {/* LLM-generated content */}
+          {readerReview ? (
+            <div className="bg-cream-dark border-2 border-progress p-2 md:p-3 mb-2">
+              <p className="text-[14px] md:text-[16px] text-progress font-mono mb-0.5">读者短评</p>
+              <p className="text-[14px] md:text-xs text-ink leading-relaxed font-mono italic">"{readerReview}"</p>
+            </div>
+          ) : (
+            <button
+              onClick={async () => { setReviewLoading(true); const r = await generateBookReview(book.title, book.genre); if (r) setReaderReview(r); setReviewLoading(false) }}
+              disabled={reviewLoading}
+              className="w-full text-[14px] md:text-xs px-3 py-1.5 border-2 border-border-dark text-progress font-mono cursor-pointer bg-cream hover:bg-cream-dark transition-all mb-2 disabled:opacity-50"
+            >
+              {reviewLoading ? '生成中...' : 'LLM 生成读者短评'}
+            </button>
+          )}
+
+          {authorQuote ? (
+            <div className="bg-cream-dark border-2 border-progress p-2 md:p-3 mb-2">
+              <p className="text-[14px] md:text-[16px] text-progress font-mono mb-0.5">作者访谈摘录</p>
+              <p className="text-[14px] md:text-xs text-ink leading-relaxed font-mono italic">——{authorQuote}</p>
+            </div>
+          ) : (
+            <button
+              onClick={async () => { setQuoteLoading(true); const q = await generateAuthorQuote(book.title, authorName, book.genre); if (q) setAuthorQuote(q); setQuoteLoading(false) }}
+              disabled={quoteLoading}
+              className="w-full text-[14px] md:text-xs px-3 py-1.5 border-2 border-border-dark text-progress font-mono cursor-pointer bg-cream hover:bg-cream-dark transition-all mb-2 disabled:opacity-50"
+            >
+              {quoteLoading ? '生成中...' : 'LLM 生成作者访谈'}
+            </button>
+          )}
+
           {book.reissueBoostUntil && <p className="text-[14px] md:text-[16px] text-progress font-mono mb-2">营销窗口期中 · 销量 ×1.5</p>}
           <div className="flex gap-1.5 md:gap-2">
             <button onClick={() => reissueBook(book.id)} disabled={book.meticulouslyEdited} className={`flex-1 text-[14px] md:text-xs px-3 md:px-4 py-1.5 md:py-2 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${book.meticulouslyEdited ? 'bg-cream-dark text-muted cursor-not-allowed' : 'bg-progress text-white'}`}>

@@ -178,6 +178,8 @@ export interface GameStore extends GameWorldState {
   sendAuthorGift: (id: string) => void
   writeAuthorLetter: (id: string) => void
   rushAuthorCooldown: (id: string) => void
+  generateBookReview: (title: string, genre: string) => Promise<string | null>
+  generateAuthorQuote: (title: string, authorName: string, genre: string) => Promise<string | null>
   hirePR: () => void
   renovateReadingRoom: () => void
   sponsorAward: () => void
@@ -898,6 +900,24 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     })
     const letters = ['写了一封手写回信，措辞认真到连标点符号都检查了三遍。', '回了封短信——只有五行字。但作者读了之后在工作室里踱步了半小时。', '在回信的末尾画了一只蝙蝠。作者回了一封邮件：只有一个问号。但ta显然被逗笑了。']
     get().addToast({ id: nanoid(), text: `${author.name}${letters[Math.floor(Math.random() * letters.length)]}好感 +8。`, type: 'info', createdAt: Date.now() })
+  },
+
+  generateBookReview: async (title, genre) => {
+    const prompt = `你是一位口味挑剔的吸血鬼读者（活了几百年）。请为一本名叫《${title}》的${genre}小说写一条读者短评。风格：冷幽默、一句话、像豆瓣/Goodreads上的那种。15-25字。不要书名号。`
+    try {
+      const res = await fetch('/api/llm', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) })
+      const data = await res.json()
+      return data.text || null
+    } catch { return null }
+  },
+
+  generateAuthorQuote: async (title, authorName, genre) => {
+    const prompt = `你是一位名叫${authorName || '某作者'}的${genre}小说作者，刚出版了《${title}》。请模仿该作者的口吻，说一句关于这本书的访谈摘录。风格：冷幽默、谦虚或自嘲。15-25字。`
+    try {
+      const res = await fetch('/api/llm', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) })
+      const data = await res.json()
+      return data.text || null
+    } catch { return null }
   },
 
   rushAuthorCooldown: (id) => {
