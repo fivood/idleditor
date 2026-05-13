@@ -9,6 +9,7 @@ import { saveGameToDb, loadGameFromDb, hasExistingSave } from '@/db/saveManager'
 import { nanoid } from '@/utils/id'
 import { generateTemplateDecision } from '@/core/decisions'
 import { loadSynopsisPool } from '@/core/humor/synopsis'
+import { loadAuthorNamePool } from '@/core/gameLoop'
 import { COUNT_SCENES, type CountScene } from '@/core/countStory'
 import { TALENTS, TALENT_UNLOCK_LEVELS, type Talent } from '@/core/talents'
 import { COLLECTIONS } from '@/core/collections'
@@ -231,6 +232,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
 
       // Load LLM synopsis pool
       loadSynopsisPool().catch(() => {})
+      // Load LLM author name pool
+      loadAuthorNamePool().catch(() => {})
 
       const existing = await hasExistingSave()
       if (existing) {

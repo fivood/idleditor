@@ -55,6 +55,16 @@ import { COLLECTIONS } from './collections'
 import { RIVALS } from './rivals'
 import { TALENTS, type Talent } from './talents'
 
+// ──── LLM-generated author name pool ────
+let authorNamePool: Record<string, string[]> | null = null
+
+export async function loadAuthorNamePool() {
+  try {
+    const res = await fetch('/authors/names.json')
+    if (res.ok) authorNamePool = await res.json()
+  } catch { /* use hardcoded names */ }
+}
+
 // ──── State that the game loop reads/mutates ────
 export interface GameWorldState {
   manuscripts: Map<string, Manuscript>
@@ -632,9 +642,18 @@ function createRandomAuthor(_world: GameWorldState): Author {
   const bias = genreBias[persona]
   const genre = bias && Math.random() < 0.7 ? pick(bias) : pick(GENRES)
 
-  // Pick a unique name (retry, then fallback to quirky pen names)
+  // Pick a unique name - prefer LLM pool, fallback to hardcoded
   const existingNames = new Set([..._world.authors.values()].map(a => a.name))
-  let name = pick(names[persona])
+  let name: string
+  if (authorNamePool?.[persona] && authorNamePool[persona].length > 0) {
+    name = pick(authorNamePool[persona].filter(n => !existingNames.has(n)))
+    if (!name || existingNames.has(name)) {
+      name = pick(names[persona])
+    }
+  } else {
+    name = pick(names[persona])
+  }
+  // Retry and fallback to pen names
   for (let i = 0; i < 15 && existingNames.has(name); i++) {
     name = pick(names[persona])
   }
