@@ -461,6 +461,17 @@ export function tick(world: GameWorldState): TickResult {
       m.status = 'submitted'
       m.quality = Math.min(100, m.quality + 3)
       m.shelvedAt = null
+      const notes = [
+        '（作者修改后重新投稿：删掉了第三章那四十页关于天气的描写）',
+        '（第二稿：作者说"这次真的改好了"。我们拭目以待。）',
+        '（修改版：新增了一个人物，删除了两个比喻，书名没变——作者觉得书名挺好的）',
+        '（修订稿：作者在邮件里写了三千字修改说明，我们只读了前两行）',
+        '（重投稿：主要改动是把主角的猫删了——编辑上次在批注里画了三只蝙蝠表示不满）',
+        '（修改后重投：作者声称"这是最终版"——我们都听过这句话）',
+      ]
+      if (!m.synopsis.includes('（作者修改')) {
+        m.synopsis += ' ' + pick(notes)
+      }
       result.toasts.push(createToast(`📥 《${m.title}》经过修改后重新投稿。品质 +3。`, 'info'))
     }
   }
