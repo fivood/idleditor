@@ -355,7 +355,11 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       unlockedCollections: new Set(world.unlockedCollections),
       prActive: world.prActive,
       readingRoomRenovated: world.readingRoomRenovated,
+      playerGender: world.playerGender,
       decisionCooldown: Math.max(0, state.decisionCooldown - 1),
+      manuscripts: new Map(world.manuscripts),
+      authors: new Map(world.authors),
+      departments: new Map(world.departments),
       toasts: [...state.toasts, ...result.toasts].slice(-100),
     })
 
