@@ -142,8 +142,8 @@ export interface GameStore extends GameWorldState {
   setTrait: (trait: EditorTrait) => void
   setActiveTab: (tab: GameStore['activeTab']) => void
   setCloudSaveCode: (code: string) => void
-  generateLlmSynopsis: (id: string) => Promise<void>
   generateLlmEditorNote: (id: string) => Promise<string | null>
+  llmCommentary: (title: string, genre: string, context: string) => Promise<void>
   resolveDecision: (optionIndex: number) => void
   setPreferredGenre: (genre: string) => void
   removePreferredGenre: (genre: string) => void
@@ -270,6 +270,14 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       tryTriggerDecision()
     }
 
+    // LLM commentary: occasional witty comments on recent events (30% chance)
+    if (newState.llmCallsRemaining > 0 && world.playTicks % 180 === 0 && Math.random() < 0.3) {
+      const reviewed = [...world.manuscripts.values()].find(m => m.status === 'editing' || m.status === 'proofing')
+      if (reviewed) {
+        newState.llmCommentary(reviewed.title, reviewed.genre, '审稿通过')
+      }
+    }
+
     // Auto-save every 60 ticks (1 minute)
     if (world.playTicks % 60 === 0) {
       saveGameToDb({
@@ -390,6 +398,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         type: 'info',
         createdAt: Date.now(),
       })
+      // LLM rejection commentary
+      state2.llmCommentary(ms.title, ms.genre, '被退稿')
     } else {
       state2.addToast({
         id: nanoid(),
@@ -533,24 +543,18 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   // ──── Cloud save ────
   setCloudSaveCode: (code) => set({ cloudSaveCode: code }),
 
-  generateLlmSynopsis: async (id: string) => {
+  generateLlmSynopsis: async (_id: string) => { /* removed */ },
+  llmCommentary: async (title: string, genre: string, context: string) => {
     const state = get()
     if (state.llmCallsRemaining <= 0) return
-    const ms = state.manuscripts.get(id)
-    if (!ms) return
-
-    const prompt = `书名：《${ms.title}》\n类型：${ms.genre}\n字数：${Math.round(ms.wordCount / 1000)}K\n请写一段简介。`
+    const prompt = `你是一位活了两百多年的吸血鬼编辑。请用中文对以下小说发表一句吐槽式评语，风格冷幽默、刻薄但善意。1句话，20字以内。
+书名：《${title}》，类型：${genre}，场景：${context}`
     try {
-      const res = await fetch('/api/llm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
-      })
+      const res = await fetch('/api/llm', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) })
       const data = await res.json()
       if (data.text) {
-        ms.synopsis = data.text
-        set({ manuscripts: new Map(state.manuscripts), llmCallsRemaining: state.llmCallsRemaining - 1 })
-        get().addToast({ id: nanoid(), text: `🤖 AI 已生成新简介。（剩余 ${state.llmCallsRemaining - 1} 次）`, type: 'info', createdAt: Date.now() })
+        set({ llmCallsRemaining: state.llmCallsRemaining - 1 })
+        get().addToast({ id: nanoid(), text: `[编辑吐槽] ${data.text}`, type: 'info', createdAt: Date.now() })
       }
     } catch { /* ignore */ }
   },

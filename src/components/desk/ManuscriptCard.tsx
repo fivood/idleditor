@@ -10,17 +10,8 @@ interface Props {
 export function ManuscriptCard({ manuscript }: Props) {
   const startReview = useGameStore(s => s.startReview)
   const rejectManuscript = useGameStore(s => s.rejectManuscript)
-  const generateLlmSynopsis = useGameStore(s => s.generateLlmSynopsis)
-  const llmCallsRemaining = useGameStore(s => s.llmCallsRemaining)
-  const [llmLoading, setLlmLoading] = useState(false)
   const [expanded, setExpanded] = useState(false)
-  const icon = GENRE_ICONS[manuscript.genre] ?? '📖'
-
-  async function handleLlmSynopsis() {
-    setLlmLoading(true)
-    await generateLlmSynopsis(manuscript.id)
-    setLlmLoading(false)
-  }
+  const icon = GENRE_ICONS[manuscript.genre] ?? '/icons/misc/book.svg'
 
   return (
     <div className="bg-cream border-2 border-border-dark p-2 md:p-3 flex gap-2 md:gap-3 items-start transition-all shadow-[3px_3px_0_#4a3728] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_#4a3728]">
@@ -36,20 +27,9 @@ export function ManuscriptCard({ manuscript }: Props) {
       </div>
       <div className="flex-1 min-w-0">
         <h3 className="text-xs md:text-sm font-bold text-ink truncate font-mono">{manuscript.title}</h3>
-        <div className="flex items-center gap-2">
-          <p className="text-[14px] md:text-[16px] text-muted mt-0.5 font-mono">
-            {manuscript.genre} · {Math.round(manuscript.wordCount / 1000)}K字
-          </p>
-          {llmCallsRemaining > 0 && (
-            <button
-              onClick={handleLlmSynopsis}
-              disabled={llmLoading}
-              className="text-[14px] text-progress font-mono cursor-pointer hover:underline disabled:opacity-50"
-            >
-              {llmLoading ? '...' : `🤖简介(${llmCallsRemaining})`}
-            </button>
-          )}
-        </div>
+        <p className="text-[14px] md:text-[16px] text-muted mt-0.5 font-mono">
+          {manuscript.genre} · {Math.round(manuscript.wordCount / 1000)}K字
+        </p>
         {manuscript.synopsis && (
           <p
             onClick={() => setExpanded(!expanded)}
@@ -79,4 +59,3 @@ export function ManuscriptCard({ manuscript }: Props) {
     </div>
   )
 }
-
