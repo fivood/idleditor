@@ -39,6 +39,7 @@ export interface PlayerNovel {
   id: string
   title: string
   author: string
+  genre: string
   synopsis: string
   recommendation: string
   content: string
@@ -52,7 +53,7 @@ const db = new Dexie('IdleEditorDB') as Dexie & {
   novels: EntityTable<PlayerNovel, 'id'>
 }
 
-db.version(2).stores({
+db.version(3).stores({
   saves: 'id, updatedAt',
   novels: 'id, createdAt',
 })

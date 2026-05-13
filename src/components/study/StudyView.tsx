@@ -2,6 +2,13 @@ import { useState, useEffect, useCallback } from 'react'
 import { db, type PlayerNovel } from '@/db/database'
 import { nanoid } from '@/utils/id'
 import JSZip from 'jszip'
+import { type Genre } from '@/core/types'
+
+const GENRE_LABELS: Record<string, string> = {
+  'sci-fi': '科幻', mystery: '推理', suspense: '悬疑',
+  'social-science': '社科', hybrid: '混合', 'light-novel': '轻小说',
+}
+const ALL_GENRES: Genre[] = ['sci-fi', 'mystery', 'suspense', 'social-science', 'hybrid', 'light-novel']
 
 export function StudyView() {
   const [novels, setNovels] = useState<PlayerNovel[]>([])
@@ -45,7 +52,7 @@ export function StudyView() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-xs md:text-sm font-bold text-ink truncate font-mono">{novel.title}</p>
-                    <p className="text-[12px] md:text-xs text-muted mt-0.5 font-mono">{novel.author} · {novel.wordCount.toLocaleString()} 字</p>
+                    <p className="text-[12px] md:text-xs text-muted mt-0.5 font-mono">{novel.author} · {GENRE_LABELS[novel.genre] || novel.genre} · {novel.wordCount.toLocaleString()} 字</p>
                     {novel.recommendation && (
                       <p className="text-[12px] md:text-xs text-ink-light mt-1.5 leading-relaxed font-mono line-clamp-2 italic">
                         "{novel.recommendation}"
@@ -79,6 +86,7 @@ function UploadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =>
   const [synopsis, setSynopsis] = useState('')
   const [recommendation, setRecommendation] = useState('')
   const [content, setContent] = useState('')
+  const [genre, setGenre] = useState<Genre>('hybrid')
 
   async function handleSave() {
     if (!title.trim() || !content.trim()) return
@@ -86,6 +94,7 @@ function UploadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =>
       id: nanoid(12),
       title: title.trim(),
       author: author.trim() || '佚名',
+      genre,
       synopsis: synopsis.trim(),
       recommendation: recommendation.trim(),
       content: content.trim(),
@@ -191,6 +200,22 @@ function UploadModal({ onClose, onSaved }: { onClose: () => void; onSaved: () =>
           <div>
             <label className="text-[12px] md:text-xs text-muted font-mono mb-1 block">作者</label>
             <input value={author} onChange={e => setAuthor(e.target.value)} className="w-full px-3 py-1.5 text-xs border-2 border-border-dark bg-card-inset text-ink font-mono focus:outline-none focus:border-copper" placeholder="作者署名" />
+          </div>
+          <div>
+            <label className="text-[12px] md:text-xs text-muted font-mono mb-1 block">分类</label>
+            <div className="grid grid-cols-3 gap-1">
+              {ALL_GENRES.map(g => (
+                <button
+                  key={g}
+                  onClick={() => setGenre(g)}
+                  className={`text-[12px] px-2 py-1 border-2 border-border-dark font-mono transition-all ${
+                    genre === g ? 'bg-copper text-white' : 'bg-cream text-muted hover:bg-cream-dark'
+                  }`}
+                >
+                  {GENRE_LABELS[g]}
+                </button>
+              ))}
+            </div>
           </div>
           <div>
             <label className="text-[12px] md:text-xs text-muted font-mono mb-1 block">简介</label>
