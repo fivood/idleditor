@@ -13,6 +13,7 @@ const PERSONA_LABELS: Record<AuthorPersona, string> = {
   'anxious-debut': '焦虑新人', 'reclusive-latam-writer': '隐居拉美作家',
   'nordic-crime-queen': '北欧推理女王', 'american-bestseller-machine': '美国畅销流水线',
   'japanese-lightnovel-otaku': '日本轻小说宅',
+  'historical-detective-writer': '考据派历史作家',
 }
 
 export function AuthorView() {

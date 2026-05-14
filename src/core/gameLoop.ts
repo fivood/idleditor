@@ -627,6 +627,7 @@ function createRandomAuthor(_world: GameWorldState): Author {
   const personaList = [
     'retired-professor', 'basement-scifi-geek', 'ex-intelligence-officer', 'sociology-phd', 'anxious-debut',
     'reclusive-latam-writer', 'nordic-crime-queen', 'american-bestseller-machine', 'japanese-lightnovel-otaku',
+    'historical-detective-writer',
   ] as const
   const persona = pick([...personaList] as unknown as string[]) as AuthorPersona
   const names: Record<string, string[]> = {
@@ -639,6 +640,7 @@ function createRandomAuthor(_world: GameWorldState): Author {
     'nordic-crime-queen': ['Ingrid·Frost（英格丽·冷飕飕）', 'Astrid·Winter（阿斯特丽德·冻死人）', 'Sigrid·Snow（西格丽德·下大雪）'],
     'american-bestseller-machine': ['Jack·Bestsell（杰克·畅销王）', 'Emily·Pageturn（艾米丽·翻页快）', 'Taylor·Delay（泰勒·拖延症）'],
     'japanese-lightnovel-otaku': ['Tanaka Light（田中·亮得耀眼）', 'Suzuki Novel（铃木·小说家）', 'Sato Isekai（佐藤·又穿越了）', 'Takahashi Tensei（高桥·又转生了）'],
+    'historical-detective-writer': ['马上飞', '史料虫', '文考源', '古道今', '案牍生', '鉴古斋主'],
   }
   const phrases: Record<string, string[]> = {
     'retired-professor': ['"截稿日期，说到底，只是一种建议。"', '"急什么。"'],

@@ -1,4 +1,4 @@
-import type { AuthorPersona, DepartmentType, EditorTrait, Genre } from './types'
+﻿import type { AuthorPersona, DepartmentType, EditorTrait, Genre } from './types'
 
 // ──── Timing (1 tick = 1 second) ────
 export const TICK_MS = 1000
@@ -65,6 +65,7 @@ export const AUTHOR_PERSONA_NAMES: Record<AuthorPersona, string[]> = {
   'nordic-crime-queen': ['Ingrid·Frost（英格丽·冷飕飕）', 'Astrid·Winter（阿斯特丽德·冻死人）', 'Sigrid·Snow（西格丽德·下大雪）', 'Freya·Winter（芙蕾雅·下冰雹）'],
   'american-bestseller-machine': ['Jack·Bestsell（杰克·畅销王）', 'Emily·Pageturn（艾米丽·翻页快）', 'Taylor·Delay（泰勒·拖延症）', 'Morgan·Signing（摩根·签不完）'],
   'japanese-lightnovel-otaku': ['Tanaka Light（田中·亮得耀眼）', 'Suzuki Novel（铃木·小说家）', 'Sato Isekai（佐藤·又穿越了）', 'Takahashi Tensei（高桥·又转生了）'],
+  'historical-detective-writer': ['马上飞', '史料虫', '文考源', '古道今', '案牍生', '鉴古斋主'],
 }
 
 // ──── Department ────
@@ -188,5 +189,9 @@ export const AUTHOR_PERSONA_PHRASES: Record<AuthorPersona, string[]> = {
     '"这次的异世界没有魔王，但有出版社。主角用现代管理学拯救倒闭的编辑部。"',
     '"如果篇幅不够，我可以在第三章加一个泳装回。不用谢。"',
     '"这是系列的第14卷。前13卷在硬盘里——等出版社会打电话的时候再拿出来。"',
+  ],
+  'historical-detective-writer': [
+    '"这段史料我翻了三个月。结论是：古人也拖稿。"',
+    '"案牍库里翻出来的真实故事，比小说离奇多了。"',
   ],
 }

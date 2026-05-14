@@ -48,6 +48,7 @@ export type AuthorPersona =
   | 'nordic-crime-queen'
   | 'american-bestseller-machine'
   | 'japanese-lightnovel-otaku'
+  | 'historical-detective-writer'
 
 // ──── Department types ────
 export type DepartmentType = 'editing' | 'design' | 'marketing' | 'rights'
