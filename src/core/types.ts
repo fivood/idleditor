@@ -115,6 +115,7 @@ export interface Author {
   signaturePhrase: string
   affection: number
   poached: boolean
+  lastInteractionAt: number
 }
 
 export interface Department {

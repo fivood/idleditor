@@ -1,4 +1,4 @@
-﻿import type { Author, AuthorPersona, Department, EditorTrait, GameEvent, Genre, Manuscript, PermanentBonuses, TickResult, ToastMessage } from './types'
+﻿import type { Author, AuthorPersona, Department, DepartmentType, EditorTrait, GameEvent, Genre, Manuscript, PermanentBonuses, TickResult, ToastMessage } from './types'
 import { GENRE_ICONS, GENRES } from './types'
 import { GENRE_COVER_COLORS } from './constants'
 import {
@@ -18,6 +18,8 @@ import {
   AUTO_REVIEW_DEPT_LEVEL,
   BESTSELLER_SALES,
   BOSS_START_YEARS,
+  DEPARTMENT_BASE_EFFICIENCY,
+  DEPARTMENT_COST_MULTIPLIER,
   EDITOR_TRAIT_BONUSES,
   GENRE_PREFERENCE_QUALITY_BONUS,
   GENRE_PREFERENCE_SALES_BONUS,
@@ -50,7 +52,7 @@ import { createCalendar, advanceCalendar, TICKS_PER_DAY } from './calendar'
 import { checkDateEvent, type DateEvent } from './dateEvents'
 import type { GameCalendar } from './calendar'
 import { TITLE_POOLS, getBaseTitle, titleToSlug } from './titlePools'
-import { xpForPublish, getLevelFromXP } from './leveling'
+import { xpForPublish, getLevelFromXP, levelBonuses } from './leveling'
 import { COLLECTIONS } from './collections'
 import { RIVALS } from './rivals'
 import { TALENTS, type Talent } from './talents'
@@ -81,6 +83,7 @@ export interface GameWorldState {
   playerName: string
   calendar: GameCalendar
   spawnTimer: number
+  solicitCooldown: number
   awardTimer: number
   trendTimer: number
   triggeredMilestones: Set<number>
@@ -100,6 +103,7 @@ export interface GameWorldState {
   readingRoomRenovated: boolean
   selectedTalents: Record<number, string>
   playerGender: 'male' | 'female' | null
+  qualityThreshold: number
 }
 
 // ──── Title generation ────
@@ -162,6 +166,7 @@ export function createInitialWorld(): GameWorldState {
     playerName: '',
     calendar: createCalendar(),
     spawnTimer: 5,
+    solicitCooldown: 0,
     awardTimer: 0,
     trendTimer: 0,
     triggeredMilestones: new Set(),
@@ -181,6 +186,7 @@ export function createInitialWorld(): GameWorldState {
     readingRoomRenovated: false,
     selectedTalents: {},
     playerGender: null,
+    qualityThreshold: 0,
   }
 }
 
@@ -201,8 +207,10 @@ export function tick(world: GameWorldState): TickResult {
   const trait = world.trait ? EDITOR_TRAIT_BONUSES[world.trait] : { rpBonus: 0, qualityBonus: 0, speedBonus: 0 }
   // Compute talent bonuses
   const talentBonuses = getTalentEffects(world.selectedTalents)
-  const effSpeedBonus = world.permanentBonuses.editingSpeedBonus + trait.speedBonus + (talentBonuses.editSpeed || 0) + (talentBonuses.allStats || 0)
-  const effRpBonus = trait.rpBonus + (talentBonuses.allStats || 0)
+  // Level bonuses
+  const lvlBonuses = levelBonuses(world.editorLevel)
+  const effSpeedBonus = world.permanentBonuses.editingSpeedBonus + trait.speedBonus + (talentBonuses.editSpeed || 0) + (talentBonuses.allStats || 0) + lvlBonuses.speed
+  const effRpBonus = trait.rpBonus + (talentBonuses.allStats || 0) + lvlBonuses.rp
 
   // Advance calendar every TICKS_PER_DAY ticks
   if (world.playTicks % TICKS_PER_DAY === 0) {
@@ -245,6 +253,7 @@ export function tick(world: GameWorldState): TickResult {
 
   // 1. Spawn manuscripts
   world.spawnTimer--
+  if (world.solicitCooldown > 0) world.solicitCooldown--
   if (world.spawnTimer <= 0) {
     const submitted = [...world.manuscripts.values()].filter(m => m.status === 'submitted')
     if (submitted.length < MAX_SUBMITTED_QUEUE) {
@@ -252,7 +261,8 @@ export function tick(world: GameWorldState): TickResult {
       world.manuscripts.set(ms.id, ms)
       result.newManuscripts.push(ms)
     }
-    world.spawnTimer = 40 + rangeInt(-5, 15)
+    const spawnRateBonus = world.permanentBonuses.spawnRateBonus
+    world.spawnTimer = Math.round((120 + rangeInt(-10, 30)) / (1 + spawnRateBonus))
   }
 
   // 2. Process reviewing
@@ -299,8 +309,20 @@ export function tick(world: GameWorldState): TickResult {
     const speedMult = 1 + effSpeedBonus
     m.editingProgress += (1 / needed) * speedMult
     if (m.editingProgress >= 1) {
-      m.status = 'cover_select'
-      m.editingProgress = 0
+      // Design department: apply quality bonus when cover is prepared
+      const designEfficiency = getDeptEfficiency(world, 'design')
+      if (designEfficiency > 0) {
+        m.quality = Math.min(100, m.quality + Math.round(designEfficiency * 10))
+      }
+      // Auto-finalize: skip cover_select for manuscripts below player's quality threshold
+      if (world.qualityThreshold > 0 && m.quality < world.qualityThreshold && world.autoCoverEnabled) {
+        m.status = 'publishing'
+        m.editingProgress = 0
+        result.toasts.push(createToast(`🤖 全自动流水线跳过封面审核：《${m.title}》（品质${m.quality}，门槛${world.qualityThreshold}）`, 'info'))
+      } else {
+        m.status = 'cover_select'
+        m.editingProgress = 0
+      }
       world.currencies.revisionPoints += rpPerProof(effSpeedBonus + effRpBonus)
     }
   }
@@ -456,8 +478,19 @@ export function tick(world: GameWorldState): TickResult {
       if (world.playTicks >= dept.upgradingUntil) {
         dept.level++
         dept.upgradingUntil = null
+        // Scale costs for next upgrade
+        dept.upgradeCostRP = Math.round(dept.upgradeCostRP * DEPARTMENT_COST_MULTIPLIER)
+        dept.upgradeCostPrestige = Math.max(0, Math.round((dept.upgradeCostPrestige + 3) * 1.3))
+        dept.upgradeTicks = Math.round(dept.upgradeTicks * 1.15)
+        result.toasts.push(createToast(`🏢 ${dept.type === 'editing' ? '编辑部' : dept.type === 'design' ? '设计部' : dept.type === 'marketing' ? '市场部' : '版权部'}升至 Lv.${dept.level}！`, 'milestone'))
       }
     }
+  }
+
+  // 8.5 Rights department: passive prestige generation
+  const rightsEfficiency = getDeptEfficiency(world, 'rights')
+  if (rightsEfficiency > 0) {
+    world.currencies.prestige += rightsEfficiency * 1.0
   }
 
   // 9. Automation perks
@@ -476,13 +509,26 @@ export function tick(world: GameWorldState): TickResult {
   }
 
   // Auto-cover: prestige >= 100
+  // Batch mode when editing >= 4 && design >= 3: process ALL cover_select at once
   if (prestige >= AUTO_COVER_PRESTIGE && world.booksPublishedThisMonth < 10 + world.publishingQuotaUpgrades && world.autoCoverEnabled) {
     const awaitingCover = [...world.manuscripts.values()].filter(m => m.status === 'cover_select')
     if (awaitingCover.length > 0) {
-      const ms = awaitingCover[0]
-      ms.status = 'publishing'
-      ms.editingProgress = 0
-      result.toasts.push(createToast(`🤖 自动出版：《${ms.title}》`, 'info'))
+      const designLevel = getDeptLevel(world, 'design')
+      const batchMode = editingDeptLevel >= 4 && designLevel >= 3
+      const toProcess = batchMode ? awaitingCover : [awaitingCover[0]]
+      let count = 0
+      for (const ms of toProcess) {
+        if (world.booksPublishedThisMonth >= 10 + world.publishingQuotaUpgrades) break
+        ms.status = 'publishing'
+        ms.editingProgress = 0
+        count++
+      }
+      if (count > 0) {
+        result.toasts.push(createToast(
+          count === 1 ? `🤖 自动出版：《${toProcess[0].title}》` : `🤖 批量自动出版：${count}份稿件已进入付印流水线`,
+          'info'
+        ))
+      }
     }
   }
 
@@ -498,7 +544,7 @@ export function tick(world: GameWorldState): TickResult {
       const author = world.authors.get(ms.authorId)
       if (author) {
         author.rejectedCount++
-        author.cooldownUntil = 1800 + author.rejectedCount * 300
+        author.cooldownUntil = 900 + author.rejectedCount * 180
       }
       result.toasts.push(createToast(`🤖 自动退稿：《${ms.title}》——不值得人类编辑的注意力。`, 'info'))
     }
@@ -539,12 +585,12 @@ export function tick(world: GameWorldState): TickResult {
 }
 
 // ──── Manuscript creation ────
-function createManuscript(world: GameWorldState): Manuscript {
+export function createManuscript(world: GameWorldState, qualityBonus = 0): Manuscript {
   const traitQBonus = world.trait ? EDITOR_TRAIT_BONUSES[world.trait].qualityBonus : 0
   const genre = pick(GENRES)
   const prefCount = world.preferredGenres.filter(g => g === genre).length
   const prefQBonus = prefCount * GENRE_PREFERENCE_QUALITY_BONUS
-  const quality = rollQuality() + world.permanentBonuses.manuscriptQualityBonus + traitQBonus + prefQBonus
+  const quality = rollQuality() + world.permanentBonuses.manuscriptQualityBonus + traitQBonus + prefQBonus + qualityBonus + levelBonuses(world.editorLevel).quality
   const title = generateTitle(genre, world)
 
   // Chance to create a new author
@@ -594,7 +640,7 @@ function createManuscriptForAuthor(world: GameWorldState, author: Author): Manus
   const traitQBonus = world.trait ? EDITOR_TRAIT_BONUSES[world.trait].qualityBonus : 0
   const prefCount = world.preferredGenres.filter(g => g === author.genre).length
   const prefQBonus = prefCount * GENRE_PREFERENCE_QUALITY_BONUS
-  const quality = Math.min(100, effectiveQuality(baseQuality, author.talent + world.permanentBonuses.authorTalentBoost, world.permanentBonuses) + traitQBonus + prefQBonus)
+  const quality = Math.min(100, effectiveQuality(baseQuality, author.talent + world.permanentBonuses.authorTalentBoost, world.permanentBonuses) + traitQBonus + prefQBonus + levelBonuses(world.editorLevel).quality)
   const title = generateTitle(author.genre, world)
 
   return {
@@ -702,14 +748,16 @@ function createRandomAuthor(_world: GameWorldState): Author {
     signaturePhrase: pick(phrases[persona]),
     affection: 0,
     poached: false,
+    lastInteractionAt: 0,
   }
 }
 
 // ──── Helpers ────
 function getDeptEfficiency(world: GameWorldState, type: string): number {
+  const base = DEPARTMENT_BASE_EFFICIENCY[type as DepartmentType] ?? 0.5
   for (const dept of world.departments.values()) {
     if (dept.type === type) {
-      return 0.5 * dept.level / 10
+      return base * dept.level / 10
     }
   }
   return 0

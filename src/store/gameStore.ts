@@ -2,7 +2,7 @@
 import type { Department, EditorTrait, Manuscript, PermanentBonuses, ToastMessage } from '@/core/types'
 import { GENRE_PREFERENCE_THRESHOLDS } from '@/core/constants'
 import type { Decision } from '@/core/decisions'
-import { createInitialWorld, tick } from '@/core/gameLoop'
+import { createInitialWorld, tick, createManuscript } from '@/core/gameLoop'
 import type { TickResult } from '@/core/types'
 import type { GameWorldState } from '@/core/gameLoop'
 import { saveGameToDb, loadGameFromDb, hasExistingSave } from '@/db/saveManager'
@@ -160,6 +160,8 @@ export interface GameStore extends GameWorldState {
   countEnding: string | null
   selectedTalents: Record<number, string> // tier -> talent id
   playerGender: 'male' | 'female' | null
+  solicitCooldown: number
+  qualityThreshold: number
 
   // Actions: lifecycle
   initialize: () => Promise<void>
@@ -190,6 +192,10 @@ export interface GameStore extends GameWorldState {
   selectTalent: (talentId: string) => void
   getTalentBonuses: () => Talent['effects']
   setPlayerGender: (gender: 'male' | 'female') => void
+  solicitFree: () => void
+  solicitTargeted: () => void
+  solicitRush: () => void
+  setQualityThreshold: (val: number) => void
 
   // Actions: manuscript
   startReview: (id: string) => void
@@ -222,6 +228,46 @@ export interface GameStore extends GameWorldState {
   addToast: (toast: ToastMessage) => void
 }
 
+function buildSolicitWorld(state: GameStore): GameWorldState {
+  return {
+    manuscripts: state.manuscripts,
+    authors: state.authors,
+    departments: state.departments,
+    events: state.events,
+    playTicks: state.playTicks,
+    totalPublished: state.totalPublished,
+    totalBestsellers: state.totalBestsellers,
+    totalRejections: state.totalRejections,
+    currencies: { ...state.currencies },
+    permanentBonuses: state.permanentBonuses,
+    trait: state.trait,
+    playerName: state.playerName,
+    calendar: { ...state.calendar },
+    spawnTimer: state.spawnTimer,
+    solicitCooldown: state.solicitCooldown,
+    awardTimer: state.awardTimer,
+    trendTimer: state.trendTimer,
+    triggeredMilestones: new Set(state.triggeredMilestones),
+    activeDateEvent: state.activeDateEvent,
+    coversManifest: state.coversManifest,
+    preferredGenres: [...state.preferredGenres],
+    booksPublishedThisMonth: state.booksPublishedThisMonth,
+    publishedTitles: new Set(state.publishedTitles),
+    editorXP: state.editorXP,
+    editorLevel: state.editorLevel,
+    publishingQuotaUpgrades: state.publishingQuotaUpgrades,
+    autoReviewEnabled: state.autoReviewEnabled,
+    autoCoverEnabled: state.autoCoverEnabled,
+    autoRejectEnabled: state.autoRejectEnabled,
+    unlockedCollections: new Set(state.unlockedCollections),
+    prActive: state.prActive,
+    readingRoomRenovated: state.readingRoomRenovated,
+    selectedTalents: { ...state.selectedTalents },
+    playerGender: state.playerGender,
+    qualityThreshold: state.qualityThreshold,
+  }
+}
+
 export const useGameStore = create<GameStore>()((set, get) => ({
   // ──── Initial state ────
   ...createInitialWorld(),
@@ -245,6 +291,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   countEnding: null,
   selectedTalents: {},
   playerGender: null,
+  solicitCooldown: 0,
+  qualityThreshold: 0,
 
   // ──── Lifecycle ────
   initialize: async () => {
@@ -334,6 +382,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       readingRoomRenovated: state.readingRoomRenovated,
       selectedTalents: state.selectedTalents,
       playerGender: state.playerGender,
+      solicitCooldown: state.solicitCooldown,
+      qualityThreshold: state.qualityThreshold,
     }
     const result = tick(world)
 
@@ -346,6 +396,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       currencies: { ...world.currencies },
       calendar: { ...world.calendar },
       spawnTimer: world.spawnTimer,
+      solicitCooldown: world.solicitCooldown,
+      qualityThreshold: world.qualityThreshold,
       awardTimer: world.awardTimer,
       trendTimer: world.trendTimer,
       triggeredMilestones: new Set(world.triggeredMilestones),
@@ -424,6 +476,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         autoReviewEnabled: world.autoReviewEnabled,
         autoCoverEnabled: world.autoCoverEnabled,
         autoRejectEnabled: world.autoRejectEnabled,
+        prActive: world.prActive,
+        readingRoomRenovated: world.readingRoomRenovated,
         triggeredMilestones: world.triggeredMilestones,
         manuscripts: world.manuscripts,
         authors: world.authors,
@@ -529,6 +583,88 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   dismissEnding: () => set({ countEnding: null }),
 
   setPlayerGender: (gender) => set({ playerGender: gender }),
+
+  setQualityThreshold: (val) => {
+    const clamped = Math.max(0, Math.min(100, Math.round(val)))
+    set({ qualityThreshold: clamped })
+  },
+
+  solicitFree: () => {
+    const state = get()
+    if (state.solicitCooldown > 0) return
+    const world = buildSolicitWorld(state)
+    const count = 2 + Math.floor(Math.random() * 3)
+    const spawned: string[] = []
+    for (let i = 0; i < count; i++) {
+      const ms = createManuscript(world)
+      world.manuscripts.set(ms.id, ms)
+      spawned.push(ms.title)
+    }
+    set({
+      manuscripts: new Map(world.manuscripts),
+      publishedTitles: new Set(world.publishedTitles),
+      solicitCooldown: 300,
+    })
+    get().addToast({
+      id: nanoid(),
+      text: `向出版业界发布了匿名征稿函。${count}份稿件应声而至：${spawned.join('、')}`,
+      type: 'info',
+      createdAt: Date.now(),
+    })
+  },
+
+  solicitTargeted: () => {
+    const state = get()
+    if (state.solicitCooldown > 0) return
+    if (state.currencies.revisionPoints < 30) return
+    const world = buildSolicitWorld(state)
+    world.currencies.revisionPoints -= 30
+    const count = 2 + Math.floor(Math.random() * 2)
+    const spawned: string[] = []
+    for (let i = 0; i < count; i++) {
+      const ms = createManuscript(world, 10)
+      world.manuscripts.set(ms.id, ms)
+      spawned.push(ms.title)
+    }
+    set({
+      manuscripts: new Map(world.manuscripts),
+      publishedTitles: new Set(world.publishedTitles),
+      currencies: { ...world.currencies },
+      solicitCooldown: 480,
+    })
+    get().addToast({
+      id: nanoid(),
+      text: `向${state.preferredGenres.length > 0 ? state.preferredGenres.map(g => ({'sci-fi':'科幻','mystery':'推理','suspense':'悬疑','social-science':'社科','hybrid':'混血','light-novel':'轻小说'}[g] ?? g)).join('、') + '领域' : '各领域'}定向约稿。${count}份高质量稿件已到：${spawned.join('、')}`,
+      type: 'info',
+      createdAt: Date.now(),
+    })
+  },
+
+  solicitRush: () => {
+    const state = get()
+    if (state.currencies.royalties < 100) return
+    const world = buildSolicitWorld(state)
+    world.currencies.royalties -= 100
+    const count = 1 + Math.floor(Math.random() * 2)
+    const spawned: string[] = []
+    for (let i = 0; i < count; i++) {
+      const ms = createManuscript(world)
+      world.manuscripts.set(ms.id, ms)
+      spawned.push(ms.title)
+    }
+    set({
+      manuscripts: new Map(world.manuscripts),
+      publishedTitles: new Set(world.publishedTitles),
+      currencies: { ...world.currencies },
+      solicitCooldown: 120,
+    })
+    get().addToast({
+      id: nanoid(),
+      text: `动用宣传预算紧急征稿。${count}份稿件火速抵达：${spawned.join('、')}`,
+      type: 'info',
+      createdAt: Date.now(),
+    })
+  },
 
   selectTalent: (talentId: string) => {
     const talent = TALENTS.find(t => t.id === talentId)
@@ -874,7 +1010,9 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     const state = get()
     const author = state.authors.get(id)
     if (!author || state.currencies.revisionPoints < 20) return
+    if (state.playTicks - author.lastInteractionAt < 120) return // 2 min cooldown
     author.affection = Math.min(100, author.affection + 15)
+    author.lastInteractionAt = state.playTicks
     set({
       authors: new Map(state.authors),
       currencies: { ...state.currencies, revisionPoints: state.currencies.revisionPoints - 20 },
@@ -887,7 +1025,9 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     const state = get()
     const author = state.authors.get(id)
     if (!author || state.currencies.revisionPoints < 15) return
+    if (state.playTicks - author.lastInteractionAt < 120) return
     author.affection = Math.min(100, author.affection + 10)
+    author.lastInteractionAt = state.playTicks
     set({
       authors: new Map(state.authors),
       currencies: { ...state.currencies, revisionPoints: state.currencies.revisionPoints - 15 },
@@ -900,7 +1040,9 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     const state = get()
     const author = state.authors.get(id)
     if (!author || state.currencies.revisionPoints < 10) return
+    if (state.playTicks - author.lastInteractionAt < 120) return
     author.affection = Math.min(100, author.affection + 8)
+    author.lastInteractionAt = state.playTicks
     set({
       authors: new Map(state.authors),
       currencies: { ...state.currencies, revisionPoints: state.currencies.revisionPoints - 10 },
@@ -929,8 +1071,10 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     const state = get()
     const author = state.authors.get(id)
     if (!author || !author.cooldownUntil || author.cooldownUntil <= 0 || state.currencies.revisionPoints < 30) return
+    if (state.playTicks - author.lastInteractionAt < 120) return
     author.cooldownUntil = Math.max(0, Math.floor(author.cooldownUntil * 0.5))
     author.affection = Math.max(0, author.affection - 5)
+    author.lastInteractionAt = state.playTicks
     set({
       authors: new Map(state.authors),
       currencies: { ...state.currencies, revisionPoints: state.currencies.revisionPoints - 30 },
@@ -940,6 +1084,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
 
   hirePR: () => {
     const state = get()
+    if (state.prActive) return // Already active
     if (state.currencies.royalties < 200) return
     set({
       currencies: { ...state.currencies, royalties: state.currencies.royalties - 200 },
@@ -950,6 +1095,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
 
   renovateReadingRoom: () => {
     const state = get()
+    if (state.readingRoomRenovated) return // Already renovated
     if (state.currencies.royalties < 500) return
     set({
       currencies: { ...state.currencies, royalties: state.currencies.royalties - 500 },

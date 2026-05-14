@@ -1,6 +1,6 @@
 ﻿import { useGameStore } from '@/store/gameStore'
 import { getPreferenceSlots } from '@/store/gameStore'
-import type { DepartmentType, Genre } from '@/core/types'
+import type { DepartmentType, Department, Genre } from '@/core/types'
 import { GENRE_ICONS } from '@/core/types'
 import { GENRE_PREFERENCE_THRESHOLDS, AUTO_REVIEW_DEPT_LEVEL, AUTO_COVER_PRESTIGE, AUTO_REJECT_PRESTIGE } from '@/core/constants'
 import { TALENTS, TALENT_UNLOCK_LEVELS } from '@/core/talents'
@@ -9,9 +9,9 @@ import { ChangelogModal } from './ChangelogModal'
 
 const DEPT_INFO: Record<DepartmentType, { label: string; icon: string; getEffect: (level: number) => string }> = {
   editing: { label: '编辑部', icon: '✍️', getEffect: (l) => l === 0 ? '未雇佣' : `流水线速度 +${l * 5}%` },
-  design: { label: '设计部', icon: '🎨', getEffect: (l) => l === 0 ? '未雇佣' : `封面品质 +${l * 3}%` },
-  marketing: { label: '市场部', icon: '📢', getEffect: (l) => l === 0 ? '未雇佣' : `书籍销量 +${l * 3}%` },
-  rights: { label: '版权部', icon: '📜', getEffect: (l) => l === 0 ? '未雇佣' : `每分钟被动声望 +${(l * 0.15).toFixed(1)}` },
+  design: { label: '设计部', icon: '🎨', getEffect: (l) => l === 0 ? '未雇佣' : `封面阶段品质 +${Math.round(l * 0.3)}` },
+  marketing: { label: '市场部', icon: '📢', getEffect: (l) => l === 0 ? '未雇佣' : `书籍销量 +${Math.round(l * 2)}%` },
+  rights: { label: '版权部', icon: '📜', getEffect: (l) => l === 0 ? '未雇佣' : `每分钟声望 +${(l * 0.9).toFixed(1)}` },
 }
 
 const GENRE_LABELS: Record<string, string> = {
@@ -45,6 +45,11 @@ export function OfficeView() {
   const selectTalent = useGameStore(s => s.selectTalent)
   const playerGender = useGameStore(s => s.playerGender)
   const setPlayerGender = useGameStore(s => s.setPlayerGender)
+  const readingRoomRenovated = useGameStore(s => s.readingRoomRenovated)
+  const prActive = useGameStore(s => s.prActive)
+  const qualityThreshold = useGameStore(s => s.qualityThreshold)
+  const setQualityThreshold = useGameStore(s => s.setQualityThreshold)
+  const playTicks = useGameStore(s => s.playTicks)
   const [showChangelog, setShowChangelog] = useState(false)
 
   const deptList = useMemo(() => [...departments.values()], [departments])
@@ -96,7 +101,7 @@ export function OfficeView() {
                     雇佣 · 50 RP
                   </button>
                 ) : dept.upgradingUntil !== null ? (
-                  <span className="text-[16px] md:text-xs text-copper font-bold font-mono">升级中...</span>
+                  <UpgradeProgress dept={dept} now={playTicks} />
                 ) : (
                   <button
                     onClick={() => upgradeDepartment(dept.id)}
@@ -132,8 +137,34 @@ export function OfficeView() {
               {usedSlots}/{maxSlots}
               {nextThreshold && <span className="hidden md:inline"> · {nextThreshold}声解锁</span>}
             </span>
-          </div>
         </div>
+
+        {/* Quality Threshold */}
+        <div className="mt-3 md:mt-4 p-2 md:p-3 border-2 border-border-dark bg-cream shadow-[3px_3px_0_#4a3728]">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs font-bold text-ink font-mono">🎚️ 审稿门槛</span>
+            <span className="text-xs font-mono text-copper font-bold">{qualityThreshold === 0 ? '关闭' : `≥ ${qualityThreshold} 品`}</span>
+          </div>
+          <input
+            type="range"
+            min={0}
+            max={80}
+            step={5}
+            value={qualityThreshold}
+            onChange={e => setQualityThreshold(parseInt(e.target.value))}
+            className="w-full h-2 appearance-none bg-card-inset border-2 border-border-dark outline-none cursor-pointer"
+            style={{ accentColor: '#b87333' }}
+          />
+          <p className="text-[12px] md:text-[13px] text-muted font-mono mt-1 leading-relaxed">
+            低于此品质的稿件直接跳过封面审核，全自动出版。设 0 关闭门槛，所有稿件都由你亲自过目。
+          </p>
+          {qualityThreshold > 0 && currencies.prestige < 100 && (
+            <p className="text-[12px] md:text-[13px] text-amber-600 font-mono mt-1">
+              ⚠️ 自动跳过封面需要声望 ≥ 100 且自动出版已开启
+            </p>
+          )}
+        </div>
+      </div>
 
         {preferredGenres.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-2 md:mb-3">
@@ -211,16 +242,17 @@ export function OfficeView() {
         {(() => {
           const cost = 200
           const canAfford = currencies.royalties >= cost
+          const done = prActive
           return (
-            <div className={`border-2 p-2 md:p-3 mt-1.5 ${canAfford ? 'bg-cream border-progress shadow-[3px_3px_0_#3a6491]' : 'bg-cream-dark border-border-dark opacity-50'}`}>
+            <div className={`border-2 p-2 md:p-3 mt-1.5 ${done ? 'bg-cream-dark border-border-dark opacity-70' : canAfford ? 'bg-cream border-progress shadow-[3px_3px_0_#3a6491]' : 'bg-cream-dark border-border-dark opacity-50'}`}>
               <div className="flex items-center gap-2">
                 <span className="text-sm md:text-lg">D</span>
                 <div className="flex-1 min-w-0">
                   <span className="text-[12px] md:text-xs font-bold text-ink font-mono">雇佣公关</span>
-                  <p className="text-[12px] md:text-[13px] text-muted font-mono">下一本出版的书自动进入热销窗口（3天 ×1.5销量）</p>
+                  <p className="text-[12px] md:text-[13px] text-muted font-mono">{done ? '当前：已激活 · 等待下一本新书出版触发' : '下一本出版的书进入热销窗口（3天 ×1.5销量）'}</p>
                 </div>
-                <button onClick={hirePR} disabled={!canAfford} className={`text-[12px] md:text-xs px-3 py-1 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${canAfford ? 'bg-progress text-white' : 'bg-cream-dark text-muted cursor-not-allowed'}`}>
-                  {cost} 税
+                <button onClick={hirePR} disabled={!canAfford || done} className={`text-[12px] md:text-xs px-3 py-1 border-2 border-border-dark font-mono transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${done ? 'bg-card-inset text-muted cursor-not-allowed' : canAfford ? 'bg-progress text-white cursor-pointer' : 'bg-cream-dark text-muted cursor-not-allowed'}`}>
+                  {done ? '已激活' : cost + ' 税'}
                 </button>
               </div>
             </div>
@@ -231,16 +263,17 @@ export function OfficeView() {
         {(() => {
           const cost = 500
           const canAfford = currencies.royalties >= cost
+          const done = readingRoomRenovated
           return (
-            <div className={`border-2 p-2 md:p-3 mt-1.5 ${canAfford ? 'bg-cream border-progress shadow-[3px_3px_0_#3a6491]' : 'bg-cream-dark border-border-dark opacity-50'}`}>
+            <div className={`border-2 p-2 md:p-3 mt-1.5 ${done ? 'bg-cream-dark border-border-dark opacity-70' : canAfford ? 'bg-cream border-progress shadow-[3px_3px_0_#3a6491]' : 'bg-cream-dark border-border-dark opacity-50'}`}>
               <div className="flex items-center gap-2">
                 <span className="text-sm md:text-lg">E</span>
                 <div className="flex-1 min-w-0">
                   <span className="text-[12px] md:text-xs font-bold text-ink font-mono">装修阅览室</span>
-                  <p className="text-[12px] md:text-[13px] text-muted font-mono">作者好感获取永久 +20%</p>
+                  <p className="text-[12px] md:text-[13px] text-muted font-mono">{done ? '当前：已装修 · 作者互动好感 +20%' : '作者互动好感获取永久 +20%'}</p>
                 </div>
-                <button onClick={renovateReadingRoom} disabled={!canAfford} className={`text-[12px] md:text-xs px-3 py-1 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${canAfford ? 'bg-progress text-white' : 'bg-cream-dark text-muted cursor-not-allowed'}`}>
-                  {cost} 税
+                <button onClick={renovateReadingRoom} disabled={!canAfford || done} className={`text-[12px] md:text-xs px-3 py-1 border-2 border-border-dark font-mono transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${done ? 'bg-card-inset text-muted cursor-not-allowed' : canAfford ? 'bg-progress text-white cursor-pointer' : 'bg-cream-dark text-muted cursor-not-allowed'}`}>
+                  {done ? '已装修' : cost + ' 税'}
                 </button>
               </div>
             </div>
@@ -257,7 +290,7 @@ export function OfficeView() {
                 <span className="text-sm md:text-lg">F</span>
                 <div className="flex-1 min-w-0">
                   <span className="text-[12px] md:text-xs font-bold text-ink font-mono">赞助文学奖</span>
-                  <p className="text-[12px] md:text-[13px] text-muted font-mono">随机一本畅销书获得 +50 声望</p>
+                  <p className="text-[12px] md:text-[13px] text-muted font-mono">随机一本畅销书 +50 声望（当前声望：{currencies.prestige}）</p>
                 </div>
                 <button onClick={sponsorAward} disabled={!canAfford} className={`text-[12px] md:text-xs px-3 py-1 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${canAfford ? 'bg-progress text-white' : 'bg-cream-dark text-muted cursor-not-allowed'}`}>
                   {cost} 税
@@ -346,6 +379,23 @@ export function OfficeView() {
       </div>
 
       {showChangelog && <ChangelogModal onClose={() => setShowChangelog(false)} />}
+    </div>
+  )
+}
+
+function UpgradeProgress({ dept, now }: { dept: Department; now: number }) {
+  const elapsed = now - (dept.upgradingUntil! - dept.upgradeTicks)
+  const pct = Math.min(100, Math.round((elapsed / dept.upgradeTicks) * 100))
+  const remaining = Math.max(0, dept.upgradingUntil! - now)
+  return (
+    <div className="flex-1">
+      <div className="flex items-center justify-between mb-0.5">
+        <span className="text-[16px] md:text-xs text-copper font-bold font-mono">升级中... {pct}%</span>
+        <span className="text-[16px] md:text-xs text-muted font-mono">{remaining}s</span>
+      </div>
+      <div className="h-1.5 bg-card-inset border border-border-dark overflow-hidden">
+        <div className="h-full bg-copper transition-all duration-75" style={{ width: `${pct}%` }} />
+      </div>
     </div>
   )
 }

@@ -44,6 +44,11 @@ export function ManuscriptCard({ manuscript }: Props) {
   const author = authors.get(manuscript.authorId)
   const isSignedAuthor = author && author.tier !== 'new'
 
+  const impression = manuscript.marketPotential < 25 ? { text: '初筛存疑', color: 'text-amber-600' }
+    : manuscript.marketPotential < 45 ? { text: '尚需斟酌', color: 'text-muted' }
+    : manuscript.marketPotential < 65 ? { text: '可堪一读', color: 'text-progress' }
+    : { text: '潜力之作', color: 'text-copper' }
+
   return (
     <div className={`border-2 p-2 md:p-3 flex gap-2 md:gap-3 items-start transition-all ${
       isSignedAuthor ? 'bg-cream border-l-4 border-l-copper' : 'bg-cream'
@@ -75,6 +80,7 @@ export function ManuscriptCard({ manuscript }: Props) {
       <div className="flex-1 min-w-0">
         <h3 className="text-xs md:text-sm font-bold text-ink truncate font-mono">{manuscript.title}</h3>
         <p className="text-[14px] md:text-[16px] text-muted mt-0.5 font-mono">
+          <span className={`font-bold mr-1 ${impression.color}`}>{impression.text}</span>· 
           {manuscript.genre} · {Math.round(manuscript.wordCount / 1000)}K字
           {(() => {
             const author = authors.get(manuscript.authorId)

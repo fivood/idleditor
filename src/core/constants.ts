@@ -25,7 +25,7 @@ export const RP_PER_REVIEW = 5
 export const RP_PER_EDIT = 3
 export const RP_PER_PROOF = 2
 export const RP_BASE_PER_PUBLISH = 50
-export const ROYALTY_BASE_RATE = 0.1 // per tick per book
+export const ROYALTY_BASE_RATE = 0.25 // per tick per book
 export const PRESTIGE_PER_PUBLISH = 10
 export const PRESTIGE_PER_BESTSELLER = 50
 

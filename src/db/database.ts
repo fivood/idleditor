@@ -34,6 +34,8 @@ export interface SavedGame {
   autoReviewEnabled: boolean
   autoCoverEnabled: boolean
   autoRejectEnabled: boolean
+  prActive: boolean
+  readingRoomRenovated: boolean
   // Serialized maps
   manuscriptsJson: string
   authorsJson: string

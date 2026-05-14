@@ -52,6 +52,8 @@ export function useOfflineProgress() {
       readingRoomRenovated: false,
       selectedTalents: {},
       playerGender: null,
+      solicitCooldown: 0,
+      qualityThreshold: 0,
     }
 
     for (const [id, ms] of saved.manuscripts) world.manuscripts.set(id, ms)

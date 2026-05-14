@@ -18,10 +18,15 @@ const STAGE_LABELS: Record<string, string> = {
 export function DeskView() {
   const manuscripts = useGameStore(s => s.manuscripts)
   const currencies = useGameStore(s => s.currencies)
+  const solicitCooldown = useGameStore(s => s.solicitCooldown)
+  const solicitFree = useGameStore(s => s.solicitFree)
+  const solicitTargeted = useGameStore(s => s.solicitTargeted)
+  const solicitRush = useGameStore(s => s.solicitRush)
   const confirmCover = useGameStore(s => s.confirmCover)
   const rejectManuscript = useGameStore(s => s.rejectManuscript)
   const [coverModalId, setCoverModalId] = useState<string | null>(null)
   const [showLog, setShowLog] = useState(false)
+  const [solicitOpen, setSolicitOpen] = useState(false)
 
   const all = useMemo(() => [...manuscripts.values()], [manuscripts])
   const submitted = useMemo(() => all.filter(m => m.status === 'submitted'), [all])
@@ -43,6 +48,41 @@ export function DeskView() {
         <div className="flex items-center gap-2 text-[15px] md:text-xs text-muted shrink-0 font-mono">
           <span className="text-ink font-bold border border-border-dark px-1.5 md:px-2 py-0.5 bg-cream">📥 {submitted.length}</span>
           <span className="text-ink font-bold border border-border-dark px-1.5 md:px-2 py-0.5 bg-cream">⚙️ {inProgress.length}</span>
+          <div className="flex-1" />
+          <div className="relative">
+            <button
+              onClick={() => setSolicitOpen(!solicitOpen)}
+              className="text-ink font-bold border-2 border-border-dark px-1.5 md:px-2 py-0.5 bg-cream cursor-pointer hover:bg-copper hover:text-white transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] font-mono text-xs"
+            >
+              📬 征稿
+            </button>
+            {solicitOpen && (
+              <div className="absolute right-0 top-full mt-1 w-64 bg-cream border-2 border-border-dark shadow-[3px_3px_0_#4a3728] z-50">
+                <div className="p-2 space-y-2">
+                  <SolicitOption
+                    icon="📮" label="公开征稿" cost="免费"
+                    cooldown={solicitCooldown}
+                    desc="向出版业界发布匿名征稿函。2-4份稿件，品质随机。"
+                    onClick={() => { solicitFree(); setSolicitOpen(false) }}
+                  />
+                  <SolicitOption
+                    icon="🎯" label="定向约稿" cost={`30 RP`}
+                    cooldown={solicitCooldown}
+                    disabled={currencies.revisionPoints < 30}
+                    desc="向偏好领域约稿。2-3份稿件，品质+10。"
+                    onClick={() => { solicitTargeted(); setSolicitOpen(false) }}
+                  />
+                  <SolicitOption
+                    icon="⚡" label="加急征稿" cost={`100 💰`}
+                    cooldown={0}
+                    disabled={currencies.royalties < 100}
+                    desc="动用预算紧急征稿。1-2份稿件，无冷却。"
+                    onClick={() => { solicitRush(); setSolicitOpen(false) }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {currencies.revisionPoints === 0 && submitted.length === 0 && (
@@ -131,7 +171,7 @@ function PipelineCard({ manuscript: ms, onSelectCover }: { manuscript: Manuscrip
           查看封面
         </button>
       </div>
-    )
+  )
   }
 
   return (
@@ -161,5 +201,37 @@ function PipelineCard({ manuscript: ms, onSelectCover }: { manuscript: Manuscrip
       )}
       <p className="text-[14px] md:text-[16px] text-muted mt-1 text-right font-mono">{pct < 100 ? '处理中...' : '完成'}</p>
     </div>
+  )
+}
+
+function SolicitOption({ icon, label, cost, cooldown, desc, disabled, onClick }: {
+  icon: string
+  label: string
+  cost: string
+  cooldown: number
+  desc: string
+  disabled?: boolean
+  onClick: () => void
+}) {
+  const blocked = !!disabled || cooldown > 0
+  return (
+    <button
+      disabled={blocked}
+      onClick={onClick}
+      className={`w-full text-left p-2 border-2 font-mono transition-all text-xs ${
+        blocked
+          ? 'bg-card-inset border-border-medium text-muted cursor-not-allowed'
+          : 'bg-cream border-border-dark cursor-pointer hover:bg-amber-50 shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]'
+      }`}
+    >
+      <div className="flex items-center gap-1.5">
+        <span className="text-sm">{icon}</span>
+        <span className="font-bold text-ink">{label}</span>
+        <div className="flex-1" />
+        <span className="text-[16px] text-muted">{cost}</span>
+        {cooldown > 0 && <span className="text-[16px] text-copper">CD {cooldown}s</span>}
+      </div>
+      <p className="text-[16px] text-muted mt-0.5">{desc}</p>
+    </button>
   )
 }

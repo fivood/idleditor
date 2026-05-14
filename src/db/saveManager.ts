@@ -21,6 +21,8 @@ export interface GameSaveData {
   autoReviewEnabled: boolean
   autoCoverEnabled: boolean
   autoRejectEnabled: boolean
+  prActive: boolean
+  readingRoomRenovated: boolean
   triggeredMilestones: Set<number>
   manuscripts: Map<string, Manuscript>
   authors: Map<string, Author>
@@ -50,6 +52,8 @@ export async function saveGameToDb(data: GameSaveData): Promise<void> {
     autoReviewEnabled: data.autoReviewEnabled,
     autoCoverEnabled: data.autoCoverEnabled,
     autoRejectEnabled: data.autoRejectEnabled,
+    prActive: data.prActive ?? false,
+    readingRoomRenovated: data.readingRoomRenovated ?? false,
     manuscriptsJson: serializeMap(data.manuscripts),
     authorsJson: serializeMap(data.authors),
     departmentsJson: serializeMap(data.departments),
@@ -79,6 +83,8 @@ export async function loadGameFromDb(): Promise<GameSaveData | null> {
     autoReviewEnabled: save.autoReviewEnabled ?? true,
     autoCoverEnabled: save.autoCoverEnabled ?? true,
     autoRejectEnabled: save.autoRejectEnabled ?? true,
+    prActive: save.prActive ?? false,
+    readingRoomRenovated: save.readingRoomRenovated ?? false,
     triggeredMilestones: new Set(save.triggeredMilestones),
     manuscripts: deserializeMap<string, Manuscript>(save.manuscriptsJson),
     authors: deserializeMap<string, Author>(save.authorsJson),
