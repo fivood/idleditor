@@ -236,7 +236,6 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
   const reissueBook = useGameStore(s => s.reissueBook)
   const generateBookReview = useGameStore(s => s.generateBookReview)
   const generateEditorNote = useGameStore(s => s.generateEditorNote)
-  const updateCustomNote = useGameStore(s => s.updateCustomNote)
   const llmCallsRemaining = useGameStore(s => s.llmCallsRemaining)
   const authors = useGameStore(s => s.authors)
   const greyColor = spineGrayForBook(book)
@@ -245,7 +244,6 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
   const [peerReview, setPeerReview] = useState<{ text: string; poolSize: number } | null>(null)
   const [reviewLoading, setReviewLoading] = useState(false)
   const [noteLoading, setNoteLoading] = useState(false)
-  const [customInput, setCustomInput] = useState(book.customNote || '')
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -282,14 +280,16 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
           <div className="bg-card-inset border-2 border-border-dark p-2 md:p-3 mb-3 md:mb-4">
             <div className="flex items-center justify-between mb-1">
               <p className="text-[13px] md:text-[16px] text-muted font-mono">编辑批语</p>
-              <button
-                onClick={async () => { setNoteLoading(true); await generateEditorNote(book.id); setNoteLoading(false) }}
-                disabled={noteLoading}
-                className="text-[14px] text-muted font-mono hover:text-copper transition-colors disabled:opacity-50"
-                title={llmCallsRemaining <= 0 ? '语言神收回了祂的能力' : book.editorNote ? '重写批语' : '随便写点批语'}
-              >
-                {noteLoading ? '...' : '🔄'}
-              </button>
+              {!book.editorNote && (
+                <button
+                  onClick={async () => { setNoteLoading(true); await generateEditorNote(book.id); setNoteLoading(false) }}
+                  disabled={noteLoading}
+                  className="text-[14px] text-muted font-mono hover:text-copper transition-colors disabled:opacity-50"
+                  title={llmCallsRemaining <= 0 ? '语言神收回了祂的能力' : '随便写点批语'}
+                >
+                  {noteLoading ? '...' : '🔄'}
+                </button>
+              )}
             </div>
             {book.editorNote ? (
               <p className="text-[13px] md:text-xs text-ink-light leading-relaxed font-mono italic">{book.editorNote}</p>
@@ -313,22 +313,6 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
               {reviewLoading ? '生成中...' : llmCallsRemaining <= 0 ? '同行推荐语（已达上限）' : '同行推荐语'}
             </button>
           )}
-
-          {/* Custom note input */}
-          <div className="bg-card-inset border-2 border-border-dark p-2 md:p-3 mb-3 md:mb-4">
-            <p className="text-[13px] md:text-[16px] text-muted font-mono mb-1">补充评语</p>
-            <input
-              value={customInput}
-              onChange={e => setCustomInput(e.target.value)}
-              onBlur={() => { if (customInput !== (book.customNote || '')) updateCustomNote(book.id, customInput) }}
-              placeholder="写下你的私人批注（最多120字）"
-              maxLength={120}
-              className="w-full text-[13px] md:text-xs bg-cream border border-border-medium px-2 py-1 font-mono outline-none focus:border-copper"
-            />
-            {book.customNote && (
-              <p className="text-[14px] text-muted font-mono mt-1">已保存 · "{book.customNote}"</p>
-            )}
-          </div>
 
           {book.reissueBoostUntil && <p className="text-[13px] md:text-[16px] text-progress font-mono mb-2">营销窗口期中 · 销量 ×1.5</p>}
           <div className="flex gap-1.5 md:gap-2">
