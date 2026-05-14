@@ -282,21 +282,20 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
           <div className="bg-card-inset border-2 border-border-dark p-2 md:p-3 mb-3 md:mb-4">
             <div className="flex items-center justify-between mb-1">
               <p className="text-[13px] md:text-[16px] text-muted font-mono">编辑批语</p>
-              {book.editorNote && (
-                <button
-                  onClick={async () => { setNoteLoading(true); await generateEditorNote(book.id); setNoteLoading(false) }}
-                  disabled={noteLoading}
-                  className="text-[14px] text-muted font-mono hover:text-copper transition-colors disabled:opacity-50"
-                  title={llmCallsRemaining <= 0 ? '本月LLM调用次数已用完' : '用LLM重新生成批语'}
-                >
-                  {noteLoading ? '...' : '🔄'}
-                </button>
-              )}
+              <button
+                onClick={async () => { setNoteLoading(true); await generateEditorNote(book.id); setNoteLoading(false) }}
+                disabled={noteLoading}
+                className="text-[14px] text-muted font-mono hover:text-copper transition-colors disabled:opacity-50"
+                title={llmCallsRemaining <= 0 ? '本月LLM调用次数已用完' : book.editorNote ? '用LLM重新生成批语' : '用LLM生成一段批语'}
+              >
+                {noteLoading ? '...' : '🔄'}
+              </button>
             </div>
-            <p className="text-[13px] md:text-xs text-ink-light leading-relaxed font-mono italic">
-              {book.editorNote || '暂无批语。点击 🔄 用LLM生成一段调侃。'}
-            </p>
-          </div>
+            {book.editorNote ? (
+              <p className="text-[13px] md:text-xs text-ink-light leading-relaxed font-mono italic">{book.editorNote}</p>
+            ) : (
+              <p className="text-[13px] md:text-xs text-muted leading-relaxed font-mono italic">暂无批语。点击 🔄 用LLM生成一段调侃。</p>
+            )}
 
           {/* Peer recommendation (was reader review) */}
           {peerReview ? (
