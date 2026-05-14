@@ -13,7 +13,8 @@ import { useGameStore } from '@/store/gameStore'
 import { useGameLoop } from '@/hooks/useGameLoop'
 import { useAutoSave } from '@/hooks/useAutoSave'
 import { useOfflineProgress } from '@/hooks/useOfflineProgress'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
+import { WALL_SVG, DESK_SVG, WINDOW_SVG, NOISE_SVG } from '@/assets/pixelTextures'
 
 export function Shell() {
   const isInitialized = useGameStore(s => s.isInitialized)
@@ -43,6 +44,13 @@ export function Shell() {
     }
   }, [isInitialized, playerName, checkOfflineProgress])
 
+  // Compile pixel backgrounds into CSS
+  const bgCSS = useMemo(() => {
+    const mobile = `background: ${NOISE_SVG} repeat;`
+    const desktop = `background: ${WALL_SVG} repeat, ${WINDOW_SVG} no-repeat top right / auto 160px, ${DESK_SVG} repeat-x bottom / auto 100px;`
+    return `.pixel-shell { ${mobile} image-rendering: pixelated; } @media (min-width: 768px) { .pixel-shell { ${desktop} } }`
+  }, [])
+
   if (!isInitialized) {
     return (
       <div className="flex items-center justify-center h-dvh bg-cream">
@@ -56,60 +64,65 @@ export function Shell() {
   }
 
   return (
-    <div className="w-full h-dvh flex flex-col bg-cream md:border-2 md:border-border-dark md:shadow-[6px_6px_0_#4a3728] overflow-hidden">
-      <TopBar />
-      <main className="flex-1 overflow-hidden flex flex-col min-h-0">
-        <div hidden={activeTab !== 'desk'} className="flex-1 min-h-0"><DeskView /></div>
-        <div hidden={activeTab !== 'shelf'} className="flex-1 min-h-0"><ShelfView /></div>
-        <div hidden={activeTab !== 'authors'} className="flex-1 min-h-0"><AuthorView /></div>
-        <div hidden={activeTab !== 'office'} className="flex-1 min-h-0"><OfficeView /></div>
-        <div hidden={activeTab !== 'study'} className="flex-1 min-h-0"><StudyView /></div>
-      </main>
-      <nav className="h-11 md:h-12 border-t-2 border-border-dark bg-cream-dark flex items-center shrink-0">
-        {[
-          ['desk', '桌面'],
-          ['shelf', '书架'],
-          ['authors', '作者'],
-          ['office', '办公室'],
-          ['study', '书房'],
-        ].map(([tab, label]) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab as typeof activeTab)}
-            className={`flex-1 h-full text-[13px] md:text-xs font-medium transition-all cursor-pointer border-r-2 border-border-dark last:border-r-0 ${
-              activeTab === tab
-                ? 'bg-copper text-white border-b-0'
-                : 'bg-cream-dark text-ink-light hover:bg-cream'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </nav>
+    <>
+      <style>{bgCSS}</style>
+      <div className="pixel-shell w-full h-dvh overflow-hidden bg-[#1a1410] md:p-2 lg:p-4">
+        <div className="w-full h-full flex flex-col bg-cream md:border-2 md:border-border-dark md:shadow-[6px_6px_0_#4a3728] overflow-hidden">
+          <TopBar />
+          <main className="flex-1 overflow-hidden flex flex-col min-h-0 bg-cream">
+            <div hidden={activeTab !== 'desk'} className="flex-1 min-h-0"><DeskView /></div>
+            <div hidden={activeTab !== 'shelf'} className="flex-1 min-h-0"><ShelfView /></div>
+            <div hidden={activeTab !== 'authors'} className="flex-1 min-h-0"><AuthorView /></div>
+            <div hidden={activeTab !== 'office'} className="flex-1 min-h-0"><OfficeView /></div>
+            <div hidden={activeTab !== 'study'} className="flex-1 min-h-0"><StudyView /></div>
+          </main>
+          <nav className="h-11 md:h-12 border-t-2 border-border-dark bg-cream-dark flex items-center shrink-0">
+            {[
+              ['desk', '桌面'],
+              ['shelf', '书架'],
+              ['authors', '作者'],
+              ['office', '办公室'],
+              ['study', '书房'],
+            ].map(([tab, label]) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab as typeof activeTab)}
+                className={`flex-1 h-full text-[13px] md:text-xs font-medium transition-all cursor-pointer border-r-2 border-border-dark last:border-r-0 ${
+                  activeTab === tab
+                    ? 'bg-copper text-white border-b-0'
+                    : 'bg-cream-dark text-ink-light hover:bg-cream'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </nav>
 
-      {showReport && (
-        <OfflineReportModal
-          offlineTicks={offlineTicks}
-          earned={earned}
-          events={events}
-          onDismiss={dismiss}
-        />
-      )}
+          {showReport && (
+            <OfflineReportModal
+              offlineTicks={offlineTicks}
+              earned={earned}
+              events={events}
+              onDismiss={dismiss}
+            />
+          )}
 
-      {pendingDecision && <DecisionModal decision={pendingDecision} />}
+          {pendingDecision && <DecisionModal decision={pendingDecision} />}
 
-      {activeCountScene && (
-        <CountSceneModal
-          scene={activeCountScene}
-          onChoose={onCountSceneChoice}
-          showGenderChoice={activeCountScene.rebirth === -1}
-          onChooseGender={onCountGenderChoice}
-        />
-      )}
+          {activeCountScene && (
+            <CountSceneModal
+              scene={activeCountScene}
+              onChoose={onCountSceneChoice}
+              showGenderChoice={activeCountScene.rebirth === -1}
+              onChooseGender={onCountGenderChoice}
+            />
+          )}
 
-      {countEnding && (
-        <VictoryModal ending={countEnding} onDismiss={dismissEnding} />
-      )}
-    </div>
+          {countEnding && (
+            <VictoryModal ending={countEnding} onDismiss={dismissEnding} />
+          )}
+        </div>
+      </div>
+    </>
   )
 }
