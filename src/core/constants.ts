@@ -5,7 +5,7 @@ export const TICK_MS = 1000
 
 // ──── Base spawn rates ────
 export const BASE_MANUSCRIPT_SPAWN_INTERVAL = 30 // ticks between auto-spawns
-export const MAX_SUBMITTED_QUEUE = 20
+export const MAX_SUBMITTED_QUEUE = 7
 
 // ──── Manuscript generation ────
 export const MANUSCRIPT_QUALITY_MIN = 20

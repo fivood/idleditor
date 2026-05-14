@@ -306,6 +306,29 @@ export function tick(world: GameWorldState): TickResult {
     world.spawnTimer = Math.round((120 + rangeInt(-10, 30)) / (1 + spawnRateBonus))
   }
 
+  // 1.5 Auto-shelve stale submissions (player away too long)
+  {
+    const submitted = [...world.manuscripts.values()].filter(m => m.status === 'submitted')
+    // Sort oldest-first, shelve excess beyond the limit
+    const excess = submitted.length > MAX_SUBMITTED_QUEUE ? submitted.slice(0, submitted.length - MAX_SUBMITTED_QUEUE) : []
+    // Also shelve any that have been sitting for > 600 ticks (10 min)
+    const stale = submitted.filter(m => world.playTicks - m.createdAt > 600)
+    const toShelve = new Set([...excess, ...stale].map(m => m.id))
+    for (const m of world.manuscripts.values()) {
+      if (m.status !== 'submitted') continue
+      if (toShelve.has(m.id)) {
+        m.status = 'shelved'
+        m.shelvedAt = world.playTicks
+      }
+    }
+    if (toShelve.size > 0) {
+      result.toasts.push(createToast(
+        `📚 投稿池溢出：${toShelve.size}份稿件已归档至书架。太久没看的话作者会不高兴的。`,
+        'info'
+      ))
+    }
+  }
+
   // 2. Process reviewing
   for (const m of world.manuscripts.values()) {
     if (m.status !== 'reviewing') continue
