@@ -34,6 +34,7 @@ export function AuthorView() {
   const writeAuthorLetter = useGameStore(s => s.writeAuthorLetter)
   const rushAuthorCooldown = useGameStore(s => s.rushAuthorCooldown)
   const [selectedAuthor, setSelectedAuthor] = useState<Author | null>(null)
+  const [confirmTerminate, setConfirmTerminate] = useState<Author | null>(null)
 
   const list = useMemo(() => [...authors.values()], [authors, playTicks])
   const sorted = [...list].sort((a, b) => (TIER_ORDER[a.tier] ?? 9) - (TIER_ORDER[b.tier] ?? 9))
@@ -96,11 +97,10 @@ export function AuthorView() {
               )}
               {author.tier !== 'new' && !author.terminated && !author.poached && (
                 <button
-                  onClick={e => { e.stopPropagation(); terminateAuthor(author.id) }}
+                  onClick={e => { e.stopPropagation(); setConfirmTerminate(author) }}
                   className="text-[14px] md:text-[16px] px-1.5 md:px-2 py-0.5 md:py-1 bg-cream-dark text-muted border border-border-medium font-mono cursor-pointer hover:text-copper-dark hover:border-copper-dark transition-all flex-shrink-0"
-                  title="解除合约"
                 >
-                  ✕
+                  解约
                 </button>
               )}
             </div>
@@ -119,6 +119,33 @@ export function AuthorView() {
           onRushCooldown={() => { rushAuthorCooldown(selectedAuthor.id); setSelectedAuthor(null); setSelectedAuthor(selectedAuthor) }}
           currencies={useGameStore.getState().currencies}
         />
+      )}
+
+      {confirmTerminate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-cream border-2 border-border-dark w-full max-w-[320px] shadow-[6px_6px_0_#4a3728]">
+            <div className="p-4">
+              <p className="text-sm font-bold text-ink mb-2 font-mono">解除与{confirmTerminate.name}的合约</p>
+              <p className="text-[14px] md:text-xs text-muted leading-relaxed font-mono mb-4">
+                婚姻都有破裂的可能，杂志社和作者的感情也没那么牢靠。
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setConfirmTerminate(null)}
+                  className="flex-1 text-[14px] md:text-xs px-3 py-1.5 border-2 border-border-dark bg-cream text-ink font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
+                >
+                  我后悔了
+                </button>
+                <button
+                  onClick={() => { terminateAuthor(confirmTerminate.id); setConfirmTerminate(null) }}
+                  className="flex-1 text-[14px] md:text-xs px-3 py-1.5 border-2 border-border-dark bg-copper text-white font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
+                >
+                  祝你幸福
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
