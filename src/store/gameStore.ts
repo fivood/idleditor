@@ -733,7 +733,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         if (m) {
           m.editorNote = data.text.replace(/——/g, '--').replace(/—/g, '-')
           set({ manuscripts: new Map(s.manuscripts), llmCallsRemaining: s.llmCallsRemaining - 1 })
-          const adverbs = ['心血来潮', '思前想后', '闲得没事', '突发奇想', '百无聊赖']
+          const adverbs = ['心血来潮', '思前想后', '闲得没事']
           get().addToast({
             id: nanoid(),
             text: `${s.playerName}${adverbs[Math.floor(Math.random() * adverbs.length)]}，给《${ms.title}》重写了一条评论：${m.editorNote}`,

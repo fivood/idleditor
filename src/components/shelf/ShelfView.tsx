@@ -284,10 +284,9 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
                 <button
                   onClick={async () => { setNoteLoading(true); await generateEditorNote(book.id); setNoteLoading(false) }}
                   disabled={noteLoading}
-                  className="text-[14px] text-muted font-mono hover:text-copper transition-colors disabled:opacity-50"
-                  title={llmCallsRemaining <= 0 ? '语言神收回了祂的能力' : '随便写点批语'}
+                  className="text-[15px] md:text-xs px-2 py-0.5 border-2 border-border-dark text-muted font-mono cursor-pointer bg-cream hover:bg-cream-dark transition-all disabled:opacity-50"
                 >
-                  {noteLoading ? '...' : '🔄'}
+                  {noteLoading ? '...' : '写批语'}
                 </button>
               )}
             </div>
