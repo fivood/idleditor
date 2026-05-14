@@ -55,8 +55,8 @@ const SCENES: Record<string, string[]> = {
     '{title}：用时{time_minutes}分钟读完。{editorName}觉得，两百多年的编辑经验在此刻化为一声叹息。',
     '{title}的最后一章让{editorName}盯着天花板整整发了{time_minutes}秒的呆。永生有时候确实太长了。',
     '审完{title}，{editorName}在稿子空白处写了一句批语。区区三十字，{authorName}可能会琢磨三个月。',
-    '{editorName}审完{title}后，在办公室里来回踱了{time_minutes}步。这是他思考的方式。蝙蝠式思考。',
-    '审{title}的时候，{editorName}的羽毛笔漏墨了。他在手稿上留下了一个不可磨灭的墨点。作者可能会以为这是隐喻。其实不是。',
+    '{editorName}审完{title}后，在办公室里来回踱了{time_minutes}步。{he}用这种方式思考。蝙蝠式思考。',
+    '审{title}的时候，{editorName}的羽毛笔漏墨了。{he}在手稿上留下了一个不可磨灭的墨点。作者可能会以为这是隐喻。其实不是。',
     '审完{title}后，{editorName}出门飞了两圈。夜风让人清醒——尤其是当你能飞的时候。回来时批注又多了一页。',
     '读完{title}，{editorName}决定去棺材里躺一会儿。不是困——是需要一个安静的地方消化这份稿子。',
     '{title}让{editorName}想起一个19世纪的夜晚。那时候审稿全靠烛光——和更好的眼力。',
@@ -82,12 +82,12 @@ const SCENES: Record<string, string[]> = {
     '{intro}{authorName}正在某个地方{verb_write}下一部巨著。预计{time_days}个工作日之后交稿。对于永生者来说，这点时间不算什么。',
   ],
   authorReturn: [
-    '{authorName}从休息中归来，气色好得可疑，还带来了一份新稿子。{editorName}怀疑他是不是偷喝了伯爵的存血。',
+    '{authorName}从休息中归来，气色好得可疑，还带来了一份新稿子。{editorName}怀疑{he}是不是偷喝了伯爵的存血。',
     '{intro}{authorName}回到了书桌前。新稿件{adj_pos}。活了两百年，{editorName}还是会被这种惊喜感动。',
   ],
   manuscriptRejected: [
     '{intro}{title}被退稿了。{editorName}活了这么久，退稿次数早已数不清。但每次都有不一样的失望。',
-    '{title}——退稿决定已做出。编辑部里一百岁的实习生说了一句："确实不行。"他有发言权。',
+    '{title}——退稿决定已做出。编辑部里一百岁的实习生说了一句："确实不行。"{he}有发言权。',
   ],
   idle: [
     '稿件堆安静地躺在那里。{editorName}的茶杯飘出淡淡的红色蒸汽——纯红茶，绝对纯红茶。',

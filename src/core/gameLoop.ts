@@ -458,6 +458,7 @@ export function tick(world: GameWorldState): TickResult {
           genre: m.genre,
           authorName: world.authors.get(m.authorId)?.name ?? 'Unknown',
           playerName: world.playerName,
+          playerGender: world.playerGender ?? '',
         }), 'milestone'))
       }
 
@@ -527,6 +528,7 @@ export function tick(world: GameWorldState): TickResult {
         title: m.title,
         authorName: world.authors.get(m.authorId)?.name ?? 'Unknown',
         playerName: world.playerName,
+        playerGender: world.playerGender ?? '',
       }), 'award'))
     }
   }
