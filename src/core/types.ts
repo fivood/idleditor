@@ -49,6 +49,7 @@ export type AuthorPersona =
   | 'american-bestseller-machine'
   | 'japanese-lightnovel-otaku'
   | 'historical-detective-writer'
+  | 'fantasy-epic-writer'
 
 // ──── Department types ────
 export type DepartmentType = 'editing' | 'design' | 'marketing' | 'rights'

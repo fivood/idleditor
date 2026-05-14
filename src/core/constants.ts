@@ -66,6 +66,12 @@ export const AUTHOR_PERSONA_NAMES: Record<AuthorPersona, string[]> = {
   'american-bestseller-machine': ['Jack·Bestsell（杰克·畅销王）', 'Emily·Pageturn（艾米丽·翻页快）', 'Taylor·Delay（泰勒·拖延症）', 'Morgan·Signing（摩根·签不完）'],
   'japanese-lightnovel-otaku': ['Tanaka Light（田中·亮得耀眼）', 'Suzuki Novel（铃木·小说家）', 'Sato Isekai（佐藤·又穿越了）', 'Takahashi Tensei（高桥·又转生了）'],
   'historical-detective-writer': ['马上飞', '史料虫', '文考源', '古道今', '案牍生', '鉴古斋主'],
+  'fantasy-epic-writer': [
+    'Robert·Roundabout（罗伯特·绕远路）', 'George·Slowwrite·Martin（乔治·慢写慢写·马丁）',
+    'J·R·R·Prolongue（J·R·R·铺垫金）', 'Brandon·TooFast（布兰登·写太快）',
+    'Terry·Flatworld（特里·扁平世界）', 'Andrzej·GameCanon（安德烈·游戏正统）',
+    'Patrick·ChapterThree（帕特里克·第三章还没写完）', 'Robin·Hobbyname（罗宾·笔名太长）',
+  ],
 }
 
 // ──── Department ────
@@ -193,5 +199,11 @@ export const AUTHOR_PERSONA_PHRASES: Record<AuthorPersona, string[]> = {
   'historical-detective-writer': [
     '"这段史料我翻了三个月。结论是：古人也拖稿。"',
     '"案牍库里翻出来的真实故事，比小说离奇多了。"',
+  ],
+  'fantasy-epic-writer': [
+    '"地图还有三张没画完。别催。"',
+    '"编年史只写了前六千年——后两千年还在整理。"',
+    '"角色太多了？不，这才一百二十七个有名有姓的。这才第一卷。"',
+    '"结局我已经想好了——大纲，不是正文。具体内容取决于截稿日。"',
   ],
 }

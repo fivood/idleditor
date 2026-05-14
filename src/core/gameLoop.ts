@@ -673,7 +673,7 @@ function createRandomAuthor(_world: GameWorldState): Author {
   const personaList = [
     'retired-professor', 'basement-scifi-geek', 'ex-intelligence-officer', 'sociology-phd', 'anxious-debut',
     'reclusive-latam-writer', 'nordic-crime-queen', 'american-bestseller-machine', 'japanese-lightnovel-otaku',
-    'historical-detective-writer',
+    'historical-detective-writer', 'fantasy-epic-writer',
   ] as const
   const persona = pick([...personaList] as unknown as string[]) as AuthorPersona
   const names: Record<string, string[]> = {
@@ -687,6 +687,12 @@ function createRandomAuthor(_world: GameWorldState): Author {
     'american-bestseller-machine': ['Jack·Bestsell（杰克·畅销王）', 'Emily·Pageturn（艾米丽·翻页快）', 'Taylor·Delay（泰勒·拖延症）'],
     'japanese-lightnovel-otaku': ['Tanaka Light（田中·亮得耀眼）', 'Suzuki Novel（铃木·小说家）', 'Sato Isekai（佐藤·又穿越了）', 'Takahashi Tensei（高桥·又转生了）'],
     'historical-detective-writer': ['马上飞', '史料虫', '文考源', '古道今', '案牍生', '鉴古斋主'],
+    'fantasy-epic-writer': [
+      'Robert·Roundabout（罗伯特·绕远路）', 'George·Slowwrite·Martin（乔治·慢写慢写·马丁）',
+      'J·R·R·Prolongue（J·R·R·铺垫金）', 'Brandon·TooFast（布兰登·写太快）',
+      'Terry·Flatworld（特里·扁平世界）', 'Andrzej·GameCanon（安德烈·游戏正统）',
+      'Patrick·ChapterThree（帕特里克·第三章还没写完）', 'Robin·Hobbyname（罗宾·笔名太长）',
+    ],
   }
   const phrases: Record<string, string[]> = {
     'retired-professor': ['"截稿日期，说到底，只是一种建议。"', '"急什么。"'],
@@ -698,6 +704,7 @@ function createRandomAuthor(_world: GameWorldState): Author {
     'nordic-crime-queen': ['"第二具尸体在……不能说。"', '"暖气是灵感的敌人。"'],
     'american-bestseller-machine': ['"已经有三个制片人在竞价了。"', '"每章必须以钩子结尾。这是物理定律。"'],
     'japanese-lightnovel-otaku': ['"如果篇幅不够，第三章加个泳装回。"', '"前13卷在硬盘里，等出版社打电话。"'],
+    'fantasy-epic-writer': ['"地图还有三张没画完。别催。"', '"编年史只写了前六千年，后两千年还在整理。"', '"角色太多？不，才一百二十七个有名有姓的。这才第一卷。"', '"结局我已经想好了——大纲，不是正文。"'],
   }
 
   // Foreign personas have genre biases
@@ -706,6 +713,7 @@ function createRandomAuthor(_world: GameWorldState): Author {
     'nordic-crime-queen': ['mystery', 'suspense'],
     'american-bestseller-machine': ['hybrid', 'mystery'],
     'japanese-lightnovel-otaku': ['sci-fi', 'hybrid'],
+    'fantasy-epic-writer': ['hybrid', 'sci-fi'],
   }
   const bias = genreBias[persona]
   const genre = bias && Math.random() < 0.7 ? pick(bias) : pick(GENRES)
