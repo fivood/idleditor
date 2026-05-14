@@ -96,6 +96,8 @@ export interface Manuscript {
   meticulouslyEdited: boolean
   shelvedAt: number | null
   reissueBoostUntil: number | null
+  editorNote: string
+  customNote: string
 }
 
 export interface BookCover {

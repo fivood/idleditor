@@ -235,15 +235,17 @@ function BookSpine({ book, onClick }: { book: Manuscript; onClick: () => void })
 function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => void }) {
   const reissueBook = useGameStore(s => s.reissueBook)
   const generateBookReview = useGameStore(s => s.generateBookReview)
-  const generateAuthorQuote = useGameStore(s => s.generateAuthorQuote)
+  const generateEditorNote = useGameStore(s => s.generateEditorNote)
+  const updateCustomNote = useGameStore(s => s.updateCustomNote)
+  const llmCallsRemaining = useGameStore(s => s.llmCallsRemaining)
   const authors = useGameStore(s => s.authors)
   const greyColor = spineGrayForBook(book)
   const authorName = authors.get(book.authorId)?.name || '某作者'
 
-  const [readerReview, setReaderReview] = useState<{ text: string; poolSize: number } | null>(null)
-  const [authorQuote, setAuthorQuote] = useState<{ text: string; poolSize: number } | null>(null)
+  const [peerReview, setPeerReview] = useState<{ text: string; poolSize: number } | null>(null)
   const [reviewLoading, setReviewLoading] = useState(false)
-  const [quoteLoading, setQuoteLoading] = useState(false)
+  const [noteLoading, setNoteLoading] = useState(false)
+  const [customInput, setCustomInput] = useState(book.customNote || '')
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -268,62 +270,65 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
               <div><span className="text-muted">品质</span> <span className="text-ink font-bold">Q{book.quality}</span></div>
               <div><span className="text-muted">字数</span> <span className="text-ink font-bold">{Math.round(book.wordCount / 1000)}K</span></div>
               <div><span className="text-muted">销量</span> <span className="text-ink font-bold">{Math.round(book.salesCount).toLocaleString()} 册</span></div>
+              <div className="col-span-2"><span className="text-muted">作者</span> <span className="text-ink font-bold">{authorName}</span></div>
             </div>
             {book.isBestseller && <p className="text-[13px] md:text-xs text-copper font-bold mt-1.5 font-mono">★ 畅销书</p>}
           </div>
           <div className="bg-cream-dark border-2 border-border-dark p-2 md:p-3 mb-3 md:mb-4">
             <p className="text-[13px] md:text-xs text-ink leading-relaxed font-mono">{book.synopsis}</p>
           </div>
+
+          {/* Editor's note */}
           <div className="bg-card-inset border-2 border-border-dark p-2 md:p-3 mb-3 md:mb-4">
-            <p className="text-[13px] md:text-[16px] text-muted font-mono mb-1">编辑批语：</p>
-            <p className="text-[13px] md:text-xs text-ink-light leading-relaxed font-mono italic">{generateEditorNote(book)}</p>
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-[13px] md:text-[16px] text-muted font-mono">编辑批语</p>
+              {book.editorNote && (
+                <button
+                  onClick={async () => { setNoteLoading(true); await generateEditorNote(book.id); setNoteLoading(false) }}
+                  disabled={noteLoading}
+                  className="text-[14px] text-muted font-mono hover:text-copper transition-colors disabled:opacity-50"
+                  title={llmCallsRemaining <= 0 ? '本月LLM调用次数已用完' : '用LLM重新生成批语'}
+                >
+                  {noteLoading ? '...' : '🔄'}
+                </button>
+              )}
+            </div>
+            <p className="text-[13px] md:text-xs text-ink-light leading-relaxed font-mono italic">
+              {book.editorNote || '暂无批语。点击 🔄 用LLM生成一段调侃。'}
+            </p>
           </div>
 
-          {/* LLM-generated content */}
-          {readerReview ? (
+          {/* Peer recommendation (was reader review) */}
+          {peerReview ? (
             <div className="bg-cream-dark border-2 border-progress p-2 md:p-3 mb-2">
-              <p className="text-[13px] md:text-[16px] text-progress font-mono mb-0.5">读者短评 ×{readerReview.poolSize}</p>
-              <p className="text-[13px] md:text-xs text-ink leading-relaxed font-mono italic">"{readerReview.text}"</p>
+              <p className="text-[13px] md:text-[16px] text-progress font-mono mb-0.5">同行推荐语 ×{peerReview.poolSize}</p>
+              <p className="text-[13px] md:text-xs text-ink leading-relaxed font-mono italic">"{peerReview.text}"</p>
             </div>
           ) : (
             <button
-              onClick={async () => { setReviewLoading(true); const r = await generateBookReview(book.title, book.genre); if (r) setReaderReview(r); setReviewLoading(false) }}
+              onClick={async () => { setReviewLoading(true); const r = await generateBookReview(book.title, book.genre); if (r) setPeerReview(r); setReviewLoading(false) }}
               disabled={reviewLoading}
               className="w-full text-[13px] md:text-xs px-3 py-1.5 border-2 border-border-dark text-progress font-mono cursor-pointer bg-cream hover:bg-cream-dark transition-all mb-2 disabled:opacity-50"
             >
-              {reviewLoading ? '生成中...' : '读者短评'}
+              {reviewLoading ? '生成中...' : llmCallsRemaining <= 0 ? '同行推荐语（已达上限）' : '同行推荐语'}
             </button>
           )}
 
-          {authorQuote ? (
-            <div className="bg-cream-dark border-2 border-progress p-2 md:p-3 mb-2">
-              <p className="text-[13px] md:text-[16px] text-progress font-mono mb-0.5">作者访谈 ×{authorQuote.poolSize}</p>
-              <p className="text-[13px] md:text-xs text-ink leading-relaxed font-mono italic">——{authorQuote.text}</p>
-            </div>
-          ) : (
-            <button
-              onClick={async () => { setQuoteLoading(true); const q = await generateAuthorQuote(book.title, authorName, book.genre); if (q) setAuthorQuote(q); setQuoteLoading(false) }}
-              disabled={quoteLoading}
-              className="w-full text-[13px] md:text-xs px-3 py-1.5 border-2 border-border-dark text-progress font-mono cursor-pointer bg-cream hover:bg-cream-dark transition-all mb-2 disabled:opacity-50"
-            >
-              {quoteLoading ? '生成中...' : '作者访谈'}
-            </button>
-          )}
-
-          {authorQuote ? (
-            <div className="bg-cream-dark border-2 border-progress p-2 md:p-3 mb-2">
-              <p className="text-[14px] md:text-[16px] text-progress font-mono mb-0.5">作者访谈摘录</p>
-              <p className="text-[14px] md:text-xs text-ink leading-relaxed font-mono italic">——{authorQuote.text}</p>
-            </div>
-          ) : (
-            <button
-              onClick={async () => { setQuoteLoading(true); const q = await generateAuthorQuote(book.title, authorName, book.genre); if (q) setAuthorQuote(q); setQuoteLoading(false) }}
-              disabled={quoteLoading}
-              className="w-full text-[14px] md:text-xs px-3 py-1.5 border-2 border-border-dark text-progress font-mono cursor-pointer bg-cream hover:bg-cream-dark transition-all mb-2 disabled:opacity-50"
-            >
-              {quoteLoading ? '生成中...' : 'LLM 生成作者访谈'}
-            </button>
-          )}
+          {/* Custom note input */}
+          <div className="bg-card-inset border-2 border-border-dark p-2 md:p-3 mb-3 md:mb-4">
+            <p className="text-[13px] md:text-[16px] text-muted font-mono mb-1">补充评语</p>
+            <input
+              value={customInput}
+              onChange={e => setCustomInput(e.target.value)}
+              onBlur={() => { if (customInput !== (book.customNote || '')) updateCustomNote(book.id, customInput) }}
+              placeholder="写下你的私人批注（最多120字）"
+              maxLength={120}
+              className="w-full text-[13px] md:text-xs bg-cream border border-border-medium px-2 py-1 font-mono outline-none focus:border-copper"
+            />
+            {book.customNote && (
+              <p className="text-[14px] text-muted font-mono mt-1">已保存 · "{book.customNote}"</p>
+            )}
+          </div>
 
           {book.reissueBoostUntil && <p className="text-[13px] md:text-[16px] text-progress font-mono mb-2">营销窗口期中 · 销量 ×1.5</p>}
           <div className="flex gap-1.5 md:gap-2">
@@ -336,15 +341,4 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
       </div>
     </div>
   )
-}
-
-function generateEditorNote(book: Manuscript): string {
-  const notes = [
-    `审稿的时候喝了三杯茶。看到第${(book.quality * 7) % 300 + 10}页时差点把茶喷出来——不是贬义。只是太意外了。`,
-    `作者在致谢里感谢了"永夜出版社那位永远年轻的编辑"。他知道得太多了。`,
-    `排版的时候发现一个小问题：第${Math.floor((book.quality * 7) % 300) + 10}页的页码印成了emoji。我们决定不修改——当作彩蛋。`,
-    `这是作者写的最好的书。他自己也是这么认为的。他寄来的感谢信长达七页——我们只读了前两页。`,
-    `版权部把这本书推荐给了一个影视机构。对方回复说"很有深度但暂时不好改编"。翻译：主角内心独白太多。`,
-  ]
-  return notes[book.quality % notes.length]
 }

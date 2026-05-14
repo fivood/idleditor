@@ -204,6 +204,8 @@ export interface GameStore extends GameWorldState {
   petCat: () => void
   makeCatImmortal: () => void
   shooCat: () => void
+  generateEditorNote: (id: string) => Promise<void>
+  updateCustomNote: (id: string, note: string) => void
 
   // Actions: manuscript
   startReview: (id: string) => void
@@ -707,6 +709,40 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       type: 'info',
       createdAt: Date.now(),
     })
+  },
+
+  generateEditorNote: async (id: string) => {
+    const state = get()
+    const ms = state.manuscripts.get(id)
+    if (!ms) return
+    if (state.llmCallsRemaining <= 0) {
+      get().addToast({ id: nanoid(), text: '你什么都想不出来，以后再说吧。', type: 'humor', createdAt: Date.now() })
+      return
+    }
+    try {
+      const res = await fetch('/api/llm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: `你是一家吸血鬼出版社的编辑。请为已出版书籍《${ms.title}》写一句简短的编辑批语（20字以内）。风格：冷幽默、调侃、吸血鬼视角吐槽。不要剧透。` }),
+      })
+      const data = await res.json()
+      if (data.text) {
+        const s = get()
+        const m = s.manuscripts.get(id)
+        if (m) {
+          m.editorNote = data.text.replace(/——/g, '--').replace(/—/g, '-')
+          set({ manuscripts: new Map(s.manuscripts), llmCallsRemaining: s.llmCallsRemaining - 1 })
+        }
+      }
+    } catch { /* ignore */ }
+  },
+
+  updateCustomNote: (id: string, note: string) => {
+    const state = get()
+    const ms = state.manuscripts.get(id)
+    if (!ms) return
+    ms.customNote = note.trim().slice(0, 120)
+    set({ manuscripts: new Map(state.manuscripts) })
   },
 
   solicitFree: () => {

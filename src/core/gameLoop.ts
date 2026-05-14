@@ -413,6 +413,10 @@ export function tick(world: GameWorldState): TickResult {
       m.status = 'published'
       m.publishTime = world.playTicks
       m.editingProgress = 0
+      // Generate editor note from template pool
+      if (!m.editorNote) {
+        m.editorNote = generatePublishNote(m)
+      }
       world.totalPublished++
       world.currencies.revisionPoints += rpPerPublish(m.quality, 0)
       const pubPrestige = m.isUnsuitable ? -10 : 10
@@ -721,6 +725,8 @@ export function createManuscript(world: GameWorldState, qualityBonus = 0): Manus
     meticulouslyEdited: false,
     shelvedAt: null,
     reissueBoostUntil: null,
+    editorNote: '',
+    customNote: '',
   }
 }
 
@@ -755,6 +761,8 @@ function createManuscriptForAuthor(world: GameWorldState, author: Author): Manus
     meticulouslyEdited: false,
     shelvedAt: null,
     reissueBoostUntil: null,
+    editorNote: '',
+    customNote: '',
   }
 }
 
@@ -879,6 +887,21 @@ function createRandomAuthor(_world: GameWorldState, preferredGenre?: Genre): Aut
       return r[0] + Math.floor(Math.random() * (r[1] - r[0] + 1))
     })(),
   }
+}
+
+// ──── Editor note generation ────
+function generatePublishNote(ms: Manuscript): string {
+  const notes = [
+    `审稿时喝了三杯茶。看到第${(ms.quality * 7) % 300 + 10}页差点喷出来——不是贬义。就是太意外了。`,
+    `作者在致谢里写了"感谢永夜出版社那位永远年轻的编辑"。他知道得太多了。`,
+    `排版时发现第${Math.floor((ms.quality * 7) % 300) + 10}页的页码印成了emoji。决定不修改——当作彩蛋。`,
+    `这是作者迄今最好的书。他自己也这么认为。感谢信写了七页——我们读了前两页。`,
+    `版权部已把本书推给三家影视机构。对方都说"有深度但不好改"。翻译：内心独白太多。`,
+    `校对最后一遍时发现了一个拼写错误——但不是我们的。是作者在致谢里把自己的名字拼错了。`,
+    `稿子送来时带着一股陈年纸张的气味。打开一看，原来作者把祖父的旧稿混进去了——还挺好看。`,
+    `这本稿子在审稿会上引发了一场持续45分钟的讨论。结论：挺好的，别改了。发吧。`,
+  ]
+  return notes[ms.quality % notes.length]
 }
 
 // ──── Helpers ────
