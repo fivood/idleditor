@@ -15,6 +15,8 @@ export function CoverSelectModal({ manuscript, onConfirm, onReject, onCancel }: 
   const displayCover = manuscript.cover.src ?? null
   const author = useGameStore(s => s.authors.get(manuscript.authorId))
   const permanentBonuses = useGameStore(s => s.permanentBonuses)
+  const playerName = useGameStore(s => s.playerName)
+  const playTicks = useGameStore(s => s.playTicks)
 
   const pubPrestige = manuscript.isUnsuitable ? -10 : 10
   const marketLabel = manuscript.marketPotential >= 75 ? '极高' : manuscript.marketPotential >= 50 ? '良好' : manuscript.marketPotential >= 30 ? '一般' : '较低'
@@ -115,6 +117,13 @@ export function CoverSelectModal({ manuscript, onConfirm, onReject, onCancel }: 
                     if (noteInput.trim()) {
                       manuscript.editorNote = noteInput.trim()
                       setNoteSubmitted(true)
+                      const state = useGameStore.getState()
+                      state.addToast({
+                        id: Math.random().toString(36).slice(2, 10),
+                        text: `${playerName}飞快写下了对《${manuscript.title}》的批语：${noteInput.trim()}`,
+                        type: 'info',
+                        createdAt: playTicks,
+                      })
                     }
                   }}
                   disabled={!noteInput.trim()}
