@@ -67,6 +67,21 @@ export async function loadAuthorNamePool() {
   } catch { /* use hardcoded names */ }
 }
 
+// ──── Persona-genre bias map (used by both createManuscript and createRandomAuthor) ────
+const PERSONA_GENRE_BIAS: Record<string, Genre[]> = {
+  'reclusive-latam-writer': ['hybrid', 'social-science'],
+  'nordic-crime-queen': ['mystery', 'suspense'],
+  'american-bestseller-machine': ['hybrid', 'mystery'],
+  'japanese-lightnovel-otaku': ['sci-fi', 'hybrid'],
+  'fantasy-epic-writer': ['hybrid', 'sci-fi'],
+  'french-literary-recluse': ['social-science', 'hybrid'],
+  'indian-epic-sage': ['hybrid', 'social-science'],
+  'russian-doom-spiral': ['social-science', 'suspense'],
+  'korean-webnovel-queen': ['light-novel', 'hybrid'],
+  'nigerian-magical-realist': ['hybrid', 'social-science'],
+  'australian-outback-gothic': ['suspense', 'mystery'],
+}
+
 // ──── State that the game loop reads/mutates ────
 export interface GameWorldState {
   manuscripts: Map<string, Manuscript>
@@ -662,15 +677,23 @@ export function createManuscript(world: GameWorldState, qualityBonus = 0): Manus
   // Chance to create a new author
   let authorId: string
   if (roll(0.3) || world.authors.size === 0) {
-    const author = createRandomAuthor(world)
+    const author = createRandomAuthor(world, genre)
     world.authors.set(author.id, author)
     authorId = author.id
   } else {
-    const activeAuthors = [...world.authors.values()].filter(a => a.cooldownUntil === null && !a.poached)
-    if (activeAuthors.length > 0) {
-      authorId = pick(activeAuthors).id
+    // Prefer authors whose persona genre-bias matches this manuscript's genre
+    const genreBiased = [...world.authors.values()].filter(a => {
+      if (a.cooldownUntil !== null || a.poached) return false
+      if (a.booksWritten >= a.maxBooks) return false
+      const bias = PERSONA_GENRE_BIAS[a.persona]
+      return bias && bias.includes(genre)
+    })
+    const candidates = genreBiased.length > 0 ? genreBiased
+      : [...world.authors.values()].filter(a => a.cooldownUntil === null && !a.poached && a.booksWritten < a.maxBooks)
+    if (candidates.length > 0) {
+      authorId = pick(candidates).id
     } else {
-      const author = createRandomAuthor(world)
+      const author = createRandomAuthor(world, genre)
       world.authors.set(author.id, author)
       authorId = author.id
     }
@@ -736,7 +759,7 @@ function createManuscriptForAuthor(world: GameWorldState, author: Author): Manus
 }
 
 // ──── Author creation ────
-function createRandomAuthor(_world: GameWorldState): Author {
+function createRandomAuthor(_world: GameWorldState, preferredGenre?: Genre): Author {
   const personaList = [
     'retired-professor', 'basement-scifi-geek', 'ex-intelligence-officer', 'sociology-phd', 'anxious-debut',
     'reclusive-latam-writer', 'nordic-crime-queen', 'american-bestseller-machine', 'japanese-lightnovel-otaku',
@@ -744,7 +767,14 @@ function createRandomAuthor(_world: GameWorldState): Author {
     'french-literary-recluse', 'indian-epic-sage', 'russian-doom-spiral',
     'korean-webnovel-queen', 'nigerian-magical-realist', 'australian-outback-gothic',
   ] as const
-  const persona = pick([...personaList] as unknown as string[]) as AuthorPersona
+  // Bias persona toward preferredGenre if provided
+  let persona: AuthorPersona
+  if (preferredGenre) {
+    const matching = ([...personaList] as string[]).filter(p => PERSONA_GENRE_BIAS[p]?.includes(preferredGenre))
+    persona = (matching.length > 0 && Math.random() < 0.8 ? pick(matching) : pick([...personaList] as unknown as string[])) as AuthorPersona
+  } else {
+    persona = pick([...personaList] as unknown as string[]) as AuthorPersona
+  }
   const names: Record<string, string[]> = {
     'retired-professor': ['沈默然', '林怀瑾', '顾知秋', '苏砚清', '叶知秋', '孟晚舟', '秦观海', '陶退之', '谢半生', '裴未老'],
     'basement-scifi-geek': ['星野零', '陆星辰', '方代码', '季银河', '夏宇尘', '云起时', '钟离渊', '上官惑', '端木奇'],
@@ -789,20 +819,7 @@ function createRandomAuthor(_world: GameWorldState): Author {
   }
 
   // Foreign personas have genre biases
-  const genreBias: Record<string, Genre[]> = {
-    'reclusive-latam-writer': ['hybrid', 'social-science'],
-    'nordic-crime-queen': ['mystery', 'suspense'],
-    'american-bestseller-machine': ['hybrid', 'mystery'],
-    'japanese-lightnovel-otaku': ['sci-fi', 'hybrid'],
-    'fantasy-epic-writer': ['hybrid', 'sci-fi'],
-    'french-literary-recluse': ['social-science', 'hybrid'],
-    'indian-epic-sage': ['hybrid', 'social-science'],
-    'russian-doom-spiral': ['social-science', 'suspense'],
-    'korean-webnovel-queen': ['light-novel', 'hybrid'],
-    'nigerian-magical-realist': ['hybrid', 'social-science'],
-    'australian-outback-gothic': ['suspense', 'mystery'],
-  }
-  const bias = genreBias[persona]
+  const bias = PERSONA_GENRE_BIAS[persona]
   const genre = bias && Math.random() < 0.7 ? pick(bias) : pick(GENRES)
 
   // Pick a unique name - prefer LLM pool, fallback to hardcoded
