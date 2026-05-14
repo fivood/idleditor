@@ -122,12 +122,6 @@ const CURATED_SYNOPSES: Record<string, string> = {
 
 // ──── Expanded Slots ────
 
-const CHARACTERS = [
-  '林远', '苏晚', '陈深', '白露', '沈默', '方舟', '温晴',
-  'Kai', 'Nova', 'Zephyr', 'Vega', 'Orion', 'Lyra', 'Cipher', 'Nyx', 'Atlas', 'Echo',
-  'Elena Marchetti', 'Marcus Webb', 'Irene Volkova', 'Dimitri Kwan',
-  'Sofia Reyes', 'Henrik Larsson', 'Yuki Tanaka', 'Priya Sharma', 'Liam O\'Brien',
-]
 const MINOR_CHARS = ['邻居住着一个{profession}', '死者的前任', '最后一个见到她的人', '一个从不出门的房东', '总是准时出现的送奶工', '那个卖旧书的女人', '对门的邻居——搬来三年只说过一句话', '每天下午三点在楼下喂鸽子的人']
 const PROFESSIONS = [
   '刑警', '教授', '黑客', '记者', 'AI工程师', '书店老板', '时间管理员', '社会学家',
@@ -435,7 +429,7 @@ const HYBRID_TEMPLATES = [
 
 function fillSlots(template: string, _genre?: Genre): string {
   return template
-    .replace(/\{character\}/g, () => pick(CHARACTERS))
+    .replace(/\{character\}/g, '主角')
     .replace(/\{minor_char\}/g, () => fillSlots(pick(MINOR_CHARS)))
     .replace(/\{profession\}/g, () => pick(PROFESSIONS))
     .replace(/\{location\}/g, () => pick(LOCATIONS))
