@@ -50,6 +50,12 @@ export type AuthorPersona =
   | 'japanese-lightnovel-otaku'
   | 'historical-detective-writer'
   | 'fantasy-epic-writer'
+  | 'french-literary-recluse'
+  | 'indian-epic-sage'
+  | 'russian-doom-spiral'
+  | 'korean-webnovel-queen'
+  | 'nigerian-magical-realist'
+  | 'australian-outback-gothic'
 
 // ──── Department types ────
 export type DepartmentType = 'editing' | 'design' | 'marketing' | 'rights'
@@ -117,6 +123,8 @@ export interface Author {
   affection: number
   poached: boolean
   lastInteractionAt: number
+  booksWritten: number
+  maxBooks: number
 }
 
 export interface Department {

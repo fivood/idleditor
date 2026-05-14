@@ -15,6 +15,12 @@ const PERSONA_LABELS: Record<AuthorPersona, string> = {
   'japanese-lightnovel-otaku': '日本轻小说宅',
   'historical-detective-writer': '考据派历史作家',
   'fantasy-epic-writer': '奇幻史诗执笔',
+  'french-literary-recluse': '法国文学隐者',
+  'indian-epic-sage': '印度史诗圣者',
+  'russian-doom-spiral': '俄式沉重长卷',
+  'korean-webnovel-queen': '韩国网文女王',
+  'nigerian-magical-realist': '尼日利亚魔幻写实',
+  'australian-outback-gothic': '澳洲内陆哥特',
 }
 
 export function AuthorView() {
@@ -69,6 +75,10 @@ export function AuthorView() {
                     <span className="text-copper font-bold ml-1">· 休息中</span>
                   )}
                   {author.poached && <span className="text-copper-dark font-bold ml-1">· 被挖走</span>}
+                  <span className={`ml-1 ${author.booksWritten >= author.maxBooks ? 'text-amber-600' : 'text-muted'}`}>
+                    · {author.booksWritten}/{author.maxBooks}本
+                    {author.booksWritten >= author.maxBooks && ' · 封笔'}
+                  </span>
                 </p>
                 {(author.tier === 'signed' || author.tier === 'known') && (
                   <FameBar author={author} />

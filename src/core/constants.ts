@@ -72,6 +72,12 @@ export const AUTHOR_PERSONA_NAMES: Record<AuthorPersona, string[]> = {
     'Terry·Flatworld（特里·扁平世界）', 'Andrzej·GameCanon（安德烈·游戏正统）',
     'Patrick·ChapterThree（帕特里克·第三章还没写完）', 'Robin·Hobbyname（罗宾·笔名太长）',
   ],
+  'french-literary-recluse': ['Marguerite·SansFin（玛格丽特·没写完）', 'Jacques·Phrase（雅克·长句子）', 'Céline·Rature（塞琳·改不完）'],
+  'indian-epic-sage': ['Anand·Purana（阿南德·往世书）', 'Kavita·Mahabharata（卡维塔·太长了）', 'Raj·Samsara（拉杰·轮回中）'],
+  'russian-doom-spiral': ['Dmitri·Toska（德米特里·苦闷）', 'Natalia·Zima（娜塔莉亚·凛冬）', 'Sergei·OchenDlinno（谢尔盖·太长了）'],
+  'korean-webnovel-queen': ['Park·DailyUpdate（朴·日更万）', 'Kim·Hiatus（金·休刊）', 'Choi·Paywall（崔·付费墙）'],
+  'nigerian-magical-realist': ['Chinua·Spirit（钦努阿·神灵附体）', 'Adaeze·Oracle（阿达泽·神谕）', 'Olu·MarketGod（奥卢·市场之神）'],
+  'australian-outback-gothic': ['Bruce·RedDust（布鲁斯·红尘）', 'Sheila·Heatwave（希拉·热浪）', 'Mick·Drought（米克·大旱）'],
 }
 
 // ──── Department ────
@@ -205,5 +211,29 @@ export const AUTHOR_PERSONA_PHRASES: Record<AuthorPersona, string[]> = {
     '"编年史只写了前六千年——后两千年还在整理。"',
     '"角色太多了？不，这才一百二十七个有名有姓的。这才第一卷。"',
     '"结局我已经想好了——大纲，不是正文。具体内容取决于截稿日。"',
+  ],
+  'french-literary-recluse': [
+    '"这句话我改了十七遍。第十七遍和第一遍完全一样。"',
+    '"出版社？哪个出版社？我不在乎。"',
+  ],
+  'indian-epic-sage': [
+    '"这部史诗只有七卷。每卷大概一千页。"',
+    '"故事的核心在前四百页铺垫之后才真正开始。"',
+  ],
+  'russian-doom-spiral': [
+    '"幸福在文学中不真实。只有痛苦才经得起排版。"',
+    '"结尾是开放的。完全开放。读者自己决定谁活了下来——我会在脚注里留些线索。"',
+  ],
+  'korean-webnovel-queen': [
+    '"今天也准时上传了四千字。睡眠是凡人的事。"',
+    '"读者在评论区说第一章埋的伏笔在第四十七章才回收——他们注意到了！"',
+  ],
+  'nigerian-magical-realist': [
+    '"神灵在茶馆里点了一杯美式咖啡。世界果然变了。"',
+    '"讲故事不是我的选择——是祖先的。"',
+  ],
+  'australian-outback-gothic': [
+    '"土地也有记忆。大部分不是好的记忆。"',
+    '"你在地平线上看到的不是雾气。那是另一种东西。"',
   ],
 }

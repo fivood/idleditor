@@ -501,6 +501,7 @@ export function tick(world: GameWorldState): TickResult {
       }
     } else if (author.tier !== 'new') {
       // Active signed+ authors occasionally submit manuscripts
+      if (author.booksWritten >= author.maxBooks) continue // Retired / max books reached
       const interval = manuscriptSpawnInterval(author)
       if (world.playTicks % interval === 0) {
         const ms = createManuscriptForAuthor(world, author)
@@ -681,6 +682,7 @@ function createManuscriptForAuthor(world: GameWorldState, author: Author): Manus
   const quality = Math.min(100, effectiveQuality(baseQuality, author.talent + world.permanentBonuses.authorTalentBoost, world.permanentBonuses) + traitQBonus + prefQBonus + levelBonuses(world.editorLevel).quality)
   const title = generateTitle(author.genre, world)
 
+  author.booksWritten++
   return {
     id: nanoid(10),
     title,
@@ -712,6 +714,8 @@ function createRandomAuthor(_world: GameWorldState): Author {
     'retired-professor', 'basement-scifi-geek', 'ex-intelligence-officer', 'sociology-phd', 'anxious-debut',
     'reclusive-latam-writer', 'nordic-crime-queen', 'american-bestseller-machine', 'japanese-lightnovel-otaku',
     'historical-detective-writer', 'fantasy-epic-writer',
+    'french-literary-recluse', 'indian-epic-sage', 'russian-doom-spiral',
+    'korean-webnovel-queen', 'nigerian-magical-realist', 'australian-outback-gothic',
   ] as const
   const persona = pick([...personaList] as unknown as string[]) as AuthorPersona
   const names: Record<string, string[]> = {
@@ -731,6 +735,12 @@ function createRandomAuthor(_world: GameWorldState): Author {
       'Terry·Flatworld（特里·扁平世界）', 'Andrzej·GameCanon（安德烈·游戏正统）',
       'Patrick·ChapterThree（帕特里克·第三章还没写完）', 'Robin·Hobbyname（罗宾·笔名太长）',
     ],
+    'french-literary-recluse': ['Marguerite·SansFin（玛格丽特·没写完）', 'Jacques·Phrase（雅克·长句子）', 'Céline·Rature（塞琳·改不完）'],
+    'indian-epic-sage': ['Anand·Purana（阿南德·往世书）', 'Kavita·Mahabharata（卡维塔·太长了）', 'Raj·Samsara（拉杰·轮回中）'],
+    'russian-doom-spiral': ['Dmitri·Toska（德米特里·苦闷）', 'Natalia·Zima（娜塔莉亚·凛冬）', 'Sergei·OchenDlinno（谢尔盖·太长了）'],
+    'korean-webnovel-queen': ['Park·DailyUpdate（朴·日更万）', 'Kim·Hiatus（金·休刊）', 'Choi·Paywall（崔·付费墙）'],
+    'nigerian-magical-realist': ['Chinua·Spirit（钦努阿·神灵附体）', 'Adaeze·Oracle（阿达泽·神谕）', 'Olu·MarketGod（奥卢·市场之神）'],
+    'australian-outback-gothic': ['Bruce·RedDust（布鲁斯·红尘）', 'Sheila·Heatwave（希拉·热浪）', 'Mick·Drought（米克·大旱）'],
   }
   const phrases: Record<string, string[]> = {
     'retired-professor': ['"截稿日期，说到底，只是一种建议。"', '"急什么。"'],
@@ -743,6 +753,12 @@ function createRandomAuthor(_world: GameWorldState): Author {
     'american-bestseller-machine': ['"已经有三个制片人在竞价了。"', '"每章必须以钩子结尾。这是物理定律。"'],
     'japanese-lightnovel-otaku': ['"如果篇幅不够，第三章加个泳装回。"', '"前13卷在硬盘里，等出版社打电话。"'],
     'fantasy-epic-writer': ['"地图还有三张没画完。别催。"', '"编年史只写了前六千年，后两千年还在整理。"', '"角色太多？不，才一百二十七个有名有姓的。这才第一卷。"', '"结局我已经想好了——大纲，不是正文。"'],
+    'french-literary-recluse': ['"这句话我改了十七遍。第十七遍和第一遍完全一样。"', '"出版社？哪个出版社？我不在乎。"'],
+    'indian-epic-sage': ['"这部史诗只有七卷。每卷大概一千页。"', '"故事的核心在前四百页铺垫之后才真正开始。"'],
+    'russian-doom-spiral': ['"幸福在文学中不真实。只有痛苦才经得起排版。"', '"结尾是开放的。完全开放。读者自己决定谁活了下来——我会在脚注里留些线索。"'],
+    'korean-webnovel-queen': ['"今天也准时上传了四千字。睡眠是凡人的事。"', '"读者在评论区说第一章埋的伏笔在第四十七章才回收——他们注意到了！"'],
+    'nigerian-magical-realist': ['"神灵在茶馆里点了一杯美式咖啡。世界果然变了。"', '"讲故事不是我的选择——是祖先的。"'],
+    'australian-outback-gothic': ['"土地也有记忆。大部分不是好的记忆。"', '"你在地平线上看到的不是雾气。那是另一种东西。"'],
   }
 
   // Foreign personas have genre biases
@@ -752,6 +768,12 @@ function createRandomAuthor(_world: GameWorldState): Author {
     'american-bestseller-machine': ['hybrid', 'mystery'],
     'japanese-lightnovel-otaku': ['sci-fi', 'hybrid'],
     'fantasy-epic-writer': ['hybrid', 'sci-fi'],
+    'french-literary-recluse': ['social-science', 'hybrid'],
+    'indian-epic-sage': ['hybrid', 'social-science'],
+    'russian-doom-spiral': ['social-science', 'suspense'],
+    'korean-webnovel-queen': ['light-novel', 'hybrid'],
+    'nigerian-magical-realist': ['hybrid', 'social-science'],
+    'australian-outback-gothic': ['suspense', 'mystery'],
   }
   const bias = genreBias[persona]
   const genre = bias && Math.random() < 0.7 ? pick(bias) : pick(GENRES)
@@ -795,6 +817,23 @@ function createRandomAuthor(_world: GameWorldState): Author {
     affection: 0,
     poached: false,
     lastInteractionAt: 0,
+    booksWritten: 0,
+    maxBooks: (() => {
+      const ranges: Record<string, [number, number]> = {
+        'american-bestseller-machine': [15, 30],
+        'japanese-lightnovel-otaku': [12, 25],
+        'korean-webnovel-queen': [20, 40],
+        'fantasy-epic-writer': [8, 20],
+        'anxious-debut': [1, 4],
+        'french-literary-recluse': [2, 6],
+        'russian-doom-spiral': [3, 8],
+        'indian-epic-sage': [1, 3],
+        'nigerian-magical-realist': [2, 5],
+        'australian-outback-gothic': [3, 7],
+      }
+      const r = ranges[persona] ?? [4, 12]
+      return r[0] + Math.floor(Math.random() * (r[1] - r[0] + 1))
+    })(),
   }
 }
 
