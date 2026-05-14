@@ -145,10 +145,10 @@ export function DeskView() {
 
         {currencies.revisionPoints === 0 && submitted.length === 0 && (
           <div className="bg-cream border-2 border-border-dark p-3 md:p-4 text-xs shrink-0 shadow-[3px_3px_0_#4a3728]">
-            <p className="font-bold text-ink mb-1 font-mono">欢迎来到永夜出版社。</p>
+            <p className="font-bold text-ink mb-1 font-mono">永夜出版社</p>
             <p className="text-muted text-[16px] md:text-xs leading-relaxed">
-              稿件即将出现在你的书桌上。审读稿件来赚取修订点数，
-              然后招募部门来让一切自动化。
+              你是一位活了217年的吸血鬼。永夜出版社——你的同类创办——聘请你来当编辑，他们觉得反正你闲着也是闲着。
+              出版社的茶水间里没有镜子、红茶配方可疑、实习生被一代又一代换掉，但你从来没变过。
             </p>
           </div>
         )}

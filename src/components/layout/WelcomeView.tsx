@@ -79,10 +79,10 @@ export function WelcomeView() {
         <div className="bg-cream-dark border-2 border-border-dark p-6 shadow-[4px_4px_0_#4a3728]">
           {step === 'name' ? (
             <>
-              <p className="text-sm text-ink mb-4 font-mono">
-                你是一位在永夜出版社工作了
-                <span className="text-copper font-bold">217年</span>
-                的编辑。
+              <p className="text-sm text-ink mb-4 font-mono leading-relaxed">
+                你是一位活了<span className="text-copper font-bold">217年</span>的吸血鬼。
+                永夜出版社——你的同类创办——聘请你来当编辑，他们觉得反正你闲着也是闲着。
+                出版社的茶水间里没有镜子、红茶配方可疑、实习生被一代又一代换掉，但你从来没变过。
               </p>
 
               <div className="flex gap-2 mb-3">
