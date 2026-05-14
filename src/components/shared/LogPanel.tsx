@@ -1,5 +1,6 @@
-﻿import { useRef, useEffect, useState } from 'react'
+﻿import { useRef, useEffect, useState, useMemo } from 'react'
 import { useGameStore } from '@/store/gameStore'
+import { totalDaysToCalendar } from '@/core/calendar'
 
 export function LogPanel() {
   const toasts = useGameStore(s => s.toasts)
@@ -10,9 +11,25 @@ export function LogPanel() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [toasts.length, tab])
 
-  const reviewToasts = toasts.filter(t => t.type === 'info' || t.type === 'rejection')
-  const publishToasts = toasts.filter(t => t.type === 'milestone' || t.type === 'award')
+  const reviewToasts = useMemo(() => toasts.filter(t => t.type === 'info' || t.type === 'rejection').reverse(), [toasts])
+  const publishToasts = useMemo(() => toasts.filter(t => t.type === 'milestone' || t.type === 'award').reverse(), [toasts])
   const active = tab === 'review' ? reviewToasts : publishToasts
+
+  // Group by year-month with dividers
+  const grouped = useMemo(() => {
+    const result: { label: string; toasts: typeof active }[] = []
+    for (const t of active) {
+      const cal = totalDaysToCalendar(Math.floor(t.createdAt / 60))
+      const label = `${cal.year}年${['寂月','寒月','晦月','朔月','冥月','霜月','渊月','暗月','玄月','苍月','虚月','终月'][cal.month]}`
+      const last = result[result.length - 1]
+      if (last && last.label === label) {
+        last.toasts.push(t)
+      } else {
+        result.push({ label, toasts: [t] })
+      }
+    }
+    return result
+  }, [active])
 
   if (toasts.length === 0) {
     return (
@@ -52,19 +69,26 @@ export function LogPanel() {
             {tab === 'review' ? '暂无审稿记录' : '暂无出版记录'}
           </p>
         ) : (
-          active.map(toast => (
-            <div key={toast.id} className={`text-[15px] md:text-xs leading-relaxed font-mono ${
-              toast.type === 'levelUp' ? 'border-2 border-amber-400 bg-amber-50 p-1.5 shadow-[2px_2px_0_#b87333]' : ''
-            }`}>
-              <span className={`inline-block mr-1 ${
-                toast.type === 'milestone' ? 'text-copper' :
-                toast.type === 'award' ? 'text-green-600' :
-                toast.type === 'levelUp' ? 'text-amber-600' :
-                'text-muted'
-              }`}>
-                {toast.type === 'milestone' ? '◆' : toast.type === 'award' ? '★' : toast.type === 'levelUp' ? '⬆' : '·'}
-              </span>
-              <span className="text-ink">{toast.text}</span>
+          grouped.map((group, gi) => (
+            <div key={gi}>
+              <div className="text-[14px] md:text-[16px] text-copper font-bold font-mono border-b border-border-medium pb-0.5 mb-1 mt-2 first:mt-0">
+                {group.label}
+              </div>
+              {group.toasts.map(toast => (
+                <div key={toast.id} className={`text-[15px] md:text-xs leading-relaxed font-mono ${
+                  toast.type === 'levelUp' ? 'border-2 border-amber-400 bg-amber-50 p-1.5 shadow-[2px_2px_0_#b87333]' : ''
+                }`}>
+                  <span className={`inline-block mr-1 ${
+                    toast.type === 'milestone' ? 'text-copper' :
+                    toast.type === 'award' ? 'text-green-600' :
+                    toast.type === 'levelUp' ? 'text-amber-600' :
+                    'text-muted'
+                  }`}>
+                    {toast.type === 'milestone' ? '◆' : toast.type === 'award' ? '★' : toast.type === 'levelUp' ? '⬆' : '·'}
+                  </span>
+                  <span className="text-ink">{toast.text}</span>
+                </div>
+              ))}
             </div>
           ))
         )}
