@@ -532,7 +532,7 @@ export function tick(world: GameWorldState): TickResult {
   // 8.5 Rights department: passive prestige generation
   const rightsEfficiency = getDeptEfficiency(world, 'rights')
   if (rightsEfficiency > 0) {
-    world.currencies.prestige += rightsEfficiency * 1.0
+    world.currencies.prestige = Math.round((world.currencies.prestige + rightsEfficiency * 1.0) * 100) / 100
   }
 
   // 8.6 Cat arrival: random decision event

@@ -290,7 +290,7 @@ export function OfficeView() {
                 <span className="text-sm md:text-lg">F</span>
                 <div className="flex-1 min-w-0">
                   <span className="text-[12px] md:text-xs font-bold text-ink font-mono">赞助文学奖</span>
-                  <p className="text-[12px] md:text-[13px] text-muted font-mono">随机一本畅销书 +50 声望（当前声望：{currencies.prestige}）</p>
+                  <p className="text-[12px] md:text-[13px] text-muted font-mono">随机一本畅销书 +50 声望（当前声望：{Math.round(currencies.prestige)}）</p>
                 </div>
                 <button onClick={sponsorAward} disabled={!canAfford} className={`text-[12px] md:text-xs px-3 py-1 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${canAfford ? 'bg-progress text-white' : 'bg-cream-dark text-muted cursor-not-allowed'}`}>
                   {cost} 税
