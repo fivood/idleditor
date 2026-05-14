@@ -224,6 +224,8 @@ export function tick(world: GameWorldState): TickResult {
   }
 
   world.playTicks++
+  const ct = (text: string, type: ToastMessage['type']) =>
+    ({ id: nanoid(), text, type, createdAt: world.playTicks })
 
   // Trait & permanent bonuses
   const trait = world.trait ? EDITOR_TRAIT_BONUSES[world.trait] : { rpBonus: 0, qualityBonus: 0, speedBonus: 0 }
@@ -268,13 +270,13 @@ export function tick(world: GameWorldState): TickResult {
           })
           world.catState = null
         } else {
-          result.toasts.push(createToast(`${cat.name}看起来更老了。它趴在暖气片旁边的时间越来越长。`, 'info'))
+          result.toasts.push(ct(`${cat.name}看起来更老了。它趴在暖气片旁边的时间越来越长。`, 'info'))
         }
       }
       // Age milestones
-      if (cat.age === 1) result.toasts.push(createToast(`${cat.name}已经陪伴你一年了。它学会了在稿件堆里找到最舒服的位置——通常是今天必须审完的那叠。`, 'info'))
-      if (cat.age === 3) result.toasts.push(createToast(`${cat.name}三岁了。它现在认识所有编辑的脚步声，唯独你的——它每次都会抬头。`, 'info'))
-      if (cat.age === 5 && cat.immortal) result.toasts.push(createToast(`${cat.name}五岁了。它跳上窗台的动作依然像第一天那样轻盈。永生是份礼物——尤其是给一只猫。`, 'info'))
+      if (cat.age === 1) result.toasts.push(ct(`${cat.name}已经陪伴你一年了。它学会了在稿件堆里找到最舒服的位置——通常是今天必须审完的那叠。`, 'info'))
+      if (cat.age === 3) result.toasts.push(ct(`${cat.name}三岁了。它现在认识所有编辑的脚步声，唯独你的——它每次都会抬头。`, 'info'))
+      if (cat.age === 5 && cat.immortal) result.toasts.push(ct(`${cat.name}五岁了。它跳上窗台的动作依然像第一天那样轻盈。永生是份礼物——尤其是给一只猫。`, 'info'))
     }
     // Tick down active date event duration
     if (world.activeDateEvent) {
@@ -333,7 +335,7 @@ export function tick(world: GameWorldState): TickResult {
       world.manuscripts.delete(id)
     }
     if (toRemove.size > 0) {
-      result.toasts.push(createToast(
+      result.toasts.push(ct(
         `📮 有的稿件终究没等到审阅它的人。${toRemove.size}份稿子伤心地自我了断了。`,
         'info'
       ))
@@ -351,7 +353,7 @@ export function tick(world: GameWorldState): TickResult {
       m.status = 'editing'
       m.editingProgress = 0
       world.currencies.revisionPoints += rpPerReview(effSpeedBonus + effRpBonus)
-      result.toasts.push(createToast(generateToast('reviewComplete', {
+      result.toasts.push(ct(generateToast('reviewComplete', {
         title: m.title,
         genre: m.genre,
         quality: String(m.quality),
@@ -393,7 +395,7 @@ export function tick(world: GameWorldState): TickResult {
       if (world.qualityThreshold > 0 && m.quality < world.qualityThreshold && world.autoCoverEnabled) {
         m.status = 'publishing'
         m.editingProgress = 0
-        result.toasts.push(createToast(`🤖 全自动流水线跳过封面审核：《${m.title}》（品质${m.quality}，门槛${world.qualityThreshold}）`, 'info'))
+        result.toasts.push(ct(`🤖 全自动流水线跳过封面审核：《${m.title}》（品质${m.quality}，门槛${world.qualityThreshold}）`, 'info'))
       } else {
         m.status = 'cover_select'
         m.editingProgress = 0
@@ -446,14 +448,14 @@ export function tick(world: GameWorldState): TickResult {
           `[Lv.${newLevel}] 你把脚翘在书桌上，对着天花板发了一会儿呆。不是偷懒。是思考。不同之处在于你不需要眨眼。`,
           `[Lv.${newLevel}] 编辑部走廊里的灯泡闪了一下。实习生说"是不是电压不稳"。你说"不是"。你知道那是什么。`,
         ]
-        result.toasts.push(createToast(pick(lines), 'levelUp'))
+        result.toasts.push(ct(pick(lines), 'levelUp'))
       }
       result.publishedBooks.push(m)
       if (m.isUnsuitable) {
-        result.toasts.push(createToast(
+        result.toasts.push(ct(
           `📘 《${m.title}》勉强出版。读者评价：浪费纸张。声望 -10`, 'info'))
       } else {
-        result.toasts.push(createToast(generateToast('bookPublished', {
+        result.toasts.push(ct(generateToast('bookPublished', {
           title: m.title,
           genre: m.genre,
           authorName: world.authors.get(m.authorId)?.name ?? 'Unknown',
@@ -469,10 +471,10 @@ export function tick(world: GameWorldState): TickResult {
         const prevTier = author.tier
         if (prevTier === 'signed' && author.fame >= AUTHOR_TIER_THRESHOLDS.known) {
           author.tier = 'known'
-          result.toasts.push(createToast(`🌟 ${author.name} 已晋升为知名作者！其作品质量获得了永久提升。`, 'milestone'))
+          result.toasts.push(ct(`🌟 ${author.name} 已晋升为知名作者！其作品质量获得了永久提升。`, 'milestone'))
         } else if (prevTier === 'known' && author.fame >= AUTHOR_TIER_THRESHOLDS.idol) {
           author.tier = 'idol'
-          result.toasts.push(createToast(`🏆 ${author.name} 已晋升为传奇作者！永夜出版社的藏书阁将铭记这个时刻。`, 'milestone'))
+          result.toasts.push(ct(`🏆 ${author.name} 已晋升为传奇作者！永夜出版社的藏书阁将铭记这个时刻。`, 'milestone'))
         }
         if (author.tier !== prevTier) {
           // Tier promotion: boost author talent slightly
@@ -490,7 +492,7 @@ export function tick(world: GameWorldState): TickResult {
         if (author.affection >= AFFECTION_LOYAL) {
           author.talent = Math.min(95, author.talent + 5)
           author.affection = 0
-          result.toasts.push(createToast(`💖 ${author.name} 已成为永夜出版社的忠实作者！才华永久 +5。`, 'milestone'))
+          result.toasts.push(ct(`💖 ${author.name} 已成为永夜出版社的忠实作者！才华永久 +5。`, 'milestone'))
         }
       }
     }
@@ -524,7 +526,7 @@ export function tick(world: GameWorldState): TickResult {
       m.isBestseller = true
       world.totalBestsellers++
       world.currencies.prestige += 50
-      result.toasts.push(createToast(generateToast('bestseller', {
+      result.toasts.push(ct(generateToast('bestseller', {
         title: m.title,
         authorName: world.authors.get(m.authorId)?.name ?? 'Unknown',
         playerName: world.playerName,
@@ -564,7 +566,7 @@ export function tick(world: GameWorldState): TickResult {
         dept.upgradeCostRP = Math.round(dept.upgradeCostRP * DEPARTMENT_COST_MULTIPLIER)
         dept.upgradeCostPrestige = Math.max(0, Math.round((dept.upgradeCostPrestige + 3) * 1.3))
         dept.upgradeTicks = Math.round(dept.upgradeTicks * 1.15)
-        result.toasts.push(createToast(`🏢 ${dept.type === 'editing' ? '编辑部' : dept.type === 'design' ? '设计部' : dept.type === 'marketing' ? '市场部' : '版权部'}升至 Lv.${dept.level}！`, 'milestone'))
+        result.toasts.push(ct(`🏢 ${dept.type === 'editing' ? '编辑部' : dept.type === 'design' ? '设计部' : dept.type === 'marketing' ? '市场部' : '版权部'}升至 Lv.${dept.level}！`, 'milestone'))
       }
     }
   }
@@ -591,7 +593,7 @@ export function tick(world: GameWorldState): TickResult {
       const ms = submitted[0]
       ms.status = 'reviewing'
       ms.editingProgress = 0
-      result.toasts.push(createToast(`🤖 自动审稿：《${ms.title}》`, 'info'))
+      result.toasts.push(ct(`🤖 自动审稿：《${ms.title}》`, 'info'))
     }
   }
 
@@ -611,7 +613,7 @@ export function tick(world: GameWorldState): TickResult {
         count++
       }
       if (count > 0) {
-        result.toasts.push(createToast(
+        result.toasts.push(ct(
           count === 1 ? `🤖 自动出版：《${toProcess[0].title}》` : `🤖 批量自动出版：${count}份稿件已进入付印流水线`,
           'info'
         ))
@@ -633,7 +635,7 @@ export function tick(world: GameWorldState): TickResult {
         author.rejectedCount++
         author.cooldownUntil = 900 + author.rejectedCount * 180
       }
-      result.toasts.push(createToast(`🤖 自动退稿：《${ms.title}》——不值得人类编辑的注意力。`, 'info'))
+      result.toasts.push(ct(`🤖 自动退稿：《${ms.title}》——不值得人类编辑的注意力。`, 'info'))
     }
   }
 
@@ -664,7 +666,7 @@ export function tick(world: GameWorldState): TickResult {
       if (!m.synopsis.includes('（作者修改')) {
         m.synopsis += ' ' + pick(notes)
       }
-      result.toasts.push(createToast(`📥 《${m.title}》经过修改后重新投稿。品质 +3。`, 'info'))
+      result.toasts.push(ct(`📥 《${m.title}》经过修改后重新投稿。品质 +3。`, 'info'))
     }
   }
 
@@ -1237,10 +1239,6 @@ function rollRandomEvent(world: GameWorldState): string | null {
     if (result !== null) return result
   }
   return null
-}
-
-function createToast(text: string, type: ToastMessage['type']): ToastMessage {
-  return { id: nanoid(), text, type, createdAt: Date.now() }
 }
 
 // ──── Offline progress ────
