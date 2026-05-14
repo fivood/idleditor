@@ -124,6 +124,7 @@ export interface Author {
   signaturePhrase: string
   affection: number
   poached: boolean
+  terminated: boolean
   lastInteractionAt: number
   booksWritten: number
   maxBooks: number

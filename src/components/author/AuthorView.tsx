@@ -28,6 +28,7 @@ export function AuthorView() {
   const playTicks = useGameStore(s => s.playTicks)
   const manuscripts = useGameStore(s => s.manuscripts)
   const signAuthor = useGameStore(s => s.signAuthor)
+  const terminateAuthor = useGameStore(s => s.terminateAuthor)
   const buyAuthorMeal = useGameStore(s => s.buyAuthorMeal)
   const sendAuthorGift = useGameStore(s => s.sendAuthorGift)
   const writeAuthorLetter = useGameStore(s => s.writeAuthorLetter)
@@ -75,6 +76,7 @@ export function AuthorView() {
                     <span className="text-copper font-bold ml-1">· 休息中</span>
                   )}
                   {author.poached && <span className="text-copper-dark font-bold ml-1">· 被挖走</span>}
+                  {author.terminated && <span className="text-muted line-through ml-1">· 已解约</span>}
                   <span className={`ml-1 ${author.booksWritten >= author.maxBooks ? 'text-amber-600' : 'text-muted'}`}>
                     · {author.booksWritten}/{author.maxBooks}本
                     {author.booksWritten >= author.maxBooks && ' · 封笔'}
@@ -84,12 +86,21 @@ export function AuthorView() {
                   <FameBar author={author} />
                 )}
               </div>
-              {author.tier === 'new' && (
+              {author.tier === 'new' && !author.terminated && (
                 <button
                   onClick={e => { e.stopPropagation(); signAuthor(author.id) }}
                   className="text-[15px] md:text-xs px-2 md:px-3 py-1 md:py-1.5 bg-copper text-white border-2 border-border-dark font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all flex-shrink-0"
                 >
                   签约
+                </button>
+              )}
+              {author.tier !== 'new' && !author.terminated && !author.poached && (
+                <button
+                  onClick={e => { e.stopPropagation(); terminateAuthor(author.id) }}
+                  className="text-[14px] md:text-[16px] px-1.5 md:px-2 py-0.5 md:py-1 bg-cream-dark text-muted border border-border-medium font-mono cursor-pointer hover:text-copper-dark hover:border-copper-dark transition-all flex-shrink-0"
+                  title="解除合约"
+                >
+                  ✕
                 </button>
               )}
             </div>

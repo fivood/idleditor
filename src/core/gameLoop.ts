@@ -533,7 +533,7 @@ export function tick(world: GameWorldState): TickResult {
 
   // 7. Tick author cooldowns
   for (const author of world.authors.values()) {
-    if (author.poached) continue // Gone to a rival publisher
+    if (author.poached || author.terminated) continue // Gone or contract terminated
     if (author.cooldownUntil !== null && author.cooldownUntil > 0) {
       author.cooldownUntil--
       if (author.cooldownUntil <= 0) {
@@ -687,13 +687,13 @@ export function createManuscript(world: GameWorldState, qualityBonus = 0): Manus
   } else {
     // Prefer authors whose persona genre-bias matches this manuscript's genre
     const genreBiased = [...world.authors.values()].filter(a => {
-      if (a.cooldownUntil !== null || a.poached) return false
+      if (a.cooldownUntil !== null || a.poached || a.terminated) return false
       if (a.booksWritten >= a.maxBooks) return false
       const bias = PERSONA_GENRE_BIAS[a.persona]
       return bias && bias.includes(genre)
     })
     const candidates = genreBiased.length > 0 ? genreBiased
-      : [...world.authors.values()].filter(a => a.cooldownUntil === null && !a.poached && a.booksWritten < a.maxBooks)
+      : [...world.authors.values()].filter(a => a.cooldownUntil === null && !a.poached && !a.terminated && a.booksWritten < a.maxBooks)
     if (candidates.length > 0) {
       authorId = pick(candidates).id
     } else {
@@ -868,6 +868,7 @@ function createRandomAuthor(_world: GameWorldState, preferredGenre?: Genre): Aut
     signaturePhrase: pick(phrases[persona]),
     affection: 0,
     poached: false,
+    terminated: false,
     lastInteractionAt: 0,
     booksWritten: 0,
     maxBooks: (() => {
@@ -1154,7 +1155,7 @@ function rollRandomEvent(world: GameWorldState): string | null {
       return pick(msgs)
     },
     () => {
-      const signed = [...world.authors.values()].filter(a => a.tier !== 'new' && !a.poached)
+      const signed = [...world.authors.values()].filter(a => a.tier !== 'new' && !a.poached && !a.terminated)
       if (signed.length === 0) return null
       const a = signed[Math.floor(Math.random() * signed.length)]
       const prestige = rangeInt(5, 12)

@@ -219,6 +219,7 @@ export interface GameStore extends GameWorldState {
 
   // Actions: author
   signAuthor: (id: string) => void
+  terminateAuthor: (id: string) => void
 
   // Actions: department
   createDepartment: (type: Department['type']) => void
@@ -1006,6 +1007,21 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     author.tier = 'signed'
     author.affection += 10
     set({ authors: new Map(state.authors) })
+  },
+
+  terminateAuthor: (id: string) => {
+    const state = get()
+    const author = state.authors.get(id)
+    if (!author || author.tier === 'new') return
+    author.terminated = true
+    author.cooldownUntil = null
+    set({ authors: new Map(state.authors) })
+    get().addToast({
+      id: nanoid(),
+      text: `合约解除。${author.name}从永夜出版社的作者名单中划去。他的书还在书架上——但新作不会再出现在你桌上了。`,
+      type: 'info',
+      createdAt: Date.now(),
+    })
   },
 
   // ──── Department actions ────
