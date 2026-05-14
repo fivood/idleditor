@@ -286,7 +286,7 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
                 onClick={async () => { setNoteLoading(true); await generateEditorNote(book.id); setNoteLoading(false) }}
                 disabled={noteLoading}
                 className="text-[14px] text-muted font-mono hover:text-copper transition-colors disabled:opacity-50"
-                title={llmCallsRemaining <= 0 ? '本月LLM调用次数已用完' : book.editorNote ? '用LLM重新生成批语' : '用LLM生成一段批语'}
+                title={llmCallsRemaining <= 0 ? '语言神收回了祂的能力' : book.editorNote ? '重写批语' : '随便写点批语'}
               >
                 {noteLoading ? '...' : '🔄'}
               </button>
