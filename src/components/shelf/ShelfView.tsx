@@ -1,7 +1,6 @@
 ﻿import { useState, useMemo, useRef, useEffect } from 'react'
 import { useGameStore } from '@/store/gameStore'
 import type { Manuscript } from '@/core/types'
-import { GENRE_ICONS } from '@/core/types'
 
 const GENRE_LABELS: Record<string, string> = {
   'sci-fi': '科幻', mystery: '推理', suspense: '悬疑',
@@ -133,13 +132,7 @@ export function ShelfView() {
           <div className="flex gap-2 md:gap-3 overflow-x-auto">
             {newest.map(book => (
               <button key={book.id} onClick={() => setSelectedBook(book)} className="flex items-center gap-2 border-2 border-border-dark bg-cream p-1.5 shadow-[2px_2px_0_#4a3728] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_#4a3728] transition-all cursor-pointer">
-                <div className="w-10 h-14 md:w-12 md:h-16 border border-border-dark overflow-hidden flex-shrink-0" style={{ backgroundColor: spineGrayForBook(book) + '44' }}>
-                  {book.cover.src ? (
-                    <img src={book.cover.src} alt="" className="w-full h-full object-cover" onError={(e) => { const el = e.currentTarget; if (el.src.endsWith('.png')) el.src = el.src.replace('.png', '.svg'); else el.style.display = 'none' }} />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-lg opacity-40">{GENRE_ICONS[book.genre] ?? '📖'}</div>
-                  )}
-                </div>
+                <div className="w-10 h-14 md:w-12 md:h-16 border border-border-dark bg-[#f8f5f0] flex-shrink-0" />
                 <div className="text-left min-w-0">
                   <p className="text-[12px] md:text-xs font-bold text-ink font-mono truncate" style={{ maxWidth: 120 }}>{book.title}</p>
                   <p className="text-[12px] text-muted font-mono">Q{book.quality} · {Math.round(book.salesCount).toLocaleString()}册</p>
@@ -181,7 +174,6 @@ export function ShelfView() {
 }
 
 function BookSpine({ book, onClick }: { book: Manuscript; onClick: () => void }) {
-  const spineColor = spineGrayForBook(book)
   const spineW = 24
   const spineH = 90 + (Math.abs(book.id.charCodeAt(0) || 0) % 30)
   const [showTitle, setShowTitle] = useState(false)
@@ -199,16 +191,10 @@ function BookSpine({ book, onClick }: { book: Manuscript; onClick: () => void })
         style={{
           width: `${spineW}px`,
           height: `${spineH}px`,
-          background: `linear-gradient(135deg, ${spineColor} 0%, ${spineColor}dd 50%, ${spineColor}aa 100%)`,
+          background: '#f5f0e8',
           borderBottom: '2px solid rgba(0,0,0,0.15)',
         }}
       >
-        {book.cover.src ? (
-          <img src={book.cover.src} alt="" className="w-full h-full object-cover opacity-40"
-            style={{ objectPosition: '20% 50%' }}
-            onError={(e) => { const el = e.currentTarget; if (el.src.endsWith('.png')) el.src = el.src.replace('.png', '.svg'); else el.style.display = 'none' }}
-          />
-        ) : null}
         {/* Spine title (vertical) */}
         <div className="absolute inset-0 flex items-center justify-center">
           <span className="text-xs text-ink-light opacity-60 font-mono" style={{ writingMode: 'vertical-rl', letterSpacing: '2px' }}>
