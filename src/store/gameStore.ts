@@ -590,7 +590,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
 
     // Fire LLM career summary
     generateRebirthSummary(state, newStatues).then(text => {
-      if (text) get().addToast({ id: nanoid(), text, type: 'milestone', createdAt: Date.now() })
+      if (text) get().addToast({ id: nanoid(), text, type: 'milestone', createdAt: state.playTicks })
     })
   },
 

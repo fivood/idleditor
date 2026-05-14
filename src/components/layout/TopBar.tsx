@@ -16,6 +16,10 @@ export function TopBar() {
   const editorXP = useGameStore(s => s.editorXP)
   const reborn = useGameStore(s => s.reborn)
   const trait = useGameStore(s => s.trait)
+  const totalPublished = useGameStore(s => s.totalPublished)
+  const totalRejections = useGameStore(s => s.totalRejections)
+  const authors = useGameStore(s => s.authors)
+  const editorLevel = useGameStore(s => s.editorLevel)
   const [showRebirth, setShowRebirth] = useState(false)
 
   const canReborn = totalBestsellers >= 1
@@ -87,6 +91,7 @@ export function TopBar() {
           bonuses={permanentBonuses}
           statues={currencies.statues}
           trait={trait}
+          stats={{ totalPublished, totalBestsellers, totalRejections, authorCount: authors.size, editorLevel }}
         />
       )}
     </header>
@@ -112,22 +117,34 @@ function StatueDisplay({ count }: { count: number }) {
   )
 }
 
-function RebirthModal({ onConfirm, onCancel, bonuses, statues, trait }: {
+function RebirthModal({ onConfirm, onCancel, bonuses, statues, trait, stats }: {
   onConfirm: () => void
   onCancel: () => void
   bonuses: { manuscriptQualityBonus: number; editingSpeedBonus: number; royaltyMultiplier: number; authorTalentBoost: number; bossYears: number }
   statues: number
   trait: string | null
+  stats: { totalPublished: number; totalBestsellers: number; totalRejections: number; authorCount: number; editorLevel: number }
 }) {
   const nextCount = statues + 1
   const nextBossYears = Math.max(0, bonuses.bossYears - 1)
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="bg-cream border-2 border-border-dark w-full max-w-[380px] p-4 md:p-6 shadow-[6px_6px_0_#4a3728]">
+      <div className="bg-cream border-2 border-border-dark w-full max-w-[380px] p-4 md:p-6 shadow-[6px_6px_0_#4a3728] max-h-[90vh] overflow-y-auto">
         <h2 className="text-sm md:text-base font-bold text-ink mb-1 font-mono">铸造铜像 · 转生</h2>
         <p className="text-[15px] md:text-[16px] text-muted mb-3 md:mb-4 font-mono">
           你的功绩将被铸成铜像，陈列在永夜出版社的大厅里。一切将从头开始——但你的经验将永存。
         </p>
+
+        {/* Career summary */}
+        <div className="bg-card-inset border-2 border-border-dark p-2 md:p-3 mb-3 md:mb-4">
+          <p className="text-[16px] md:text-xs text-ink font-bold mb-1 md:mb-2 font-mono">📜 本世回顾</p>
+          <div className="text-[15px] md:text-[16px] text-muted space-y-0.5 font-mono leading-relaxed">
+            <p>📚 出版 {stats.totalPublished} 本书 · {stats.totalBestsellers} 本畅销</p>
+            <p>📮 退稿 {stats.totalRejections} 次</p>
+            <p>✍️ 合作过 {stats.authorCount} 位作者</p>
+            <p>⬆ 编辑等级 Lv.{stats.editorLevel}</p>
+          </div>
+        </div>
 
         <div className="bg-card-inset border-2 border-border-dark p-2 md:p-3 mb-3 md:mb-4">
           <p className="text-[16px] md:text-xs text-ink font-bold mb-1 md:mb-2 font-mono">第 {nextCount} 座铜像加成：</p>
