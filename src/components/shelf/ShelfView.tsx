@@ -296,6 +296,7 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
             ) : (
               <p className="text-[13px] md:text-xs text-muted leading-relaxed font-mono italic">暂无批语。点击 🔄 用LLM生成一段调侃。</p>
             )}
+          </div>
 
           {/* Peer recommendation (was reader review) */}
           {peerReview ? (
