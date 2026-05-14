@@ -1,7 +1,15 @@
 ﻿import { useState, useEffect } from 'react'
-import type { Manuscript } from '@/core/types'
-import { GENRE_ICONS } from '@/core/types'
+import type { Genre, Manuscript } from '@/core/types'
 import { useGameStore } from '@/store/gameStore'
+
+const GENRE_PAPER_COLORS: Record<Genre, { bg: string; lines: string }> = {
+  'sci-fi':     { bg: '#dbeafe', lines: '#93c5fd' },  // blue
+  mystery:      { bg: '#ede9fe', lines: '#c4b5fd' },  // purple
+  suspense:     { bg: '#fee2e2', lines: '#fca5a5' },  // red
+  'social-science': { bg: '#fef3c7', lines: '#d4a373' }, // warm tan
+  hybrid:       { bg: '#d1fae5', lines: '#6ee7b7' },  // green
+  'light-novel':{ bg: '#fce7f3', lines: '#f9a8d4' },  // pink
+}
 
 interface Props {
   manuscript: Manuscript
@@ -17,7 +25,7 @@ export function ManuscriptCard({ manuscript }: Props) {
   const [flipping, setFlipping] = useState(false)
   const [flipProgress, setFlipProgress] = useState(0)
   const [expandSynopsis, setExpandSynopsis] = useState(false)
-  const icon = GENRE_ICONS[manuscript.genre] ?? '/icons/misc/book.svg'
+  const paper = GENRE_PAPER_COLORS[manuscript.genre] ?? GENRE_PAPER_COLORS.hybrid
 
   // Animate flipping progress
   useEffect(() => {
@@ -58,24 +66,13 @@ export function ManuscriptCard({ manuscript }: Props) {
       'border-border-medium'
     }`}>
       <div
-        className={`w-7 h-10 md:w-8 md:h-11 flex-shrink-0 flex items-center justify-center border-2 border-border-dark bg-card-inset overflow-hidden transition-all ${isBlurred ? 'blur-[2px] opacity-50' : ''}`}
-        style={{ backgroundColor: manuscript.cover.placeholder.bgColor + '22' }}
+        className={`w-7 h-10 md:w-8 md:h-11 flex-shrink-0 border-2 border-border-dark overflow-hidden transition-all relative ${isBlurred ? 'blur-[2px] opacity-50' : ''}`}
+        style={{
+          backgroundColor: paper.bg,
+          backgroundImage: `repeating-linear-gradient(transparent, transparent 5px, ${paper.lines} 5px, ${paper.lines} 6px)`,
+        }}
       >
-        {manuscript.cover.src ? (
-          <img src={manuscript.cover.src} alt="" className="w-full h-full object-cover"
-            onError={(e) => {
-              const el = e.currentTarget
-              // Try SVG fallback
-              if (el.src.endsWith('.png')) {
-                el.src = el.src.replace('.png', '.svg')
-              } else {
-                el.style.display = 'none'
-              }
-            }}
-          />
-        ) : (
-          <img src={icon} alt="" className="w-4 h-4" />
-        )}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-copper-dark border border-border-dark" />
       </div>
       <div className="flex-1 min-w-0">
         <h3 className="text-xs md:text-sm font-bold text-ink truncate font-mono">{manuscript.title}</h3>
