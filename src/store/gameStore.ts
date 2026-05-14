@@ -461,7 +461,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
           id: nanoid(),
           text: collection.toastText,
           type: 'milestone',
-          createdAt: Date.now(),
+          createdAt: get().playTicks,
         })
       }
     }
@@ -566,7 +566,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         id: nanoid(),
         text: `你获得了第${newStatues === 1 ? '一' : newStatues}座铜像。严格来说，是${newStatues <= 2 ? '塑料' : newStatues <= 4 ? '镀铜' : '纯黄铜'}的——毕竟有预算限制。`,
         type: 'milestone' as const,
-        createdAt: Date.now(),
+        createdAt: get().playTicks,
       }],
       cloudSaveCode: state.cloudSaveCode,
       coversManifest: state.coversManifest,
@@ -605,7 +605,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       permanentBonuses: { ...state.permanentBonuses, countRelation: newRelation },
       activeCountScene: null,
     })
-    get().addToast({ id: nanoid(), text: choice.toastText, type: 'milestone', createdAt: Date.now() })
+    get().addToast({ id: nanoid(), text: choice.toastText, type: 'milestone', createdAt: get().playTicks })
     // Gender choice after first scene
     if (scene.rebirth === 1) {
       set({ activeCountScene: { ...scene, rebirth: -1 } as CountScene }) // Signal gender choice
@@ -618,7 +618,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       activeCountScene: null,
     }))
     const label = gender === 'female' ? '女伯爵' : '伯爵'
-    get().addToast({ id: nanoid(), text: `伯爵档案已更新。此后称呼为：${label}。`, type: 'milestone', createdAt: Date.now() })
+    get().addToast({ id: nanoid(), text: `伯爵档案已更新。此后称呼为：${label}。`, type: 'milestone', createdAt: get().playTicks })
   },
 
   dismissEnding: () => set({ countEnding: null }),
@@ -642,7 +642,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       id: nanoid(),
       text: '一只黑猫从窗台跳了进来。它在你桌上转了一圈，闻了闻咖啡杯，然后蜷在稿件堆上发出了咕噜声。它还没有名字——点击猫来为它取名。',
       type: 'milestone',
-      createdAt: Date.now(),
+      createdAt: get().playTicks,
     })
   },
 
@@ -665,7 +665,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       id: nanoid(),
       text: `"${trimmed}"——猫抬起头，似乎对这个名字略有不满，但最后还是打了个哈欠默许了。`,
       type: 'info',
-      createdAt: Date.now(),
+      createdAt: get().playTicks,
     })
   },
 
@@ -681,7 +681,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       `${cat.name}懒洋洋地甩了甩尾巴，在半空中画了个弧——大概是满意。`,
       `${cat.name}打了个哈欠，然后若无其事地走开了。被摸够了。`,
     ]
-    get().addToast({ id: nanoid(), text: reactions[Math.floor(Math.random() * reactions.length)] + ' 好感 +3。', type: 'info', createdAt: Date.now() })
+    get().addToast({ id: nanoid(), text: reactions[Math.floor(Math.random() * reactions.length)] + ' 好感 +3。', type: 'info', createdAt: get().playTicks })
   },
 
   makeCatImmortal: () => {
@@ -697,7 +697,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       id: nanoid(),
       text: `你在满月之夜将一座铜像浸入泉水。${cat.name}舔了舔那水——然后它的眼睛里映出了永恒。从此以后，它将与你共享无尽的夜晚。`,
       type: 'milestone',
-      createdAt: Date.now(),
+      createdAt: get().playTicks,
     })
   },
 
@@ -708,7 +708,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       id: nanoid(),
       text: '你把窗关上了。猫发出一声不满的"喵"，跳回了夜色中。在你把窗锁修好之前——至少到明年——不会有东西打扰你了。',
       type: 'info',
-      createdAt: Date.now(),
+      createdAt: get().playTicks,
     })
   },
 
@@ -717,7 +717,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     const ms = state.manuscripts.get(id)
     if (!ms) return
     if (state.llmCallsRemaining <= 0) {
-      get().addToast({ id: nanoid(), text: '你什么都想不出来，以后再说吧。', type: 'humor', createdAt: Date.now() })
+      get().addToast({ id: nanoid(), text: '你什么都想不出来，以后再说吧。', type: 'humor', createdAt: get().playTicks })
       return
     }
     try {
@@ -766,7 +766,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       id: nanoid(),
       text: `向出版业界发布了匿名征稿函。${count}份稿件应声而至：${spawned.join('、')}`,
       type: 'info',
-      createdAt: Date.now(),
+      createdAt: get().playTicks,
     })
   },
 
@@ -793,7 +793,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       id: nanoid(),
       text: `向${state.preferredGenres.length > 0 ? state.preferredGenres.map(g => ({'sci-fi':'科幻','mystery':'推理','suspense':'悬疑','social-science':'社科','hybrid':'混血','light-novel':'轻小说'}[g] ?? g)).join('、') + '领域' : '各领域'}定向约稿。${count}份高质量稿件已到：${spawned.join('、')}`,
       type: 'info',
-      createdAt: Date.now(),
+      createdAt: get().playTicks,
     })
   },
 
@@ -819,7 +819,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       id: nanoid(),
       text: `动用宣传预算紧急征稿。${count}份稿件火速抵达：${spawned.join('、')}`,
       type: 'info',
-      createdAt: Date.now(),
+      createdAt: get().playTicks,
     })
   },
 
@@ -830,7 +830,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     if (state.editorLevel < (TALENT_UNLOCK_LEVELS[talent.tier] ?? 99)) return
     if (state.selectedTalents[talent.tier]) return // Already picked this tier
     set({ selectedTalents: { ...state.selectedTalents, [talent.tier]: talentId } })
-    get().addToast({ id: nanoid(), text: `天赋解锁：${talent.label}！${talent.desc.slice(0, 20)}...`, type: 'milestone', createdAt: Date.now() })
+    get().addToast({ id: nanoid(), text: `天赋解锁：${talent.label}！${talent.desc.slice(0, 20)}...`, type: 'milestone', createdAt: get().playTicks })
   },
 
   getTalentBonuses: () => {
@@ -912,7 +912,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         id: nanoid(),
         text: quips[Math.floor(Math.random() * quips.length)],
         type: 'info',
-        createdAt: Date.now(),
+        createdAt: get().playTicks,
       })
       // LLM rejection commentary
       state2.llmCommentary(ms.title, ms.genre, '被退稿')
@@ -930,7 +930,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         id: nanoid(),
         text: quips[Math.floor(Math.random() * quips.length)] + (authorNote ? authorNote : ''),
         type: 'rejection',
-        createdAt: Date.now(),
+        createdAt: get().playTicks,
       })
     }
   },
@@ -946,7 +946,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       id: nanoid(),
       text: `"${ms.title}" 已搁置。作者可能会修改后重新投稿。`,
       type: 'info',
-      createdAt: Date.now(),
+      createdAt: get().playTicks,
     })
   },
 
@@ -978,7 +978,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       id: nanoid(),
       text: `🔍 ${option.label}：《${ms.title}》品质 +${option.quality}（花费 ${option.rp} RP）`,
       type: 'info',
-      createdAt: Date.now(),
+      createdAt: get().playTicks,
     })
   },
 
@@ -991,7 +991,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         id: nanoid(),
         text: '本月出版额度已用完！下个月再来吧。',
         type: 'info',
-        createdAt: Date.now(),
+        createdAt: get().playTicks,
       })
       return
     }
@@ -1036,7 +1036,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       id: nanoid(),
       text: `合约解除。${author.name}从永夜出版社的作者名单中划去。他的书还在书架上——但新作不会再出现在你桌上了。`,
       type: 'info',
-      createdAt: Date.now(),
+      createdAt: get().playTicks,
     })
   },
 
@@ -1106,7 +1106,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       const data = await res.json()
       if (data.text) {
         if (!data.cached) set({ llmCallsRemaining: state.llmCallsRemaining - 1 })
-        get().addToast({ id: nanoid(), text: `[编辑吐槽] ${data.text}`, type: 'info', createdAt: Date.now() })
+        get().addToast({ id: nanoid(), text: `[编辑吐槽] ${data.text}`, type: 'info', createdAt: get().playTicks })
       }
     } catch { /* ignore */ }
   },
@@ -1152,9 +1152,9 @@ export const useGameStore = create<GameStore>()((set, get) => ({
             catState: { name: '', affection: 20, age: 0, immortal: false, alive: true, immortalityPrompted: false },
             currencies: { ...state.currencies, royalties: state.currencies.royalties - 300 },
           })
-          get().addToast({ id: nanoid(), text: '黑猫跳上了书桌。它在一叠稿件上踩了踩，找到了最舒服的位置。你需要给它取个名字。', type: 'milestone', createdAt: Date.now() })
+          get().addToast({ id: nanoid(), text: '黑猫跳上了书桌。它在一叠稿件上踩了踩，找到了最舒服的位置。你需要给它取个名字。', type: 'milestone', createdAt: get().playTicks })
         } else {
-          get().addToast({ id: nanoid(), text: '你翻遍了抽屉——版税不够。猫看着你，尾巴尖轻轻摆了一下，然后跳回了窗外。它显然不想给贫穷的人打工。', type: 'info', createdAt: Date.now() })
+          get().addToast({ id: nanoid(), text: '你翻遍了抽屉——版税不够。猫看着你，尾巴尖轻轻摆了一下，然后跳回了窗外。它显然不想给贫穷的人打工。', type: 'info', createdAt: get().playTicks })
           set({ pendingDecision: null, decisionCooldown: 900 })
         }
       } else {
@@ -1191,7 +1191,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       id: nanoid(),
       text: `每月出版额度 +1！现在为 ${10 + (state.publishingQuotaUpgrades || 0) + 1} 本/月。`,
       type: 'milestone',
-      createdAt: Date.now(),
+      createdAt: get().playTicks,
     })
   },
 
@@ -1205,7 +1205,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     if (!ms || ms.status !== 'published') return
     const cost = 200 + Math.floor(ms.quality * 5)
     if (state.currencies.royalties < cost) {
-      get().addToast({ id: nanoid(), text: `再版需要 ${cost} 版税，当前不足。`, type: 'info', createdAt: Date.now() })
+      get().addToast({ id: nanoid(), text: `再版需要 ${cost} 版税，当前不足。`, type: 'info', createdAt: get().playTicks })
       return
     }
     ms.quality = Math.min(100, ms.quality + 3)
@@ -1215,7 +1215,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       manuscripts: new Map(state.manuscripts),
       currencies: { ...state.currencies, royalties: state.currencies.royalties - cost },
     })
-    get().addToast({ id: nanoid(), text: `"${ms.title}" 已再版！品质 +3，进入7天营销窗口期。`, type: 'milestone', createdAt: Date.now() })
+    get().addToast({ id: nanoid(), text: `"${ms.title}" 已再版！品质 +3，进入7天营销窗口期。`, type: 'milestone', createdAt: get().playTicks })
   },
 
   buyAuthorMeal: (id) => {
@@ -1230,7 +1230,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       currencies: { ...state.currencies, revisionPoints: state.currencies.revisionPoints - 20 },
     })
     const meals = ['一起吃了顿深夜拉面，聊了聊下一本书的构思。', '在出版社对面的茶馆喝了杯茶，讨论了截稿日期——双方都默契地没有提具体的数字。', '去了家隐藏在小巷里的居酒屋，喝到第二杯的时候作者终于承认第三章写得不好。']
-    get().addToast({ id: nanoid(), text: `请${author.name}${meals[Math.floor(Math.random() * meals.length)]}好感 +15。`, type: 'info', createdAt: Date.now() })
+    get().addToast({ id: nanoid(), text: `请${author.name}${meals[Math.floor(Math.random() * meals.length)]}好感 +15。`, type: 'info', createdAt: get().playTicks })
   },
 
   sendAuthorGift: (id) => {
@@ -1245,7 +1245,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       currencies: { ...state.currencies, revisionPoints: state.currencies.revisionPoints - 15 },
     })
     const gifts = ['寄了一本永夜出版社的经典样书——扉页上只写了"请继续写"。', '送了一支旧羽毛笔，据说是19世纪的。附言："这支笔写过更糟的稿子。别担心。"', '把最新一期的《永夜文学报》夹在一本新书里寄了过去。报纸上有一篇匿名书评——作者看完后哭了。', '寄了一盒红茶——不是你以为的那种红。普通的英式红茶。附卡片："休息一下。你写得太多了。"']
-    get().addToast({ id: nanoid(), text: `${author.name}${gifts[Math.floor(Math.random() * gifts.length)]}好感 +10。`, type: 'info', createdAt: Date.now() })
+    get().addToast({ id: nanoid(), text: `${author.name}${gifts[Math.floor(Math.random() * gifts.length)]}好感 +10。`, type: 'info', createdAt: get().playTicks })
   },
 
   writeAuthorLetter: (id) => {
@@ -1260,7 +1260,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       currencies: { ...state.currencies, revisionPoints: state.currencies.revisionPoints - 10 },
     })
     const letters = ['写了一封手写回信，措辞认真到连标点符号都检查了三遍。', '回了封短信——只有五行字。但作者读了之后在工作室里踱步了半小时。', '在回信的末尾画了一只蝙蝠。作者回了一封邮件：只有一个问号。但ta显然被逗笑了。']
-    get().addToast({ id: nanoid(), text: `${author.name}${letters[Math.floor(Math.random() * letters.length)]}好感 +8。`, type: 'info', createdAt: Date.now() })
+    get().addToast({ id: nanoid(), text: `${author.name}${letters[Math.floor(Math.random() * letters.length)]}好感 +8。`, type: 'info', createdAt: get().playTicks })
   },
 
   generateBookReview: async (title, genre) => {
@@ -1291,7 +1291,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       authors: new Map(state.authors),
       currencies: { ...state.currencies, revisionPoints: state.currencies.revisionPoints - 30 },
     })
-    get().addToast({ id: nanoid(), text: `催稿成功！${author.name}的冷却时间减半。好感 -5。`, type: 'info', createdAt: Date.now() })
+    get().addToast({ id: nanoid(), text: `催稿成功！${author.name}的冷却时间减半。好感 -5。`, type: 'info', createdAt: get().playTicks })
   },
 
   hirePR: () => {
@@ -1302,7 +1302,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       currencies: { ...state.currencies, royalties: state.currencies.royalties - 200 },
       prActive: true,
     })
-    get().addToast({ id: nanoid(), text: '公关团队已就位！下一本出版的新书将自动进入热销窗口（3天，销量 ×1.5）。', type: 'milestone', createdAt: Date.now() })
+    get().addToast({ id: nanoid(), text: '公关团队已就位！下一本出版的新书将自动进入热销窗口（3天，销量 ×1.5）。', type: 'milestone', createdAt: get().playTicks })
   },
 
   renovateReadingRoom: () => {
@@ -1313,7 +1313,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       currencies: { ...state.currencies, royalties: state.currencies.royalties - 500 },
       readingRoomRenovated: true,
     })
-    get().addToast({ id: nanoid(), text: '阅览室焕然一新！作者好感获取永久 +20%。', type: 'milestone', createdAt: Date.now() })
+    get().addToast({ id: nanoid(), text: '阅览室焕然一新！作者好感获取永久 +20%。', type: 'milestone', createdAt: get().playTicks })
   },
 
   sponsorAward: () => {
@@ -1325,7 +1325,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     set({
       currencies: { ...state.currencies, royalties: state.currencies.royalties - 1000, prestige: state.currencies.prestige + 50 },
     })
-    get().addToast({ id: nanoid(), text: `赞助文学奖！《${book.title}》获得 +50 声望。`, type: 'milestone', createdAt: Date.now() })
+    get().addToast({ id: nanoid(), text: `赞助文学奖！《${book.title}》获得 +50 声望。`, type: 'milestone', createdAt: get().playTicks })
   },
 
   setPreferredGenre: (genre) => {
@@ -1414,7 +1414,7 @@ function applyDecisionEffect(_id: string, title: string, optionIndex: number, st
   const set = (partial: Partial<GameStore>) => useGameStore.setState(partial)
   const addToast = (text: string) => {
     const s = useGameStore.getState()
-    useGameStore.setState({ toasts: [...s.toasts, { id: nanoid(), text, type: 'milestone' as const, createdAt: Date.now() }].slice(-100) })
+    useGameStore.setState({ toasts: [...s.toasts, { id: nanoid(), text, type: 'milestone' as const, createdAt: s.playTicks }].slice(-100) })
   }
 
   if (title === '评论家提前审读') {
@@ -1621,7 +1621,7 @@ function applyLLMEffects(description: string, state: GameStore) {
   const set = (partial: Partial<GameStore>) => useGameStore.setState(partial)
   const addToast = (text: string) => {
     const s = useGameStore.getState()
-    useGameStore.setState({ toasts: [...s.toasts, { id: nanoid(), text, type: 'milestone' as const, createdAt: Date.now() }].slice(-100) })
+    useGameStore.setState({ toasts: [...s.toasts, { id: nanoid(), text, type: 'milestone' as const, createdAt: s.playTicks }].slice(-100) })
   }
   let changed = false
 

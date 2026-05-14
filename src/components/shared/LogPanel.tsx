@@ -1,6 +1,14 @@
 ﻿import { useRef, useEffect, useState, useMemo } from 'react'
 import { useGameStore } from '@/store/gameStore'
-import { totalDaysToCalendar } from '@/core/calendar'
+import { totalDaysToCalendar, MONTH_NAMES } from '@/core/calendar'
+
+const YEAR_CHARS = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十',
+  '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十']
+function yearToChinese(y: number): string {
+  if (y <= 0) return '第?年'
+  if (y <= 20) return `第${YEAR_CHARS[y]}年`
+  return `第${y}年`
+}
 
 export function LogPanel() {
   const toasts = useGameStore(s => s.toasts)
@@ -19,8 +27,10 @@ export function LogPanel() {
   const grouped = useMemo(() => {
     const result: { label: string; toasts: typeof active }[] = []
     for (const t of active) {
-      const cal = totalDaysToCalendar(Math.floor(t.createdAt / 60))
-      const label = `${cal.year}年${['寂月','寒月','晦月','朔月','冥月','霜月','渊月','暗月','玄月','苍月','虚月','终月'][cal.month]}`
+      // createdAt may be Date.now() (huge) or playTicks — normalize
+      const tick = t.createdAt > 1e9 ? Math.round(t.createdAt / 1000) : t.createdAt
+      const cal = totalDaysToCalendar(Math.floor(tick / 60))
+      const label = `${yearToChinese(cal.year)}${MONTH_NAMES[cal.month]}`
       const last = result[result.length - 1]
       if (last && last.label === label) {
         last.toasts.push(t)
