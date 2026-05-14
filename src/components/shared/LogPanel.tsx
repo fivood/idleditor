@@ -81,8 +81,9 @@ export function LogPanel() {
         ) : (
           grouped.map((group, gi) => (
             <div key={gi}>
-              <div className="text-[14px] md:text-[16px] text-copper font-bold font-mono border-b border-border-medium pb-0.5 mb-1 mt-2 first:mt-0">
-                {group.label}
+              <div className="flex items-center gap-2 text-[16px] md:text-[15px] text-muted font-mono mt-2 mb-0.5 first:mt-0">
+                <span className="shrink-0 opacity-50">{group.label}</span>
+                <span className="flex-1 border-b border-border-medium" />
               </div>
               {group.toasts.map(toast => (
                 <div key={toast.id} className={`text-[15px] md:text-xs leading-relaxed font-mono ${

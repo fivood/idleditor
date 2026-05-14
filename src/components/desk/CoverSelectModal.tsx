@@ -1,6 +1,7 @@
 ﻿import type { Manuscript } from '@/core/types'
 import { GENRE_ICONS } from '@/core/types'
 import { useGameStore } from '@/store/gameStore'
+import { useState } from 'react'
 
 interface Props {
   manuscript: Manuscript
@@ -17,6 +18,8 @@ export function CoverSelectModal({ manuscript, onConfirm, onReject, onCancel }: 
 
   const pubPrestige = manuscript.isUnsuitable ? -10 : 10
   const marketLabel = manuscript.marketPotential >= 75 ? '极高' : manuscript.marketPotential >= 50 ? '良好' : manuscript.marketPotential >= 30 ? '一般' : '较低'
+  const [noteInput, setNoteInput] = useState(manuscript.editorNote || '')
+  const [noteSubmitted, setNoteSubmitted] = useState(!!manuscript.editorNote)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -89,6 +92,38 @@ export function CoverSelectModal({ manuscript, onConfirm, onReject, onCancel }: 
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Editor note */}
+          <div className="bg-card-inset border-2 border-border-dark p-2 md:p-3 mb-3">
+            <p className="text-[13px] md:text-[16px] text-muted font-mono mb-1">
+              编辑批语{noteSubmitted ? '（已提交，出版前不可再编辑）' : ''}
+            </p>
+            {noteSubmitted ? (
+              <p className="text-[13px] md:text-xs text-ink-light leading-relaxed font-mono italic">{noteInput}</p>
+            ) : (
+              <div className="flex gap-1.5">
+                <input
+                  value={noteInput}
+                  onChange={e => setNoteInput(e.target.value)}
+                  placeholder="审稿批注（最多80字）"
+                  maxLength={80}
+                  className="flex-1 text-[13px] md:text-xs bg-cream border border-border-medium px-2 py-1 font-mono outline-none focus:border-copper"
+                />
+                <button
+                  onClick={() => {
+                    if (noteInput.trim()) {
+                      manuscript.editorNote = noteInput.trim()
+                      setNoteSubmitted(true)
+                    }
+                  }}
+                  disabled={!noteInput.trim()}
+                  className="text-[13px] md:text-xs px-2 py-1 bg-copper text-white border-2 border-border-dark font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all disabled:bg-card-inset disabled:text-muted disabled:cursor-not-allowed"
+                >
+                  提交
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Buttons */}
