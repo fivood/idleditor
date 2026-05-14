@@ -162,6 +162,7 @@ export interface GameStore extends GameWorldState {
   playerGender: 'male' | 'female' | null
   solicitCooldown: number
   qualityThreshold: number
+  hasCat: boolean
 
   // Actions: lifecycle
   initialize: () => Promise<void>
@@ -196,6 +197,7 @@ export interface GameStore extends GameWorldState {
   solicitTargeted: () => void
   solicitRush: () => void
   setQualityThreshold: (val: number) => void
+  adoptCat: () => void
 
   // Actions: manuscript
   startReview: (id: string) => void
@@ -265,6 +267,7 @@ function buildSolicitWorld(state: GameStore): GameWorldState {
     selectedTalents: { ...state.selectedTalents },
     playerGender: state.playerGender,
     qualityThreshold: state.qualityThreshold,
+    hasCat: state.hasCat,
   }
 }
 
@@ -293,6 +296,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   playerGender: null,
   solicitCooldown: 0,
   qualityThreshold: 0,
+  hasCat: false,
 
   // ──── Lifecycle ────
   initialize: async () => {
@@ -384,6 +388,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       playerGender: state.playerGender,
       solicitCooldown: state.solicitCooldown,
       qualityThreshold: state.qualityThreshold,
+      hasCat: state.hasCat,
     }
     const result = tick(world)
 
@@ -414,6 +419,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       prActive: world.prActive,
       readingRoomRenovated: world.readingRoomRenovated,
       playerGender: world.playerGender,
+      hasCat: world.hasCat,
       decisionCooldown: Math.max(0, state.decisionCooldown - 1),
       manuscripts: new Map(world.manuscripts),
       authors: new Map(world.authors),
@@ -478,6 +484,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         autoRejectEnabled: world.autoRejectEnabled,
         prActive: world.prActive,
         readingRoomRenovated: world.readingRoomRenovated,
+        hasCat: world.hasCat,
         triggeredMilestones: world.triggeredMilestones,
         manuscripts: world.manuscripts,
         authors: world.authors,
@@ -587,6 +594,22 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   setQualityThreshold: (val) => {
     const clamped = Math.max(0, Math.min(100, Math.round(val)))
     set({ qualityThreshold: clamped })
+  },
+
+  adoptCat: () => {
+    const state = get()
+    if (state.hasCat) return
+    if (state.currencies.royalties < 300) return
+    set({
+      hasCat: true,
+      currencies: { ...state.currencies, royalties: state.currencies.royalties - 300 },
+    })
+    get().addToast({
+      id: nanoid(),
+      text: '一只黑猫从窗台跳了进来。它在你桌上转了一圈，闻了闻咖啡杯，然后蜷在稿件堆上发出了咕噜声。你知道出版社从此多了个无薪员工。',
+      type: 'milestone',
+      createdAt: Date.now(),
+    })
   },
 
   solicitFree: () => {

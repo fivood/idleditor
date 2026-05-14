@@ -54,6 +54,7 @@ export function useOfflineProgress() {
       playerGender: null,
       solicitCooldown: 0,
       qualityThreshold: 0,
+      hasCat: false,
     }
 
     for (const [id, ms] of saved.manuscripts) world.manuscripts.set(id, ms)

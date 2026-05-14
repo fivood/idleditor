@@ -18,6 +18,7 @@ const STAGE_LABELS: Record<string, string> = {
 export function DeskView() {
   const manuscripts = useGameStore(s => s.manuscripts)
   const currencies = useGameStore(s => s.currencies)
+  const hasCat = useGameStore(s => s.hasCat)
   const solicitCooldown = useGameStore(s => s.solicitCooldown)
   const solicitFree = useGameStore(s => s.solicitFree)
   const solicitTargeted = useGameStore(s => s.solicitTargeted)
@@ -48,6 +49,7 @@ export function DeskView() {
         <div className="flex items-center gap-2 text-[15px] md:text-xs text-muted shrink-0 font-mono">
           <span className="text-ink font-bold border border-border-dark px-1.5 md:px-2 py-0.5 bg-cream">📥 {submitted.length}</span>
           <span className="text-ink font-bold border border-border-dark px-1.5 md:px-2 py-0.5 bg-cream">⚙️ {inProgress.length}</span>
+          {hasCat && <span className="text-base animate-bounce" title="你的猫">🐈</span>}
           <div className="flex-1" />
           <div className="relative">
             <button

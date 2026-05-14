@@ -104,6 +104,7 @@ export interface GameWorldState {
   selectedTalents: Record<number, string>
   playerGender: 'male' | 'female' | null
   qualityThreshold: number
+  hasCat: boolean
 }
 
 // ──── Title generation ────
@@ -187,6 +188,7 @@ export function createInitialWorld(): GameWorldState {
     selectedTalents: {},
     playerGender: null,
     qualityThreshold: 0,
+    hasCat: false,
   }
 }
 
@@ -1062,6 +1064,18 @@ function rollRandomEvent(world: GameWorldState): string | null {
         `${a.name}捐赠了一批书籍给出版社的阅览室。每本书的扉页上都手写了一句话。被编辑们轮流拍照发到了内部群里。声望 +${prestige}。`,
       ]
       return pick(letters)
+    },
+    // ── Cat events ──
+    () => {
+      if (!world.hasCat) return null
+      return pick([
+        `🐱 你的猫跳上了书桌，在一叠待审稿件上踩出一串梅花印。你把它拎下来的时候，它用尾巴扫掉了半杯红茶——不是你以为的那种红。`,
+        `😺 猫叼着一只死老鼠回来放在你脚边。你摸了摸它的头。"审过了？"你问。它打了个哈欠——大概是说写得一般。`,
+        `📜 猫把你今天要审的稿子推到了地上。你低头看了看——是那本你一直想退但作者坚持要改的。猫的判断力一直不错。`,
+        `🐈 猫不知怎么钻进了书架顶层，现在它俯视着你。你知道这不是偶然——这是它在提醒你，出版业的鄙视链上总有人在上面。`,
+        `🖋️ 猫爪下压着一张纸条。字迹是你自己的——"明天必须审完五本"。但猫已经替你画了四个叉。还剩一本。它认为那是合理的量。`,
+        `🐱 猫在窗台上对着月亮叫了一声。你说"别叫了，月亮不听你的"。猫用沉默告诉你：月亮只是假装不听。`,
+      ])
     },
   ]
 
