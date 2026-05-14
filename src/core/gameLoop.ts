@@ -695,7 +695,9 @@ export function createManuscript(world: GameWorldState, qualityBonus = 0): Manus
     const candidates = genreBiased.length > 0 ? genreBiased
       : [...world.authors.values()].filter(a => a.cooldownUntil === null && !a.poached && !a.terminated && a.booksWritten < a.maxBooks)
     if (candidates.length > 0) {
-      authorId = pick(candidates).id
+      const author = pick(candidates)
+      author.lastActiveAt = world.playTicks
+      authorId = author.id
     } else {
       const author = createRandomAuthor(world, genre)
       world.authors.set(author.id, author)
@@ -739,6 +741,7 @@ function createManuscriptForAuthor(world: GameWorldState, author: Author): Manus
   const title = generateTitle(author.genre, world)
 
   author.booksWritten++
+  author.lastActiveAt = world.playTicks
   return {
     id: nanoid(10),
     title,
@@ -755,7 +758,7 @@ function createManuscriptForAuthor(world: GameWorldState, author: Author): Manus
     salesCount: 0,
     awards: [],
     cover: generateCover(title, author.genre, world.coversManifest),
-    synopsis: generateSynopsis(author.genre),
+    synopsis: generateSynopsis(author.genre, title),
     isUnsuitable: isClearlyUnsuitable(quality),
     rejectionReason: isClearlyUnsuitable(quality) ? generateRejectionReason() : '',
     meticulouslyEdited: false,
@@ -870,6 +873,7 @@ function createRandomAuthor(_world: GameWorldState, preferredGenre?: Genre): Aut
     poached: false,
     terminated: false,
     lastInteractionAt: 0,
+    lastActiveAt: 0,
     booksWritten: 0,
     maxBooks: (() => {
       const ranges: Record<string, [number, number]> = {
