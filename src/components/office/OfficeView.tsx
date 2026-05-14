@@ -74,6 +74,16 @@ export function OfficeView() {
         >
           开发日志
           </button>
+          <button
+            onClick={() => {
+              if (window.confirm('确定要删除所有存档数据？这会将游戏完全重置。')) {
+                import('@/db/database').then(m => m.db.delete()).then(() => location.reload())
+              }
+            }}
+            className="text-[14px] md:text-[16px] text-muted font-mono border border-border-medium px-1.5 py-0.5 bg-cream hover:text-copper-dark cursor-pointer transition-colors"
+          >
+            删档
+          </button>
         </div>
       </div>
 

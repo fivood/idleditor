@@ -47,7 +47,7 @@ export function CountSceneModal({ scene, onChoose, showGenderChoice, onChooseGen
       <div className="bg-cream border-2 border-border-dark w-full max-w-[440px] max-h-[90vh] overflow-y-auto shadow-[6px_6px_0_#4a3728]">
         <div className="bg-copper-dark text-white p-4">
           <h2 className="text-sm font-bold font-mono">{scene.title}</h2>
-          <p className="text-[12px] mt-1 font-mono opacity-60">第 {scene.rebirth} 次转生</p>
+          <p className="text-[12px] mt-1 font-mono opacity-60">第 {scene.rebirth} 次纪元</p>
         </div>
 
         <div className="p-4">

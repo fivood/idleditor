@@ -151,7 +151,7 @@ export function WelcomeView() {
                 {name.trim()}，你在永夜出版社的风格是——
               </p>
               <p className="text-xs text-muted mb-4 font-mono">
-                一旦选定不可更改，但转生后可以重新选择。
+                 一旦选定不可更改，但纪元更迭后可重新选择。
               </p>
 
               <div className="grid gap-2 mb-4">

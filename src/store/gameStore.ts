@@ -80,7 +80,7 @@ async function generateRebirthSummary(state: GameStore, statues: number): Promis
     const authors = [...state.authors.values()]
     const idols = authors.filter(a => a.tier === 'idol')
     const stats = [
-      `第${statues}次转生。`,
+      `第${statues}次纪元。`,
       `本世出版${published.length}本书，其中${bestsellers.length}本畅销书。`,
       `累计退稿${state.totalRejections}次。`,
       `雇佣了${authors.length}位作者，其中${idols.length}位成为传奇。`,
@@ -557,9 +557,9 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       trait: state.trait,
       permanentBonuses: bonuses,
       currencies: {
-        revisionPoints: 0,
+        revisionPoints: 100,
         prestige: 0,
-        royalties: 0,
+        royalties: 500,
         statues: newStatues,
       },
       toasts: [{

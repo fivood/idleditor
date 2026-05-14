@@ -70,7 +70,7 @@ export function TopBar() {
               onClick={() => setShowRebirth(true)}
               className="text-[15px] md:text-[16px] px-1.5 md:px-2 py-0.5 md:py-1 bg-copper-dark text-white border-2 border-border-dark font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
             >
-              转生
+              纪元
             </button>
           )}
         </div>
@@ -130,7 +130,7 @@ function RebirthModal({ onConfirm, onCancel, bonuses, statues, trait, stats }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="bg-cream border-2 border-border-dark w-full max-w-[380px] p-4 md:p-6 shadow-[6px_6px_0_#4a3728] max-h-[90vh] overflow-y-auto">
-        <h2 className="text-sm md:text-base font-bold text-ink mb-1 font-mono">铸造铜像 · 转生</h2>
+        <h2 className="text-sm md:text-base font-bold text-ink mb-1 font-mono">铸造铜像 · 新纪元</h2>
         <p className="text-[15px] md:text-[16px] text-muted mb-3 md:mb-4 font-mono">
           你的功绩将被铸成铜像，陈列在永夜出版社的大厅里。一切将从头开始——但你的经验将永存。
         </p>
@@ -169,7 +169,7 @@ function RebirthModal({ onConfirm, onCancel, bonuses, statues, trait, stats }: {
             onClick={onConfirm}
             className="flex-1 text-[16px] md:text-xs px-3 md:px-4 py-1.5 md:py-2 bg-copper text-white border-2 border-border-dark font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
           >
-            确认转生
+             开启纪元
           </button>
           <button
             onClick={onCancel}
