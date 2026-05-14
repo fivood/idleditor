@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg width="400" height="600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg_命运之剑交稿前夜" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="hsl(210, 30%, 20%)"/>
+      <stop offset="100%" stop-color="hsl(250, 40%, 10%)"/>
+    </linearGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#bg_命运之剑交稿前夜)"/>
+  <rect width="90%" height="94%" x="5%" y="3%" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>
+  <text x="50%" y="45%" font-family="system-ui, -apple-system, sans-serif" font-size="28" fill="#e0e0e0" text-anchor="middle" dominant-baseline="middle" font-weight="bold" letter-spacing="2">
+    <tspan x="50%" dy="0">命运之剑交稿前夜</tspan>
+  </text>
+  <text x="50%" y="90%" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="rgba(255,255,255,0.5)" text-anchor="middle" letter-spacing="4">
+    永夜出版社
+  </text>
+</svg>

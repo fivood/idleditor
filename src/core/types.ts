@@ -126,6 +126,7 @@ export interface Author {
   poached: boolean
   terminated: boolean
   lastInteractionAt: number
+  lastActiveAt: number
   booksWritten: number
   maxBooks: number
 }
