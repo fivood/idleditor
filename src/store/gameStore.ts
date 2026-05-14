@@ -1,5 +1,5 @@
 ﻿import { create } from 'zustand'
-import type { Department, EditorTrait, Manuscript, PermanentBonuses, ToastMessage } from '@/core/types'
+import type { Department, EditorTrait, Manuscript, CatState, PermanentBonuses, ToastMessage } from '@/core/types'
 import { GENRE_PREFERENCE_THRESHOLDS } from '@/core/constants'
 import type { Decision } from '@/core/decisions'
 import { createInitialWorld, tick, createManuscript } from '@/core/gameLoop'
@@ -162,7 +162,8 @@ export interface GameStore extends GameWorldState {
   playerGender: 'male' | 'female' | null
   solicitCooldown: number
   qualityThreshold: number
-  hasCat: boolean
+  catState: CatState | null
+  catPetCooldown: number
 
   // Actions: lifecycle
   initialize: () => Promise<void>
@@ -198,6 +199,9 @@ export interface GameStore extends GameWorldState {
   solicitRush: () => void
   setQualityThreshold: (val: number) => void
   adoptCat: () => void
+  nameCat: (name: string) => void
+  petCat: () => void
+  makeCatImmortal: () => void
 
   // Actions: manuscript
   startReview: (id: string) => void
@@ -267,7 +271,8 @@ function buildSolicitWorld(state: GameStore): GameWorldState {
     selectedTalents: { ...state.selectedTalents },
     playerGender: state.playerGender,
     qualityThreshold: state.qualityThreshold,
-    hasCat: state.hasCat,
+    catState: state.catState,
+    catPetCooldown: state.catPetCooldown,
   }
 }
 
@@ -296,7 +301,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   playerGender: null,
   solicitCooldown: 0,
   qualityThreshold: 0,
-  hasCat: false,
+  catState: null,
+  catPetCooldown: 0,
 
   // ──── Lifecycle ────
   initialize: async () => {
@@ -388,7 +394,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       playerGender: state.playerGender,
       solicitCooldown: state.solicitCooldown,
       qualityThreshold: state.qualityThreshold,
-      hasCat: state.hasCat,
+      catState: state.catState,
+      catPetCooldown: state.catPetCooldown,
     }
     const result = tick(world)
 
@@ -419,7 +426,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       prActive: world.prActive,
       readingRoomRenovated: world.readingRoomRenovated,
       playerGender: world.playerGender,
-      hasCat: world.hasCat,
+      catState: world.catState ? { ...world.catState } : null,
+      catPetCooldown: Math.max(0, world.catPetCooldown - 1),
       decisionCooldown: Math.max(0, state.decisionCooldown - 1),
       manuscripts: new Map(world.manuscripts),
       authors: new Map(world.authors),
@@ -484,7 +492,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         autoRejectEnabled: world.autoRejectEnabled,
         prActive: world.prActive,
         readingRoomRenovated: world.readingRoomRenovated,
-        hasCat: world.hasCat,
+        catState: world.catState,
+        catPetCooldown: world.catPetCooldown,
         triggeredMilestones: world.triggeredMilestones,
         manuscripts: world.manuscripts,
         authors: world.authors,
@@ -598,15 +607,70 @@ export const useGameStore = create<GameStore>()((set, get) => ({
 
   adoptCat: () => {
     const state = get()
-    if (state.hasCat) return
+    if (state.catState) return
     if (state.currencies.royalties < 300) return
     set({
-      hasCat: true,
+      catState: { name: '', affection: 20, age: 0, immortal: false, alive: true, immortalityPrompted: false },
       currencies: { ...state.currencies, royalties: state.currencies.royalties - 300 },
     })
     get().addToast({
       id: nanoid(),
-      text: '一只黑猫从窗台跳了进来。它在你桌上转了一圈，闻了闻咖啡杯，然后蜷在稿件堆上发出了咕噜声。你知道出版社从此多了个无薪员工。',
+      text: '一只黑猫从窗台跳了进来。它在你桌上转了一圈，闻了闻咖啡杯，然后蜷在稿件堆上发出了咕噜声。它还没有名字——点击猫来为它取名。',
+      type: 'milestone',
+      createdAt: Date.now(),
+    })
+  },
+
+  nameCat: (name: string) => {
+    const state = get()
+    if (!state.catState && state.currencies.royalties >= 300) return // adoption in progress, catState still null
+    const trimmed = name.trim().slice(0, 6)
+    if (!trimmed) return
+    set({
+      catState: {
+        name: trimmed,
+        affection: 20,
+        age: 0,
+        immortal: false,
+        alive: true,
+        immortalityPrompted: false,
+      },
+    })
+    get().addToast({
+      id: nanoid(),
+      text: `"${trimmed}"——猫抬起头，似乎对这个名字略有不满，但最后还是打了个哈欠默许了。`,
+      type: 'info',
+      createdAt: Date.now(),
+    })
+  },
+
+  petCat: () => {
+    const state = get()
+    if (!state.catState || !state.catState.alive || state.catPetCooldown > 0) return
+    const cat = { ...state.catState }
+    cat.affection = Math.min(100, cat.affection + 3)
+    set({ catState: cat, catPetCooldown: 60 })
+    const reactions = [
+      `${cat.name}发出咕噜声，用头蹭了蹭你的手。`,
+      `${cat.name}翻了个身，把肚子暴露在灯光下。这是最高级别的信任。`,
+      `${cat.name}懒洋洋地甩了甩尾巴，在半空中画了个弧——大概是满意。`,
+      `${cat.name}打了个哈欠，然后若无其事地走开了。被摸够了。`,
+    ]
+    get().addToast({ id: nanoid(), text: reactions[Math.floor(Math.random() * reactions.length)] + ' 好感 +3。', type: 'info', createdAt: Date.now() })
+  },
+
+  makeCatImmortal: () => {
+    const state = get()
+    if (!state.catState || !state.catState.alive || state.catState.immortal) return
+    if (state.currencies.statues < 1) return
+    const cat = { ...state.catState, immortal: true }
+    set({
+      catState: cat,
+      currencies: { ...state.currencies, statues: state.currencies.statues - 1 },
+    })
+    get().addToast({
+      id: nanoid(),
+      text: `你在满月之夜将一座铜像浸入泉水。${cat.name}舔了舔那水——然后它的眼睛里映出了永恒。从此以后，它将与你共享无尽的夜晚。`,
       type: 'milestone',
       createdAt: Date.now(),
     })

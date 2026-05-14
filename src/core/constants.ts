@@ -107,7 +107,7 @@ export const REBIRTH_STATUE_BONUSES = {
   spawnPerStatue: 0.03,
 }
 
-export const BOSS_START_YEARS = 10
+export const BOSS_START_YEARS = 15
 
 // ──── Automation perks ────
 export const AUTO_REVIEW_DEPT_LEVEL = 3   // editing dept level >=3 unlocks auto-review

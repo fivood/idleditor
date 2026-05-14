@@ -188,3 +188,12 @@ export interface TickResult {
   eventsTriggered: GameEvent[]
   authorsReturned: Author[]
 }
+
+export interface CatState {
+  name: string
+  affection: number
+  age: number
+  immortal: boolean
+  alive: boolean
+  immortalityPrompted: boolean
+}

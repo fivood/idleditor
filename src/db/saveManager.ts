@@ -23,7 +23,8 @@ export interface GameSaveData {
   autoRejectEnabled: boolean
   prActive: boolean
   readingRoomRenovated: boolean
-  hasCat: boolean
+  catState: { name: string; affection: number; age: number; immortal: boolean; alive: boolean; immortalityPrompted: boolean } | null
+  catPetCooldown: number
   triggeredMilestones: Set<number>
   manuscripts: Map<string, Manuscript>
   authors: Map<string, Author>
@@ -55,7 +56,8 @@ export async function saveGameToDb(data: GameSaveData): Promise<void> {
     autoRejectEnabled: data.autoRejectEnabled,
     prActive: data.prActive ?? false,
     readingRoomRenovated: data.readingRoomRenovated ?? false,
-    hasCat: data.hasCat ?? false,
+    catState: data.catState ?? null,
+    catPetCooldown: data.catPetCooldown ?? 0,
     manuscriptsJson: serializeMap(data.manuscripts),
     authorsJson: serializeMap(data.authors),
     departmentsJson: serializeMap(data.departments),
@@ -87,7 +89,8 @@ export async function loadGameFromDb(): Promise<GameSaveData | null> {
     autoRejectEnabled: save.autoRejectEnabled ?? true,
     prActive: save.prActive ?? false,
     readingRoomRenovated: save.readingRoomRenovated ?? false,
-    hasCat: save.hasCat ?? false,
+    catState: save.catState ?? null,
+    catPetCooldown: save.catPetCooldown ?? 0,
     triggeredMilestones: new Set(save.triggeredMilestones),
     manuscripts: deserializeMap<string, Manuscript>(save.manuscriptsJson),
     authors: deserializeMap<string, Author>(save.authorsJson),

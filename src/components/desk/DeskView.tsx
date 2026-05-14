@@ -18,7 +18,12 @@ const STAGE_LABELS: Record<string, string> = {
 export function DeskView() {
   const manuscripts = useGameStore(s => s.manuscripts)
   const currencies = useGameStore(s => s.currencies)
-  const hasCat = useGameStore(s => s.hasCat)
+  const catState = useGameStore(s => s.catState)
+  const catPetCooldown = useGameStore(s => s.catPetCooldown)
+  const nameCat = useGameStore(s => s.nameCat)
+  const petCat = useGameStore(s => s.petCat)
+  const makeCatImmortal = useGameStore(s => s.makeCatImmortal)
+  const adoptCat = useGameStore(s => s.adoptCat)
   const solicitCooldown = useGameStore(s => s.solicitCooldown)
   const solicitFree = useGameStore(s => s.solicitFree)
   const solicitTargeted = useGameStore(s => s.solicitTargeted)
@@ -28,6 +33,8 @@ export function DeskView() {
   const [coverModalId, setCoverModalId] = useState<string | null>(null)
   const [showLog, setShowLog] = useState(false)
   const [solicitOpen, setSolicitOpen] = useState(false)
+  const [catNameInput, setCatNameInput] = useState('')
+  const [showCatInfo, setShowCatInfo] = useState(false)
 
   const all = useMemo(() => [...manuscripts.values()], [manuscripts])
   const submitted = useMemo(() => all.filter(m => m.status === 'submitted'), [all])
@@ -49,7 +56,7 @@ export function DeskView() {
         <div className="flex items-center gap-2 text-[15px] md:text-xs text-muted shrink-0 font-mono">
           <span className="text-ink font-bold border border-border-dark px-1.5 md:px-2 py-0.5 bg-cream">📥 {submitted.length}</span>
           <span className="text-ink font-bold border border-border-dark px-1.5 md:px-2 py-0.5 bg-cream">⚙️ {inProgress.length}</span>
-          {hasCat && <span className="text-base animate-bounce" title="你的猫">🐈</span>}
+          {catState && <span className="text-base animate-bounce" title={catState.name || '你的猫'}>🐈</span>}
           <div className="flex-1" />
           <div className="relative">
             <button
@@ -86,6 +93,65 @@ export function DeskView() {
             )}
           </div>
         </div>
+
+        {/* Cat */}
+        {catState && !catState.name && (
+          <CatNamingPrompt
+            value={catNameInput}
+            onChange={setCatNameInput}
+            onSubmit={() => { nameCat(catNameInput); setCatNameInput('') }}
+            visible={true}
+          />
+        )}
+        {catState && catState.name && (
+          <div className="flex items-center gap-2 text-xs font-mono bg-cream border border-border-medium px-2 py-1 shrink-0">
+            <button onClick={() => setShowCatInfo(!showCatInfo)} className="flex items-center gap-1.5 hover:text-copper transition-colors cursor-pointer">
+              <span className="text-base">🐈</span>
+              <span className="text-ink font-bold">{catState.name}</span>
+              {catState.immortal && <span className="text-copper text-[16px]">✦</span>}
+            </button>
+            <span className="text-muted text-[16px]">{catState.age}岁</span>
+            <div className="w-16 h-1.5 bg-card-inset border border-border-dark ml-1">
+              <div className="h-full bg-copper transition-all" style={{ width: `${catState.affection}%` }} />
+            </div>
+            <button
+              onClick={petCat}
+              disabled={catPetCooldown > 0}
+              className={`text-[14px] px-1 border border-border-dark font-mono transition-all ${catPetCooldown > 0 ? 'text-muted bg-card-inset cursor-not-allowed' : 'bg-cream hover:bg-amber-50 cursor-pointer'}`}
+              title="摸猫"
+            >
+              {catPetCooldown > 0 ? `${catPetCooldown}s` : '✋'}
+            </button>
+            {showCatInfo && (
+              <div className="absolute left-0 top-full mt-1 w-48 bg-cream border-2 border-border-dark shadow-[3px_3px_0_#4a3728] z-50 p-2 text-[16px] font-mono">
+                <p className="text-ink font-bold">{catState.name}</p>
+                <p className="text-muted">{catState.age}岁 · 好感 {catState.affection}/100</p>
+                {catState.immortal ? (
+                  <p className="text-copper">永生 · 将伴你无尽轮回</p>
+                ) : (
+                  <>
+                    <p className="text-muted mt-1">猫的寿命有限。好感 ≥ 80 后有机会让它永生，消耗一座铜像。</p>
+                    {catState.immortalityPrompted && currencies.statues < 1 && <p className="text-amber-600 mt-0.5">铜像不足，当前 {currencies.statues} 座</p>}
+                    {catState.immortalityPrompted && currencies.statues >= 1 && (
+                      <button onClick={() => { makeCatImmortal(); setShowCatInfo(false) }} className="mt-1 w-full text-[14px] px-2 py-1 bg-copper text-white border-2 border-border-dark font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all">
+                        赐予永生（消耗1铜像）
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {!catState && (
+          <button
+            onClick={adoptCat}
+            className="text-xs font-mono text-muted border border-border-medium px-2 py-0.5 bg-cream-dark hover:text-ink hover:border-border-dark cursor-pointer shrink-0 transition-colors"
+          >
+            🐾 收养一只猫？
+          </button>
+        )}
 
         {currencies.revisionPoints === 0 && submitted.length === 0 && (
           <div className="bg-cream border-2 border-border-dark p-3 md:p-4 text-xs shrink-0 shadow-[3px_3px_0_#4a3728]">
@@ -234,6 +300,32 @@ function SolicitOption({ icon, label, cost, cooldown, desc, disabled, onClick }:
         {cooldown > 0 && <span className="text-[16px] text-copper">CD {cooldown}s</span>}
       </div>
       <p className="text-[16px] text-muted mt-0.5">{desc}</p>
-    </button>
+     </button>
+  )
+}
+
+function CatNamingPrompt({ value, onChange, onSubmit, visible }: {
+  value: string
+  onChange: (v: string) => void
+  onSubmit: () => void
+  visible: boolean
+}) {
+  if (!visible) return null
+  return (
+    <div className="flex items-center gap-2 text-xs font-mono bg-cream border-2 border-border-dark px-2 py-1.5 shrink-0 shadow-[2px_2px_0_#4a3728]">
+      <span className="text-base">🐈</span>
+      <input
+        autoFocus
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter') onSubmit() }}
+        placeholder="给猫取名（最多6字）"
+        maxLength={6}
+        className="text-xs bg-cream border border-border-medium px-1.5 py-0.5 w-28 font-mono outline-none focus:border-copper"
+      />
+      <button onClick={onSubmit} disabled={!value.trim()} className="text-[14px] px-2 py-0.5 bg-copper text-white border-2 border-border-dark font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all disabled:bg-card-inset disabled:text-muted disabled:cursor-not-allowed">
+        确定
+      </button>
+    </div>
   )
 }
