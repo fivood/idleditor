@@ -900,9 +900,17 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     const state2 = get()
     if (wasUnsuitable) {
       const authorNote = author?.tier !== 'new' && author ? ` · ${author.name}好感 -10` : ''
+      const quips = [
+        `"${ms.title}" 被果断退回。编辑的眼光又救了一次出版社。+${rpReward} 修订点 +${prestigeReward} 声誉${authorNote}`,
+        `退稿："${ms.title}"。读者不需要这本书。说实话，作者可能也不太需要。+${rpReward} RP`,
+        `又一本稿子进了退稿箱。"${ms.title}"的封面设计其实不错——可惜内容没跟上。+${rpReward} RP +${prestigeReward} 声望`,
+        `${ms.title}——退。理由很充分：写得不好。具体哪里不好？全部。+${rpReward} RP`,
+        `退稿《${ms.title}》。审完后你沉默了三秒，然后拿起了下一本。永生者的耐心也不是无限的。+${rpReward} RP`,
+        `"${ms.title}"被退回作者手中。希望ta下本写得更好。或者至少更短。+${rpReward} RP`,
+      ]
       state2.addToast({
         id: nanoid(),
-        text: `"${ms.title}" 被果断退回。编辑的眼光又救了一次出版社。+${rpReward} 修订点 +${prestigeReward} 声誉${authorNote}`,
+        text: quips[Math.floor(Math.random() * quips.length)],
         type: 'info',
         createdAt: Date.now(),
       })
@@ -910,9 +918,17 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       state2.llmCommentary(ms.title, ms.genre, '被退稿')
     } else {
       const authorNote = author?.tier !== 'new' && author ? ` · ${author.name}好感 -10` : ''
+      const quips = [
+        `"${ms.title}" 已被退回。作者面露不悦——这本书本来还不错。声望 -5${authorNote}`,
+        `退稿："${ms.title}"。说实话，写得还行——但还行不够。在永夜出版社，"还行"和"不够"之间只差一封退稿信。声望 -5`,
+        `你退回了《${ms.title}》。作者大概会生一阵气——但一个活了两百年的人对"一阵"的定义和别人不太一样。声望 -5`,
+        `退稿决定：${ms.title}。不是因为写得差，是因为可以写得更好。至少编辑是这么告诉自己的。声望 -5`,
+        `你合上《${ms.title}》，在退稿理由栏写了一个字："不"。实习生说是不是太简短了。你说这个字花了你两百年才学会。声望 -5`,
+        `"${ms.title}"退回。作者可能会写一篇愤怒的博客，也可能从此发愤图强。你赌后者——因为你的投资回报率一直不错。声望 -5`,
+      ]
       state2.addToast({
         id: nanoid(),
-        text: `"${ms.title}" 已被退回。作者面露不悦——这本书本来还不错。声望 -5${authorNote}`,
+        text: quips[Math.floor(Math.random() * quips.length)] + (authorNote ? authorNote : ''),
         type: 'rejection',
         createdAt: Date.now(),
       })
