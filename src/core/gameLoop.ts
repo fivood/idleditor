@@ -319,7 +319,7 @@ export function tick(world: GameWorldState): TickResult {
     }
     if (toRemove.size > 0) {
       result.toasts.push(createToast(
-        `📮 投稿池溢出：${toRemove.size}份未被翻阅的稿件已从桌上消失。作者们大概把稿子投给了别的出版社。`,
+        `📮 有的稿件终究没等到审阅它的人。${toRemove.size}份稿子伤心地自我了断了。`,
         'info'
       ))
     }
