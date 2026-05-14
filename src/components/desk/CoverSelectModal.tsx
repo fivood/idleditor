@@ -47,7 +47,8 @@ export function CoverSelectModal({ manuscript, onConfirm, onReject, onCancel }: 
             <div className="flex-1 min-w-0 space-y-3 md:space-y-4">
               {/* Synopsis */}
               <div className="bg-card-inset border-2 border-border-dark p-2 md:p-3">
-                <p className="text-[13px] md:text-xs text-muted leading-relaxed font-mono">{manuscript.synopsis}</p>
+                <p className="text-[14px] text-muted font-mono mb-0.5">内容简介</p>
+                <p className="text-[13px] md:text-xs text-ink leading-relaxed font-mono">{manuscript.synopsis}</p>
               </div>
 
               {/* Book stats + Author info side by side */}

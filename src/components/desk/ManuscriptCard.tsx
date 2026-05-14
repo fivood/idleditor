@@ -101,7 +101,7 @@ export function ManuscriptCard({ manuscript }: Props) {
         ) : viewed && manuscript.synopsis ? (
           <p
             onClick={() => setExpandSynopsis(!expandSynopsis)}
-            className={`text-[14px] md:text-[16px] text-muted mt-1 leading-relaxed cursor-pointer hover:text-ink-light transition-colors ${expandSynopsis ? '' : 'line-clamp-2'}`}
+            className={`text-[14px] md:text-[16px] text-muted mt-1 leading-relaxed cursor-pointer hover:text-ink-light transition-colors ${expandSynopsis ? '' : 'line-clamp-3'}`}
           >
             {manuscript.synopsis}
             {!expandSynopsis && manuscript.synopsis.length > 60 && (
