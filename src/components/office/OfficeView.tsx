@@ -50,8 +50,6 @@ export function OfficeView() {
   const qualityThreshold = useGameStore(s => s.qualityThreshold)
   const setQualityThreshold = useGameStore(s => s.setQualityThreshold)
   const playTicks = useGameStore(s => s.playTicks)
-  const catState = useGameStore(s => s.catState)
-  const adoptCat = useGameStore(s => s.adoptCat)
   const [showChangelog, setShowChangelog] = useState(false)
 
   const deptList = useMemo(() => [...departments.values()], [departments])
@@ -296,27 +294,6 @@ export function OfficeView() {
                 </div>
                 <button onClick={sponsorAward} disabled={!canAfford} className={`text-[12px] md:text-xs px-3 py-1 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${canAfford ? 'bg-progress text-white' : 'bg-cream-dark text-muted cursor-not-allowed'}`}>
                   {cost} 税
-                </button>
-              </div>
-            </div>
-          )
-        })()}
-
-        {/* Adopt Cat */}
-        {(() => {
-          const cost = 300
-          const canAfford = currencies.royalties >= cost
-          const done = !!catState
-          return (
-            <div className={`border-2 p-2 md:p-3 mt-1.5 ${done ? 'bg-cream-dark border-border-dark opacity-70' : canAfford ? 'bg-cream border-progress shadow-[3px_3px_0_#3a6491]' : 'bg-cream-dark border-border-dark opacity-50'}`}>
-              <div className="flex items-center gap-2">
-                <span className="text-sm md:text-lg">🐱</span>
-                <div className="flex-1 min-w-0">
-                  <span className="text-[12px] md:text-xs font-bold text-ink font-mono">收养一只猫</span>
-                  <p className="text-[12px] md:text-[13px] text-muted font-mono">{done ? `已收养：${catState?.name} · ${catState?.age}岁 · 好感 ${catState?.affection}${catState?.immortal ? ' · 永生' : ''}` : '一只流浪黑猫经常在窗台徘徊。300版税买猫粮和猫窝。'}</p>
-                </div>
-                <button onClick={adoptCat} disabled={!canAfford || done} className={`text-[12px] md:text-xs px-3 py-1 border-2 border-border-dark font-mono transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${done ? 'bg-card-inset text-muted cursor-not-allowed' : canAfford ? 'bg-progress text-white cursor-pointer' : 'bg-cream-dark text-muted cursor-not-allowed'}`}>
-                  {done ? '已收养' : cost + ' 税'}
                 </button>
               </div>
             </div>

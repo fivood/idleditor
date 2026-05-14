@@ -164,6 +164,7 @@ export interface GameStore extends GameWorldState {
   qualityThreshold: number
   catState: CatState | null
   catPetCooldown: number
+  catRejectedUntilYear: number
 
   // Actions: lifecycle
   initialize: () => Promise<void>
@@ -202,6 +203,7 @@ export interface GameStore extends GameWorldState {
   nameCat: (name: string) => void
   petCat: () => void
   makeCatImmortal: () => void
+  shooCat: () => void
 
   // Actions: manuscript
   startReview: (id: string) => void
@@ -273,6 +275,7 @@ function buildSolicitWorld(state: GameStore): GameWorldState {
     qualityThreshold: state.qualityThreshold,
     catState: state.catState,
     catPetCooldown: state.catPetCooldown,
+    catRejectedUntilYear: state.catRejectedUntilYear,
   }
 }
 
@@ -303,6 +306,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   qualityThreshold: 0,
   catState: null,
   catPetCooldown: 0,
+  catRejectedUntilYear: 0,
 
   // ──── Lifecycle ────
   initialize: async () => {
@@ -396,6 +400,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       qualityThreshold: state.qualityThreshold,
       catState: state.catState,
       catPetCooldown: state.catPetCooldown,
+      catRejectedUntilYear: state.catRejectedUntilYear,
     }
     const result = tick(world)
 
@@ -428,6 +433,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       playerGender: world.playerGender,
       catState: world.catState ? { ...world.catState } : null,
       catPetCooldown: Math.max(0, world.catPetCooldown - 1),
+      catRejectedUntilYear: world.catRejectedUntilYear,
       decisionCooldown: Math.max(0, state.decisionCooldown - 1),
       manuscripts: new Map(world.manuscripts),
       authors: new Map(world.authors),
@@ -463,6 +469,21 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       tryTriggerDecision()
     }
 
+    // Cat arrival decision: triggered by tick result
+    if (result.catDecisionAvailable && !newState.pendingDecision) {
+      set({
+        pendingDecision: {
+          id: 'cat-arrival',
+          title: '窗外来了一只猫',
+          description: '一只黑猫从窗台跳了进来，它在你桌上转了一圈，闻了闻咖啡杯。你第一时间没对它如何爬到十楼感到困惑，而是——',
+          options: [
+            { label: '来了还想走？留下当桌宠（300版税）', description: '收养它。花费300版税，从此出版社多一位无薪员工。' },
+            { label: '哪来的回哪去', description: '关上窗户。在本年度结束之前，不会有东西打扰你了。' },
+          ],
+        },
+      })
+    }
+
     // LLM commentary: occasional witty comments on recent events (30% chance)
     if (newState.llmCallsRemaining > 0 && world.playTicks % 180 === 0 && Math.random() < 0.3) {
       const reviewed = [...world.manuscripts.values()].find(m => m.status === 'editing' || m.status === 'proofing')
@@ -494,6 +515,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
         readingRoomRenovated: world.readingRoomRenovated,
         catState: world.catState,
         catPetCooldown: world.catPetCooldown,
+        catRejectedUntilYear: world.catRejectedUntilYear,
         triggeredMilestones: world.triggeredMilestones,
         manuscripts: world.manuscripts,
         authors: world.authors,
@@ -672,6 +694,17 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       id: nanoid(),
       text: `你在满月之夜将一座铜像浸入泉水。${cat.name}舔了舔那水——然后它的眼睛里映出了永恒。从此以后，它将与你共享无尽的夜晚。`,
       type: 'milestone',
+      createdAt: Date.now(),
+    })
+  },
+
+  shooCat: () => {
+    const state = get()
+    set({ catRejectedUntilYear: state.calendar.year })
+    get().addToast({
+      id: nanoid(),
+      text: '你把窗关上了。猫发出一声不满的"喵"，跳回了夜色中。在你把窗锁修好之前——至少到明年——不会有东西打扰你了。',
+      type: 'info',
       createdAt: Date.now(),
     })
   },
@@ -1039,6 +1072,30 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     const decision = state.pendingDecision
     const choice = decision.options[optionIndex]
     if (!choice) return
+
+    // Handle cat arrival decision
+    if (decision.id === 'cat-arrival') {
+      if (optionIndex === 0) {
+        // Adopt
+        if (state.currencies.royalties >= 300) {
+          set({
+            pendingDecision: null,
+            decisionCooldown: 900,
+            catState: { name: '', affection: 20, age: 0, immortal: false, alive: true, immortalityPrompted: false },
+            currencies: { ...state.currencies, royalties: state.currencies.royalties - 300 },
+          })
+          get().addToast({ id: nanoid(), text: '黑猫跳上了书桌。它在一叠稿件上踩了踩，找到了最舒服的位置。你需要给它取个名字。', type: 'milestone', createdAt: Date.now() })
+        } else {
+          get().addToast({ id: nanoid(), text: '你翻遍了抽屉——版税不够。猫看着你，尾巴尖轻轻摆了一下，然后跳回了窗外。它显然不想给贫穷的人打工。', type: 'info', createdAt: Date.now() })
+          set({ pendingDecision: null, decisionCooldown: 900 })
+        }
+      } else {
+        // Shoo
+        get().shooCat()
+        set({ pendingDecision: null, decisionCooldown: 900 })
+      }
+      return
+    }
 
     applyDecisionEffect(decision.id, decision.title, optionIndex, state)
 

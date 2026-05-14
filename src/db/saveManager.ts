@@ -25,6 +25,7 @@ export interface GameSaveData {
   readingRoomRenovated: boolean
   catState: { name: string; affection: number; age: number; immortal: boolean; alive: boolean; immortalityPrompted: boolean } | null
   catPetCooldown: number
+  catRejectedUntilYear: number
   triggeredMilestones: Set<number>
   manuscripts: Map<string, Manuscript>
   authors: Map<string, Author>
@@ -58,6 +59,7 @@ export async function saveGameToDb(data: GameSaveData): Promise<void> {
     readingRoomRenovated: data.readingRoomRenovated ?? false,
     catState: data.catState ?? null,
     catPetCooldown: data.catPetCooldown ?? 0,
+    catRejectedUntilYear: data.catRejectedUntilYear ?? 0,
     manuscriptsJson: serializeMap(data.manuscripts),
     authorsJson: serializeMap(data.authors),
     departmentsJson: serializeMap(data.departments),
@@ -91,6 +93,7 @@ export async function loadGameFromDb(): Promise<GameSaveData | null> {
     readingRoomRenovated: save.readingRoomRenovated ?? false,
     catState: save.catState ?? null,
     catPetCooldown: save.catPetCooldown ?? 0,
+    catRejectedUntilYear: save.catRejectedUntilYear ?? 0,
     triggeredMilestones: new Set(save.triggeredMilestones),
     manuscripts: deserializeMap<string, Manuscript>(save.manuscriptsJson),
     authors: deserializeMap<string, Author>(save.authorsJson),

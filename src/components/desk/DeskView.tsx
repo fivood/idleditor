@@ -23,7 +23,6 @@ export function DeskView() {
   const nameCat = useGameStore(s => s.nameCat)
   const petCat = useGameStore(s => s.petCat)
   const makeCatImmortal = useGameStore(s => s.makeCatImmortal)
-  const adoptCat = useGameStore(s => s.adoptCat)
   const solicitCooldown = useGameStore(s => s.solicitCooldown)
   const solicitFree = useGameStore(s => s.solicitFree)
   const solicitTargeted = useGameStore(s => s.solicitTargeted)
@@ -142,15 +141,6 @@ export function DeskView() {
               </div>
             )}
           </div>
-        )}
-
-        {!catState && (
-          <button
-            onClick={adoptCat}
-            className="text-xs font-mono text-muted border border-border-medium px-2 py-0.5 bg-cream-dark hover:text-ink hover:border-border-dark cursor-pointer shrink-0 transition-colors"
-          >
-            🐾 收养一只猫？
-          </button>
         )}
 
         {currencies.revisionPoints === 0 && submitted.length === 0 && (

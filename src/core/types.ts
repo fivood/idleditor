@@ -195,6 +195,7 @@ export interface TickResult {
   toasts: ToastMessage[]
   eventsTriggered: GameEvent[]
   authorsReturned: Author[]
+  catDecisionAvailable: boolean
 }
 
 export interface CatState {

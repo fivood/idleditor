@@ -106,6 +106,7 @@ export interface GameWorldState {
   qualityThreshold: number
   catState: CatState | null
   catPetCooldown: number
+  catRejectedUntilYear: number
 }
 
 // ──── Title generation ────
@@ -191,6 +192,7 @@ export function createInitialWorld(): GameWorldState {
     qualityThreshold: 0,
     catState: null,
     catPetCooldown: 0,
+    catRejectedUntilYear: 0,
   }
 }
 
@@ -203,6 +205,7 @@ export function tick(world: GameWorldState): TickResult {
     toasts: [],
     eventsTriggered: [],
     authorsReturned: [],
+    catDecisionAvailable: false,
   }
 
   world.playTicks++
@@ -530,6 +533,11 @@ export function tick(world: GameWorldState): TickResult {
   const rightsEfficiency = getDeptEfficiency(world, 'rights')
   if (rightsEfficiency > 0) {
     world.currencies.prestige += rightsEfficiency * 1.0
+  }
+
+  // 8.6 Cat arrival: random decision event
+  if (!world.catState && world.calendar.year > world.catRejectedUntilYear && Math.random() < 0.003) {
+    result.catDecisionAvailable = true
   }
 
   // 9. Automation perks
@@ -1175,6 +1183,7 @@ export function computeOfflineProgress(world: GameWorldState, offlineTicks: numb
     toasts: [],
     eventsTriggered: [],
     authorsReturned: [],
+    catDecisionAvailable: false,
   }
 
   // Cap offline progress to 8 hours

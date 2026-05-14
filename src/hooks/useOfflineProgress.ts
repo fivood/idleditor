@@ -56,6 +56,7 @@ export function useOfflineProgress() {
       qualityThreshold: 0,
       catState: null,
       catPetCooldown: 0,
+      catRejectedUntilYear: 0,
     }
 
     for (const [id, ms] of saved.manuscripts) world.manuscripts.set(id, ms)

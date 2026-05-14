@@ -38,6 +38,7 @@ export interface SavedGame {
   readingRoomRenovated: boolean
   catState: { name: string; affection: number; age: number; immortal: boolean; alive: boolean; immortalityPrompted: boolean } | null
   catPetCooldown: number
+  catRejectedUntilYear: number
   // Serialized maps
   manuscriptsJson: string
   authorsJson: string
