@@ -109,11 +109,11 @@ export interface GameWorldState {
 // ──── Title generation ────
 function generateTitle(genre: string, world: GameWorldState): string {
   const pool = TITLE_POOLS[genre] ?? TITLE_POOLS['hybrid']
-  const suffixes = ['（修订版）', '（未删节）', '（长篇）', '（完整版，大概）', '（作者恳请再版）', '（第二版，第一版印错了）', '（豪华版，送书签）', '']
+  const subtitles = ['修订版', '未删节', '长篇', '完整版，大概', '作者恳请再版', '第二版，第一版印错了', '豪华版，送书签', '']
   let title = ''
   for (let i = 0; i < 15; i++) {
     const candidate = pool[Math.floor(Math.random() * pool.length)]
-    const suffixed = Math.random() < 0.35 ? `${candidate} ${pick(suffixes.slice(0, -1))}` : candidate
+    const suffixed = Math.random() < 0.35 ? `${candidate} · ${pick(subtitles.slice(0, -1))}` : candidate
     if (!world.publishedTitles.has(suffixed)) {
       title = suffixed
       break
