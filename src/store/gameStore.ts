@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { immer } from 'zustand/middleware/immer'
 import type { Department, EditorTrait, Manuscript, CatState, PermanentBonuses, ToastMessage } from '@/core/types'
 import { GENRE_PREFERENCE_THRESHOLDS } from '@/core/constants'
 import type { Decision } from '@/core/decisions'
@@ -283,7 +284,7 @@ function buildSolicitWorld(state: GameStore): GameWorldState {
   }
 }
 
-export const useGameStore = create<GameStore>()((set, get) => ({
+export const useGameStore = create<GameStore>()(immer((set, get) => ({
   // ──── Initial state ────
   ...createInitialWorld(),
   toasts: [],
@@ -1419,7 +1420,7 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       return false
     }
   },
-}))
+})))
 
 
 // ── Decision effect logic moved to core/decisionEffects.ts ──
