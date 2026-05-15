@@ -323,46 +323,88 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
   },
 
   tick: () => {
+    set(draft => {
+      const result = tick(draft as unknown as GameWorldState)
+      draft.decisionCooldown = Math.max(0, (draft.decisionCooldown || 0) - 1)
+      draft.toasts = [...draft.toasts, ...result.toasts].slice(-100)
+    })
+
+    // Post-tick: LLM, collections, decisions — need get() for async
     const state = get()
-    const world: GameWorldState = {
-      manuscripts: state.manuscripts,
-      authors: state.authors,
-      departments: state.departments,
-      events: state.events,
-      playTicks: state.playTicks,
-      totalPublished: state.totalPublished,
-      totalBestsellers: state.totalBestsellers,
-      totalRejections: state.totalRejections,
-      currencies: state.currencies,
-      permanentBonuses: state.permanentBonuses,
-      trait: state.trait,
-      playerName: state.playerName,
-      calendar: state.calendar,
-      spawnTimer: state.spawnTimer,
-      awardTimer: state.awardTimer,
-      trendTimer: state.trendTimer,
-      triggeredMilestones: state.triggeredMilestones,
-      activeDateEvent: state.activeDateEvent,
-      coversManifest: state.coversManifest,
-      preferredGenres: state.preferredGenres,
-      booksPublishedThisMonth: state.booksPublishedThisMonth,
-      publishedTitles: state.publishedTitles,
-      editorXP: state.editorXP,
-      editorLevel: state.editorLevel,
-      publishingQuotaUpgrades: state.publishingQuotaUpgrades,
-      autoReviewEnabled: state.autoReviewEnabled,
-      autoCoverEnabled: state.autoCoverEnabled,
-      autoRejectEnabled: state.autoRejectEnabled,
-      unlockedCollections: state.unlockedCollections,
-      prActive: state.prActive,
-      readingRoomRenovated: state.readingRoomRenovated,
-      selectedTalents: state.selectedTalents,
-      playerGender: state.playerGender,
-      solicitCooldown: state.solicitCooldown,
-      qualityThreshold: state.qualityThreshold,
-      catState: state.catState,
-      catPetCooldown: state.catPetCooldown,
-      catRejectedUntilYear: state.catRejectedUntilYear,
+    const world = state as unknown as GameWorldState
+
+    // LLM calls reset per game month
+    if (state.calendar.month !== state.llmMonthLastReset) {
+      set({ llmCallsRemaining: 30, llmMonthLastReset: state.calendar.month })
+    }
+
+    // Check collection achievements
+    for (const collection of COLLECTIONS) {
+      if (state.unlockedCollections.has(collection.id)) continue
+      const count = [...state.manuscripts.values()].filter(m => m.status === 'published' && m.genre === collection.genre).length
+      if (count >= collection.threshold) {
+        set(draft => { draft.unlockedCollections.add(collection.id) })
+        get().addToast({
+          id: nanoid(),
+          text: collection.toastText,
+          type: 'milestone',
+          createdAt: get().playTicks,
+        })
+      }
+    }
+
+    // Decision trigger: every 600 ticks (~10 min)
+    if (!state.pendingDecision && state.decisionCooldown <= 0 && state.playTicks % 600 === 0 && state.playTicks > 0) {
+      tryTriggerDecision()
+    }
+
+    // Cat arrival decision
+    const current = get()
+    if (!current.catState && current.calendar.year > current.catRejectedUntilYear
+        && !current.pendingDecision && Math.random() < 0.003) {
+      set({
+        pendingDecision: {
+          id: 'cat-arrival',
+          title: '窗外来了一只猫',
+          description: '一只黑猫从窗台跳了进来，它在你桌上转了一圈，闻了闻咖啡杯。你第一时间没对它如何爬到十楼感到困惑，而是——',
+          options: [
+            { label: '来了还想走？留下当桌宠（300版税）', description: '收养它。花费300版税，从此出版社多一位无薪员工。' },
+            { label: '哪来的回哪去', description: '关上窗户。在本年度结束之前，不会有东西打扰你了。' },
+          ],
+        },
+      })
+    }
+
+    // Local save every 300 ticks
+    if (state.playTicks % 300 === 0) {
+      saveGameToDb({
+        playTicks: state.playTicks,
+        currencies: state.currencies,
+        permanentBonuses: state.permanentBonuses,
+        trait: state.trait,
+        playerName: state.playerName,
+        calendar: state.calendar,
+        totalPublished: state.totalPublished,
+        totalBestsellers: state.totalBestsellers,
+        totalRejections: state.totalRejections,
+        booksPublishedThisMonth: state.booksPublishedThisMonth,
+        editorXP: state.editorXP,
+        editorLevel: state.editorLevel,
+        publishingQuotaUpgrades: state.publishingQuotaUpgrades,
+        autoReviewEnabled: state.autoReviewEnabled,
+        autoCoverEnabled: state.autoCoverEnabled,
+        autoRejectEnabled: state.autoRejectEnabled,
+        prActive: state.prActive,
+        readingRoomRenovated: state.readingRoomRenovated,
+        catState: state.catState,
+        catPetCooldown: state.catPetCooldown,
+        catRejectedUntilYear: state.catRejectedUntilYear,
+        triggeredMilestones: state.triggeredMilestones,
+        manuscripts: state.manuscripts,
+        authors: state.authors,
+        departments: state.departments,
+        events: state.events,
+      }).catch(() => {})
     }
     const result = tick(world)
 
