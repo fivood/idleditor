@@ -9,11 +9,13 @@ import type { GameWorldState } from '@/core/gameLoop'
 import { saveGameToDb, loadGameFromDb, hasExistingSave } from '@/db/saveManager'
 import { nanoid } from '@/utils/id'
 import { generateTemplateDecision } from '@/core/decisions'
+import { DECISION_EFFECTS } from '@/core/decisionEffects'
 import { loadSynopsisPool } from '@/core/humor/synopsis'
 import { loadAuthorNamePool } from '@/core/gameLoop'
 import { COUNT_SCENES, type CountScene } from '@/core/countStory'
 import { type Talent } from '@/core/talents'
 import { COLLECTIONS } from '@/core/collections'
+import { EVENT_CHAINS } from '@/core/eventChains'
 
 function serializeMapForDb(map: Map<unknown, unknown>): string {
   return JSON.stringify([...map.entries()])
@@ -167,6 +169,7 @@ export interface GameStore extends GameWorldState {
   catPetCooldown: number
   catRejectedUntilYear: number
   salonBooksRemaining: number
+  activeEventChain: { chainId: string; step: number } | null
 
   // Actions: lifecycle
   initialize: () => Promise<void>
@@ -273,6 +276,7 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
   catPetCooldown: 0,
   catRejectedUntilYear: 0,
   salonBooksRemaining: 0,
+  activeEventChain: null,
 
   // ──── Lifecycle ────
   initialize: async () => {
@@ -339,7 +343,6 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
 
     // Post-tick: LLM, collections, decisions — need get() for async
     const state = get()
-    const world = state as unknown as GameWorldState
 
     // LLM calls reset per game month
     if (state.calendar.month !== state.llmMonthLastReset) {
@@ -383,6 +386,31 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
       })
     }
 
+    // Event chain trigger
+    {
+      const cur = get()
+      if (cur.activeEventChain && !cur.pendingDecision) {
+        const chain = EVENT_CHAINS.find(c => c.id === cur.activeEventChain!.chainId)
+        if (chain && cur.activeEventChain!.step < chain.steps.length) {
+          const step = chain.steps[cur.activeEventChain!.step]
+          set({
+            pendingDecision: {
+              id: `chain-${chain.id}`,
+              title: step.title,
+              description: step.description,
+              options: step.options.map(o => ({ label: o.label, description: o.description })),
+            },
+          })
+        }
+      } else if (!cur.activeEventChain && !cur.pendingDecision && state.playTicks % 900 === 0 && Math.random() < 0.3) {
+        const eligible = EVENT_CHAINS.filter(c => c.condition(cur))
+        if (eligible.length > 0) {
+          const chain = eligible[Math.floor(Math.random() * eligible.length)]
+          set({ activeEventChain: { chainId: chain.id, step: 0 } })
+        }
+      }
+    }
+
     // Local save every 300 ticks
     if (state.playTicks % 300 === 0) {
       saveGameToDb({
@@ -414,136 +442,6 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
         events: state.events,
       }).catch(() => {})
     }
-    const result = tick(world)
-
-    // Pull mutated primitives back from world
-    set({
-      playTicks: world.playTicks,
-      totalPublished: world.totalPublished,
-      totalBestsellers: world.totalBestsellers,
-      totalRejections: world.totalRejections,
-      currencies: { ...world.currencies },
-      calendar: { ...world.calendar },
-      spawnTimer: world.spawnTimer,
-      solicitCooldown: world.solicitCooldown,
-      qualityThreshold: world.qualityThreshold,
-      awardTimer: world.awardTimer,
-      trendTimer: world.trendTimer,
-      triggeredMilestones: new Set(world.triggeredMilestones),
-      activeDateEvent: world.activeDateEvent,
-      booksPublishedThisMonth: world.booksPublishedThisMonth,
-      publishedTitles: new Set(world.publishedTitles),
-      editorXP: world.editorXP,
-      editorLevel: world.editorLevel,
-      publishingQuotaUpgrades: world.publishingQuotaUpgrades,
-      autoReviewEnabled: world.autoReviewEnabled,
-      autoCoverEnabled: world.autoCoverEnabled,
-      autoRejectEnabled: world.autoRejectEnabled,
-      unlockedCollections: new Set(world.unlockedCollections),
-      prActive: world.prActive,
-      readingRoomRenovated: world.readingRoomRenovated,
-      playerGender: world.playerGender,
-      catState: world.catState ? { ...world.catState } : null,
-      catPetCooldown: Math.max(0, world.catPetCooldown - 1),
-      catRejectedUntilYear: world.catRejectedUntilYear,
-      decisionCooldown: Math.max(0, state.decisionCooldown - 1),
-      manuscripts: new Map(world.manuscripts),
-      authors: new Map(world.authors),
-      departments: new Map(world.departments),
-      toasts: [...state.toasts, ...result.toasts].slice(-100),
-    })
-
-    // LLM calls reset per game month
-    if (world.calendar.month !== state.llmMonthLastReset) {
-      set({ llmCallsRemaining: 30, llmMonthLastReset: world.calendar.month })
-    }
-
-    // Check collection achievements
-    for (const collection of COLLECTIONS) {
-      if (state.unlockedCollections.has(collection.id)) continue
-      const count = [...world.manuscripts.values()].filter(m => m.status === 'published' && m.genre === collection.genre).length
-      if (count >= collection.threshold) {
-        const newState = get()
-        newState.unlockedCollections.add(collection.id)
-        set({ unlockedCollections: new Set(newState.unlockedCollections) })
-        newState.addToast({
-          id: nanoid(),
-          text: collection.toastText,
-          type: 'milestone',
-          createdAt: get().playTicks,
-        })
-      }
-    }
-
-    // Decision trigger: every 600 ticks (~10 min), if no pending decision
-    const newState = get()
-    if (!newState.pendingDecision && newState.decisionCooldown <= 0 && world.playTicks % 600 === 0 && world.playTicks > 0) {
-      tryTriggerDecision()
-    }
-
-    // Cat arrival decision: triggered by tick result
-    if (result.catDecisionAvailable && !newState.pendingDecision) {
-      set({
-        pendingDecision: {
-          id: 'cat-arrival',
-          title: '窗外来了一只猫',
-          description: '一只黑猫从窗台跳了进来，它在你桌上转了一圈，闻了闻咖啡杯。你第一时间没对它如何爬到十楼感到困惑，而是——',
-          options: [
-            { label: '来了还想走？留下当桌宠（300版税）', description: '收养它。花费300版税，从此出版社多一位无薪员工。' },
-            { label: '哪来的回哪去', description: '关上窗户。在本年度结束之前，不会有东西打扰你了。' },
-          ],
-        },
-      })
-    }
-
-    // LLM commentary: occasional witty comments on recent events (30% chance)
-    if (newState.llmCallsRemaining > 0 && world.playTicks % 180 === 0 && Math.random() < 0.3) {
-      const reviewed = [...world.manuscripts.values()].find(m => m.status === 'editing' || m.status === 'proofing')
-      if (reviewed) {
-        newState.llmCommentary(reviewed.title, reviewed.genre, '审稿通过')
-      }
-    }
-
-    // Auto-save every 60 ticks (1 minute)
-    if (world.playTicks % 60 === 0) {
-      saveGameToDb({
-        playTicks: world.playTicks,
-        currencies: world.currencies,
-        permanentBonuses: world.permanentBonuses,
-        trait: world.trait,
-        playerName: world.playerName,
-        calendar: world.calendar,
-        totalPublished: world.totalPublished,
-        totalBestsellers: world.totalBestsellers,
-        totalRejections: world.totalRejections,
-        booksPublishedThisMonth: world.booksPublishedThisMonth,
-        editorXP: world.editorXP,
-        editorLevel: world.editorLevel,
-        publishingQuotaUpgrades: world.publishingQuotaUpgrades,
-        autoReviewEnabled: world.autoReviewEnabled,
-        autoCoverEnabled: world.autoCoverEnabled,
-        autoRejectEnabled: world.autoRejectEnabled,
-        prActive: world.prActive,
-        readingRoomRenovated: world.readingRoomRenovated,
-        catState: world.catState,
-        catPetCooldown: world.catPetCooldown,
-        catRejectedUntilYear: world.catRejectedUntilYear,
-        triggeredMilestones: world.triggeredMilestones,
-        manuscripts: world.manuscripts,
-        authors: world.authors,
-        departments: world.departments,
-        events: world.events,
-      }).catch(() => {})
-    }
-
-    // Cloud sync every 300 ticks (5 min)
-    if (state.cloudSaveCode && world.playTicks % 300 === 0) {
-      syncToCloudImpl(get()).catch(() => {})
-    }
-  },
-
-  applyTickResult: (_result: TickResult) => {
-    // No-op, logic moved into tick() above
   },
 
   reborn: () => {
@@ -706,4 +604,72 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
       return false
     }
   },
+
+  resolveDecision: (optionIndex: number) => {
+    const state = get()
+    if (!state.pendingDecision) return
+    const decision = state.pendingDecision
+
+    // Handle event chains
+    if (decision.id?.startsWith('chain-')) {
+      const chainId = decision.id.replace('chain-', '')
+      const chain = EVENT_CHAINS.find(c => c.id === chainId)
+      if (chain && state.activeEventChain) {
+        const step = chain.steps[state.activeEventChain.step]
+        const choice = step.options[optionIndex]
+        if (choice) {
+          // Apply effects
+          if (choice.effects) {
+            set(draft => {
+              const e = choice.effects!
+              if (e.rp) draft.currencies.revisionPoints = Math.max(0, draft.currencies.revisionPoints + e.rp)
+              if (e.prestige) draft.currencies.prestige += e.prestige
+              if (e.royalties) draft.currencies.royalties += e.royalties
+            })
+            if (choice.effects.toastText) {
+              get().addToast({ id: nanoid(), text: choice.effects.toastText, type: 'milestone', createdAt: get().playTicks })
+            }
+          }
+          // Advance or end chain
+          if (state.activeEventChain.step + 1 < chain.steps.length) {
+            set({ activeEventChain: { chainId, step: state.activeEventChain.step + 1 } })
+          } else {
+            set({ activeEventChain: null })
+          }
+        }
+      }
+      set({ pendingDecision: null, decisionCooldown: 900 })
+      return
+    }
+
+    // Handle cat arrival
+    if (decision.id === 'cat-arrival') {
+      if (optionIndex === 0) {
+        if (state.currencies.royalties >= 300) {
+          set({
+            pendingDecision: null,
+            decisionCooldown: 900,
+            catState: { name: '', affection: 20, age: 0, immortal: false, alive: true, immortalityPrompted: false },
+            currencies: { ...state.currencies, royalties: state.currencies.royalties - 300 },
+          })
+          get().addToast({ id: nanoid(), text: '黑猫跳上了书桌。它在一叠稿件上踩了踩，找到了最舒服的位置。你需要给它取个名字。', type: 'milestone', createdAt: get().playTicks })
+        } else {
+          get().addToast({ id: nanoid(), text: '你翻遍了抽屉——版税不够。猫看着你，尾巴尖轻轻摆了一下，然后跳回了窗外。它显然不想给贫穷的人打工。', type: 'info', createdAt: get().playTicks })
+          set({ pendingDecision: null, decisionCooldown: 900 })
+        }
+      } else {
+        get().shooCat()
+        set({ pendingDecision: null, decisionCooldown: 900 })
+      }
+      return
+    }
+
+    // Normal template/LLM decision
+    const effects = DECISION_EFFECTS[decision.effectId || '']
+    if (effects) {
+      effects(state, optionIndex)
+    }
+    set({ pendingDecision: null, decisionCooldown: 900 })
+  },
+
 })))

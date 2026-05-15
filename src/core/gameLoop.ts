@@ -94,6 +94,7 @@ export interface GameWorldState {
   catPetCooldown: number
   catRejectedUntilYear: number
   salonBooksRemaining: number
+  activeEventChain: { chainId: string; step: number } | null
 }
 
 // ──── Title/Cover generation moved to factories/manuscriptFactory.ts ────
@@ -150,6 +151,7 @@ export function createInitialWorld(): GameWorldState {
     catPetCooldown: 0,
     catRejectedUntilYear: 0,
     salonBooksRemaining: 0,
+    activeEventChain: null,
   }
 }
 
