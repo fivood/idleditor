@@ -268,16 +268,6 @@ const SOCIAL_TOPICS = [
   '共享单车停放位置与道德水平的相关性研究',
 ]
 
-const EDITOR_NOTES = [
-  '（编辑注：第三稿。前两稿我们也收到了。写得差不多。）',
-  '（编辑注：稿纸背面是一份外卖订单。辣子鸡，不要洋葱。）',
-  '（编辑注：该文引用了372条参考文献。其中371条是该作者自己之前的作品。）',
-  '（编辑注：故事在第208页突然换人称，至今不确定是不是故意的。）',
-  '（编辑注：结局炸掉了出版社大楼。感觉作者对出版流程有些意见。）',
-  '（编辑注：推荐阅读。但不要在睡前读。我们认真的。）',
-  '（编辑注：如果这本书被改编成电影，字幕组可能需要一个哲学学位。）',
-]
-
 // ──── Multi-style template mixins ────
 const STYLE_MIXINS = {
   excerpt: [
@@ -502,22 +492,19 @@ export function generateSynopsis(genre: Genre, title?: string): string {
   if (title && CURATED_SYNOPSES[title]) {
     return CURATED_SYNOPSES[title]
   }
-  // 40% chance to pull from LLM-generated pool
-  if (synopsisPool && Math.random() < 0.4) {
+  // 25% chance to pull from LLM-generated pool
+  if (synopsisPool && Math.random() < 0.25) {
     const pooled = sampleFromPool(genre)
     if (pooled) return pooled
   }
   const templates = GENRE_TEMPLATES[genre] ?? HYBRID_TEMPLATES
   let synopsis = fillSlots(pick(templates), genre)
 
-  // Mix in alternate styles occasionally
-  if (Math.random() < 0.12) {
+  // Mix in alternate styles occasionally (rarely)
+  if (Math.random() < 0.05) {
     synopsis = applyStyleMixin(synopsis, genre)
   }
 
-  if (Math.random() < 0.25) {
-    synopsis += ' ' + pick(EDITOR_NOTES)
-  }
   return synopsis
 }
 
