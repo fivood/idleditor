@@ -42,12 +42,6 @@ export function OfficeView() {
   const sponsorAward = useGameStore(s => s.sponsorAward)
   const salonBooksRemaining = useGameStore(s => s.salonBooksRemaining)
   const hostSalon = useGameStore(s => s.hostSalon)
-  const bookstores = useGameStore(s => s.bookstores)
-  const openBookstore = useGameStore(s => s.openBookstore)
-  const stockBook = useGameStore(s => s.stockBook)
-  const unstockBook = useGameStore(s => s.unstockBook)
-  const hostSigning = useGameStore(s => s.hostSigning)
-  const manuscripts = useGameStore(s => s.manuscripts)
   const selectedTalents = useGameStore(s => s.selectedTalents)
   const editorLevel = useGameStore(s => s.editorLevel)
   const selectTalent = useGameStore(s => s.selectTalent)
@@ -340,38 +334,6 @@ export function OfficeView() {
         })()}
       </div>
 
-      {/* Bookstores */}
-      <div>
-        <h2 className="text-xs md:text-sm font-bold text-ink mb-1 font-mono">🏪 书店经营</h2>
-        <p className="text-[14px] md:text-[16px] text-muted mb-2 md:mb-3 font-mono leading-relaxed">
-          开设书店，上架已出版书籍，销量加成。最多3家。
-        </p>
-
-        {/* Open store button */}
-        {bookstores.length < 3 && (
-          <div className="mb-2">
-            <BookstoreCostCard
-              tier={bookstores.length + 1}
-              currencies={currencies}
-              onOpen={openBookstore}
-            />
-          </div>
-        )}
-
-        {/* Existing stores */}
-        {bookstores.map(store => (
-          <StoreCard
-            key={store.id}
-            store={store}
-            manuscripts={manuscripts}
-            currencies={currencies}
-            onStock={(id) => stockBook(store.id, id)}
-            onUnstock={(id) => unstockBook(store.id, id)}
-            onSigning={() => hostSigning(store.id)}
-          />
-        ))}
-      </div>
-
       {/* Automation Perks */}
       <div>
         <h2 className="text-xs md:text-sm font-bold text-ink mb-1 font-mono">编辑特权</h2>
@@ -467,77 +429,6 @@ function UpgradeProgress({ dept, now }: { dept: Department; now: number }) {
       <div className="h-1.5 bg-card-inset border border-border-dark overflow-hidden">
         <div className="h-full bg-copper transition-all duration-75" style={{ width: `${pct}%` }} />
       </div>
-    </div>
-  )
-}
-
-function BookstoreCostCard({ tier, currencies, onOpen }: { tier: number; currencies: { royalties: number }; onOpen: () => void }) {
-  const costs = [300, 800, 2000]
-  const slots = [4, 6, 8]
-  const mults = ['×1.2', '×1.5', '×2.0']
-  const canAfford = currencies.royalties >= costs[tier - 1]
-  return (
-    <div className={`border-2 p-2 md:p-3 ${canAfford ? 'bg-cream border-progress shadow-[3px_3px_0_#3a6491]' : 'bg-cream-dark border-border-dark opacity-50'}`}>
-      <div className="flex items-center justify-between">
-        <div>
-          <span className="text-[12px] md:text-xs font-bold text-ink font-mono">开设 T{tier} 书店</span>
-          <p className="text-[12px] md:text-[13px] text-muted font-mono">{slots[tier-1]}货架 · 销量{mults[tier-1]}</p>
-        </div>
-        <button onClick={onOpen} disabled={!canAfford} className={`text-[12px] md:text-xs px-3 py-1 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${canAfford ? 'bg-progress text-white' : 'bg-cream-dark text-muted cursor-not-allowed'}`}>
-          {costs[tier - 1]} 税
-        </button>
-      </div>
-    </div>
-  )
-}
-
-function StoreCard({ store, manuscripts, currencies, onStock, onUnstock, onSigning }: {
-  store: import('@/core/types').Bookstore
-  manuscripts: Map<string, import('@/core/types').Manuscript>
-  currencies: { prestige: number }
-  onStock: (id: string) => void
-  onUnstock: (id: string) => void
-  onSigning: () => void
-}) {
-  const published = [...manuscripts.values()].filter(m => m.status === 'published')
-  const [adding, setAdding] = useState(false)
-  return (
-    <div className="border-2 border-border-dark bg-cream p-2 md:p-3 mb-2 shadow-[3px_3px_0_#4a3728]">
-      <div className="flex items-center justify-between mb-1.5">
-        <span className="text-[12px] md:text-xs font-bold text-ink font-mono">{store.name} · T{store.tier}</span>
-        <div className="flex gap-1">
-          {!store.signingUntil && currencies.prestige >= 50 && (
-            <button onClick={onSigning} className="text-[12px] md:text-[16px] px-1.5 py-0.5 border-2 border-border-dark bg-cream text-progress font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[1px] active:translate-y-[1px] transition-all">
-              签售
-            </button>
-          )}
-          <button onClick={() => setAdding(!adding)} className="text-[12px] md:text-[16px] px-1.5 py-0.5 border-2 border-border-dark bg-copper text-white font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[1px] active:translate-y-[1px] transition-all">
-            +上架
-          </button>
-        </div>
-      </div>
-      <div className="space-y-1">
-        {store.shelf.map(id => {
-          const book = manuscripts.get(id)
-          return book ? (
-            <div key={id} className="flex items-center justify-between text-[13px] md:text-xs font-mono bg-cream-dark border border-border-medium px-1.5 py-0.5">
-              <span className="text-ink truncate">{book.title.slice(0, 16)}</span>
-              <button onClick={() => onUnstock(id)} className="text-muted hover:text-copper-dark ml-1">✕</button>
-            </div>
-          ) : null
-        })}
-      </div>
-      {adding && (
-        <div className="mt-2 border-t-2 border-border-dark pt-2 max-h-32 overflow-y-auto space-y-0.5">
-          {published.filter(b => !store.shelf.includes(b.id)).slice(0, 10).map(b => (
-            <button key={b.id} onClick={() => { onStock(b.id); setAdding(false) }}
-              className="block w-full text-left text-[12px] md:text-xs text-muted font-mono px-1 hover:text-ink hover:bg-cream-dark transition-colors truncate"
-            >
-              {b.title}
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   )
 }

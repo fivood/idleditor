@@ -22,6 +22,12 @@ function spineGrayForBook(book: Manuscript): string {
 
 export function ShelfView() {
   const manuscripts = useGameStore(s => s.manuscripts)
+  const bookstores = useGameStore(s => s.bookstores)
+  const currencies = useGameStore(s => s.currencies)
+  const openBookstore = useGameStore(s => s.openBookstore)
+  const stockBook = useGameStore(s => s.stockBook)
+  const unstockBook = useGameStore(s => s.unstockBook)
+  const hostSigning = useGameStore(s => s.hostSigning)
 
   const books = useMemo(
     () => [...manuscripts.values()].filter(m => m.status === 'published'),
@@ -32,6 +38,14 @@ export function ShelfView() {
   const [sortBy, setSortBy] = useState<'sales' | 'quality' | 'recent'>('recent')
   const [filterGenre, setFilterGenre] = useState<string | null>(null)
   const [showGenreLabels, setShowGenreLabels] = useState(true)
+  const [storeTab, setStoreTab] = useState<boolean>(true)
+
+  // Books stocked in any store
+  const stockedIds = useMemo(() => {
+    const ids = new Set<string>()
+    for (const store of bookstores) for (const id of store.shelf) ids.add(id)
+    return ids
+  }, [bookstores])
 
   const sorted = useMemo(() => {
     let list = [...books]
@@ -42,18 +56,6 @@ export function ShelfView() {
     return list
   }, [books, sortBy, filterGenre])
 
-  const stats = useMemo(() => {
-    const totalSales = books.reduce((s, b) => s + b.salesCount, 0)
-    const bestseller = books.reduce((best, b) => b.salesCount > (best?.salesCount || 0) ? b : best, books[0] || null)
-    return { totalSales, bestseller, total: books.length }
-  }, [books])
-
-  // Newest books (last 3 published)
-  const newest = useMemo(() => {
-    return [...books].sort((a, b) => (b.publishTime || 0) - (a.publishTime || 0)).slice(0, 3)
-  }, [books])
-
-  // Books per shelf row
   const containerRef = useRef<HTMLDivElement>(null)
   const [booksPerRow, setBooksPerRow] = useState(10)
   useEffect(() => {
@@ -66,11 +68,9 @@ export function ShelfView() {
     return () => window.removeEventListener('resize', update)
   }, [])
 
-  // Group into shelves, with optional genre labels
   const shelves = useMemo(() => {
     const rows: { genre: string | null; books: Manuscript[] }[] = []
     if (showGenreLabels && !filterGenre) {
-      // Group by genre
       const groups: Record<string, Manuscript[]> = {}
       for (const b of sorted) {
         groups[b.genre] = groups[b.genre] || []
@@ -102,7 +102,12 @@ export function ShelfView() {
     <div className="h-full overflow-y-auto flex flex-col" ref={containerRef}>
       {/* Header */}
       <div className="flex items-center justify-between px-3 md:px-4 py-2 md:py-3 shrink-0">
-        <h2 className="text-xs md:text-sm font-bold text-ink font-mono">{sorted.length} 本书</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-xs md:text-sm font-bold text-ink font-mono">{sorted.length} 本书</h2>
+          <button onClick={() => setStoreTab(!storeTab)} className={`text-[14px] md:text-xs px-2 py-0.5 border-2 border-border-dark font-mono cursor-pointer transition-all ${storeTab ? 'bg-copper text-white' : 'bg-cream text-muted'}`}>
+            🏪 {bookstores.length}
+          </button>
+        </div>
         <div className="flex gap-1 items-center">
           <button onClick={() => setShowGenreLabels(!showGenreLabels)} className={`text-[14px] md:text-xs px-2 py-0.5 border-2 border-border-dark font-mono cursor-pointer transition-all ${showGenreLabels ? 'bg-copper text-white' : 'bg-cream text-muted'}`}>
             分类
@@ -119,48 +124,61 @@ export function ShelfView() {
         </div>
       </div>
 
-      {/* Stats bar */}
-      <div className="flex items-center gap-3 md:gap-4 px-3 md:px-4 py-1.5 text-[14px] md:text-xs font-mono text-muted bg-card-inset border-t-2 border-b-2 border-border-dark shrink-0">
-        <span>总销量 {Math.round(stats.totalSales).toLocaleString()} 册</span>
-        {stats.bestseller && <span>畅销王 《{stats.bestseller.title.slice(0, 6)}》</span>}
-      </div>
-
-      {/* Featured new arrivals strip */}
-      {newest.length > 0 && (
-        <div className="shrink-0 border-b-2 border-border-dark px-3 md:px-4 py-2" style={{ background: 'linear-gradient(180deg, #f0ece4 0%, #e8e4dc 100%)' }}>
-          <p className="text-[14px] md:text-xs text-muted font-mono mb-1.5">新鲜出炉</p>
-          <div className="flex gap-2 md:gap-3 overflow-x-auto">
-            {newest.map(book => (
-              <button key={book.id} onClick={() => setSelectedBook(book)} className="flex items-center gap-2 border-2 border-border-dark bg-cream p-1.5 shadow-[2px_2px_0_#4a3728] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_#4a3728] transition-all cursor-pointer">
-                <div className="w-10 h-14 md:w-12 md:h-16 border border-border-dark bg-[#f8f5f0] flex-shrink-0" />
-                <div className="text-left min-w-0">
-                  <p className="text-[12px] md:text-xs font-bold text-ink font-mono truncate" style={{ maxWidth: 120 }}>{book.title}</p>
-                  <p className="text-[12px] text-muted font-mono">Q{book.quality} · {Math.round(book.salesCount).toLocaleString()}册</p>
-                  {book.isBestseller && <p className="text-[12px] text-copper font-bold font-mono">★ 畅销</p>}
-                </div>
-              </button>
-            ))}
+      {/* Bookstore panel */}
+      {storeTab && (
+        <div className="shrink-0 border-b-2 border-border-dark px-3 md:px-4 py-2 bg-cream-dark">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[13px] md:text-xs font-bold text-ink font-mono">🏪 书店经营</span>
+            {bookstores.length < 3 && (
+              <OpenStoreButton
+                tier={bookstores.length + 1}
+                royalties={currencies.royalties}
+                onOpen={openBookstore}
+              />
+            )}
           </div>
+          {bookstores.map(store => (
+            <StoreShelf
+              key={store.id}
+              store={store}
+              manuscripts={manuscripts}
+              prestige={currencies.prestige}
+              onStock={(id) => stockBook(store.id, id)}
+              onUnstock={(id) => unstockBook(store.id, id)}
+              onSigning={() => hostSigning(store.id)}
+              onSelectBook={setSelectedBook}
+            />
+          ))}
+          {bookstores.length === 0 && (
+            <p className="text-[13px] md:text-xs text-muted font-mono">尚未开设书店。开设后可以把已出版的书上架，获得销量加成。</p>
+          )}
         </div>
       )}
+
+      {/* Inventory bookshelf (not stocked) */}
+      <div className="shrink-0 py-1 px-3 md:px-4 text-[13px] md:text-xs text-muted font-mono">
+        库存 · {Math.max(0, sorted.length - stockedIds.size)} 本未上架
+      </div>
 
       {/* Bookshelf */}
       <div className="flex-1 overflow-y-auto" style={{ background: 'linear-gradient(180deg, #3d2b1f 0%, #4a3728 2px, #3d2b1f 4px, #3d2b1f 100%)', backgroundSize: '100% 8px' }}>
         {shelves.map((row, rowIdx) => (
           <div key={rowIdx} className="relative">
-            {/* Genre label */}
             {row.genre && (
               <div className="px-3 md:px-4 pt-2 pb-0">
                 <span className="text-xs md:text-sm font-bold text-cream font-mono bg-copper/80 px-3 py-1 border-2 border-border-dark shadow-[2px_2px_0_#4a3728]">{GENRE_LABELS[row.genre]}</span>
               </div>
             )}
-            {/* Books on this shelf */}
             <div className="flex items-end gap-0.5 md:gap-1 px-2 md:px-3 py-1" style={{ minHeight: 110 }}>
               {row.books.map(book => (
-                <BookSpine key={book.id} book={book} onClick={() => setSelectedBook(book)} />
+                <BookSpine
+                  key={book.id}
+                  book={book}
+                  stocked={stockedIds.has(book.id)}
+                  onClick={() => setSelectedBook(book)}
+                />
               ))}
             </div>
-            {/* Shelf board */}
             <div className="h-3 md:h-4 w-full"
               style={{ background: 'linear-gradient(180deg, #6b4c30 0%, #8b6914 1px, #5a3d22 2px, #3d2b1f 3px, #4a3728 100%)', borderTop: '2px solid #8b6914', boxShadow: '0 2px 4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)' }}
             />
@@ -173,7 +191,7 @@ export function ShelfView() {
   )
 }
 
-function BookSpine({ book, onClick }: { book: Manuscript; onClick: () => void }) {
+function BookSpine({ book, stocked, onClick }: { book: Manuscript; stocked?: boolean; onClick: () => void }) {
   const spineW = 24
   const spineH = 90 + (Math.abs(book.id.charCodeAt(0) || 0) % 30)
   const [showTitle, setShowTitle] = useState(false)
@@ -191,11 +209,11 @@ function BookSpine({ book, onClick }: { book: Manuscript; onClick: () => void })
         style={{
           width: `${spineW}px`,
           height: `${spineH}px`,
-          background: '#f5f0e8',
+          background: stocked ? '#e8f5e9' : '#f5f0e8',
           borderBottom: '2px solid rgba(0,0,0,0.15)',
+          borderLeft: stocked ? '3px solid #4caf50' : undefined,
         }}
       >
-        {/* Spine title (vertical) */}
         <div className="absolute inset-0 flex items-center justify-center">
           <span className="text-xs text-ink-light opacity-60 font-mono" style={{ writingMode: 'vertical-rl', letterSpacing: '2px' }}>
             {book.title.slice(0, 8)}
@@ -215,6 +233,75 @@ function BookSpine({ book, onClick }: { book: Manuscript; onClick: () => void })
         {book.title.slice(0, 3)}
       </span>
     </button>
+  )
+}
+
+function OpenStoreButton({ tier, royalties, onOpen }: { tier: number; royalties: number; onOpen: () => void }) {
+  const costs = [300, 800, 2000]
+  const slots = [4, 6, 8]
+  const mults = ['×1.2', '×1.5', '×2.0']
+  const canAfford = royalties >= costs[tier - 1]
+  return (
+    <button onClick={onOpen} disabled={!canAfford} className={`text-[12px] md:text-xs px-2 py-1 border-2 border-border-dark font-mono transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${canAfford ? 'bg-progress text-white cursor-pointer' : 'bg-cream-dark text-muted cursor-not-allowed'}`}>
+      {canAfford ? `${costs[tier - 1]}税 开T${tier}店(${slots[tier-1]}位·${mults[tier-1]})` : `${costs[tier - 1]}税 开T${tier}店`}
+    </button>
+  )
+}
+
+function StoreShelf({ store, manuscripts, prestige, onStock, onUnstock, onSigning, onSelectBook }: {
+  store: import('@/core/types').Bookstore
+  manuscripts: Map<string, Manuscript>
+  prestige: number
+  onStock: (id: string) => void
+  onUnstock: (id: string) => void
+  onSigning: () => void
+  onSelectBook: (b: Manuscript) => void
+}) {
+  const published = [...manuscripts.values()].filter(m => m.status === 'published')
+  const [adding, setAdding] = useState(false)
+  return (
+    <div className="mb-2 border-2 border-border-dark bg-cream p-2 shadow-[2px_2px_0_#4a3728]">
+      <div className="flex items-center justify-between mb-1 text-[13px] md:text-xs">
+        <span className="font-bold text-ink font-mono">{store.name} · T{store.tier}</span>
+        <div className="flex gap-0.5">
+          {!store.signingUntil && prestige >= 50 && (
+            <button onClick={onSigning} className="text-[12px] px-1.5 py-0.5 border border-border-dark bg-cream text-progress font-mono cursor-pointer">签售</button>
+          )}
+          <button onClick={() => setAdding(!adding)} className="text-[12px] px-1.5 py-0.5 border-2 border-border-dark bg-copper text-white font-mono cursor-pointer shadow-[1px_1px_0_#4a3728]">+上架</button>
+        </div>
+      </div>
+      {store.shelf.length > 0 ? (
+        <div className="flex gap-1 overflow-x-auto pb-1">
+          {store.shelf.map(id => {
+            const book = manuscripts.get(id)
+            return book ? (
+              <button key={id} onClick={() => onSelectBook(book)}
+                className="flex-shrink-0 w-12 h-16 border border-border-dark bg-[#e8f5e9] cursor-pointer hover:-translate-y-[1px] transition-all relative"
+              >
+                <span className="text-[11px] text-ink-light font-mono block mt-1 px-0.5 truncate">{book.title.slice(0, 6)}</span>
+                <button onClick={e => { e.stopPropagation(); onUnstock(id) }} className="absolute -top-1 -right-1 text-[11px] bg-cream border border-border-dark px-0.5 hover:text-copper-dark">✕</button>
+              </button>
+            ) : null
+          })}
+        </div>
+      ) : (
+        <p className="text-[12px] text-muted font-mono">货架空着 · 点击 +上架</p>
+      )}
+      {store.signingUntil && (
+        <p className="text-[12px] text-progress font-mono mt-0.5">签售进行中 · 销量 ×2</p>
+      )}
+      {adding && (
+        <div className="mt-1 border-t border-border-medium pt-1 max-h-28 overflow-y-auto space-y-0.5">
+          {published.filter(b => !store.shelf.includes(b.id)).slice(0, 12).map(b => (
+            <button key={b.id} onClick={() => { onStock(b.id); setAdding(false) }}
+              className="block w-full text-left text-[12px] text-muted font-mono px-1 hover:text-ink truncate"
+            >
+              {b.title}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
