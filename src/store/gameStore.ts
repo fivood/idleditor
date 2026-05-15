@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
+import { createMiscActions } from './actions/miscActions'
 import type { Department, EditorTrait, Manuscript, Bookstore, CatState, PermanentBonuses, ToastMessage } from '@/core/types'
 import { GENRE_PREFERENCE_THRESHOLDS } from '@/core/constants'
 import type { Decision } from '@/core/decisions'
@@ -606,6 +607,8 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
       preferredGenres: state.preferredGenres.filter(g => g !== genre),
     }))
   },
+
+  ...createMiscActions(set, get),
 
   syncToCloud: async () => {
     return syncToCloudImpl(get())
