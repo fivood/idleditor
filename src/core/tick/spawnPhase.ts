@@ -21,10 +21,15 @@ export function processSpawnPhase({ world, result, ct }: TickContext) {
   // 1.5 Auto-clear stale submissions (player away too long)
   {
     const submitted = [...world.manuscripts.values()].filter(m => m.status === 'submitted')
+    // Filter out idol authors from auto-clear logic
+    const normalSubmitted = submitted.filter(m => {
+      const author = world.authors.get(m.authorId)
+      return author?.tier !== 'idol'
+    })
     // Sort oldest-first, remove excess beyond the limit
-    const excess = submitted.length > MAX_SUBMITTED_QUEUE ? submitted.slice(0, submitted.length - MAX_SUBMITTED_QUEUE) : []
+    const excess = normalSubmitted.length > MAX_SUBMITTED_QUEUE ? normalSubmitted.slice(0, normalSubmitted.length - MAX_SUBMITTED_QUEUE) : []
     // Also remove any that have been sitting for > 600 ticks (10 min)
-    const stale = submitted.filter(m => world.playTicks - m.createdAt > 600)
+    const stale = normalSubmitted.filter(m => world.playTicks - m.createdAt > 600)
     const toRemove = new Set([...excess, ...stale].map(m => m.id))
     for (const id of toRemove) {
       world.manuscripts.delete(id)

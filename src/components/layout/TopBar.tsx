@@ -1,8 +1,9 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { useGameStore } from '@/store/gameStore'
 import { formatNumber } from '@/utils/format'
 import { formatDate } from '@/core/calendar'
 import { xpProgressInLevel } from '@/core/leveling'
+import { GENRE_LABELS } from '@/core/types'
 
 export function TopBar() {
   const currencies = useGameStore(s => s.currencies)
@@ -22,6 +23,7 @@ export function TopBar() {
   const editorLevel = useGameStore(s => s.editorLevel)
   const setEpochPath = useGameStore(s => s.setEpochPath)
   const epochPath = useGameStore(s => s.permanentBonuses.epochPath)
+  const currentTrend = useGameStore(s => s.currentTrend)
   const [showRebirth, setShowRebirth] = useState(false)
   const [selectedEpochPath, setSelectedEpochPath] = useState<'scholar' | 'merchant' | 'socialite' | null>(null)
 
@@ -45,8 +47,11 @@ export function TopBar() {
           <CurrencyBadge label="声" value={currencies.prestige} />
           <CurrencyBadge label="税" value={currencies.royalties} />
           <StatueDisplay count={currencies.statues} />
-          <span className="text-[14px] md:text-xs text-muted font-mono">
+          <span className="text-[14px] md:text-xs text-muted font-mono" title="本月出版额度">
             {booksPublishedThisMonth}/{10 + publishingQuotaUpgrades}
+          </span>
+          <span className="hidden md:inline text-[13px] text-ink font-bold bg-amber-100 border border-amber-300 px-1.5 py-0.5 ml-2" title="当前市场风向：相关题材销量大幅提升">
+            📈 {GENRE_LABELS[currentTrend] || currentTrend}
           </span>
         </div>
 

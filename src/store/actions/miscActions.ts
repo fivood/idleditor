@@ -569,6 +569,14 @@ export const createMiscActions = (
   toggleAutoReview: () => set(s => ({ autoReviewEnabled: !s.autoReviewEnabled })),
   toggleAutoCover: () => set(s => ({ autoCoverEnabled: !s.autoCoverEnabled })),
   toggleAutoReject: () => set(s => ({ autoRejectEnabled: !s.autoRejectEnabled })),
+  toggleBlacklistedGenre: (genre: string) => set(s => {
+    const list = s.blacklistedGenres || []
+    return {
+      blacklistedGenres: list.includes(genre as any)
+        ? list.filter((g: any) => g !== genre)
+        : [...list, genre as any]
+    }
+  }),
 
   reissueBook: (id) => {
     const state = get()

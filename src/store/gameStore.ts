@@ -129,6 +129,9 @@ async function syncToCloudImpl(state: GameStore): Promise<boolean> {
           autoReviewEnabled: state.autoReviewEnabled,
           autoCoverEnabled: state.autoCoverEnabled,
           autoRejectEnabled: state.autoRejectEnabled,
+          currentTrend: state.currentTrend,
+          trendTimer: state.trendTimer,
+          blacklistedGenres: state.blacklistedGenres,
           triggeredMilestones: [...state.triggeredMilestones],
           manuscriptsJson: serializeMapForDb(state.manuscripts),
           authorsJson: serializeMapForDb(state.authors),
@@ -186,6 +189,7 @@ export interface GameStore extends GameWorldState {
   toggleAutoReview: () => void
   toggleAutoCover: () => void
   toggleAutoReject: () => void
+  toggleBlacklistedGenre: (genre: string) => void
   reissueBook: (id: string) => void
   buyAuthorMeal: (id: string) => void
   sendAuthorGift: (id: string) => void
@@ -447,6 +451,9 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
         authors: state.authors,
         departments: state.departments,
         events: state.events,
+        currentTrend: state.currentTrend,
+        trendTimer: state.trendTimer,
+        blacklistedGenres: state.blacklistedGenres,
       }).catch(() => {})
     }
   },
@@ -650,6 +657,9 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
         autoReviewEnabled: data.autoReviewEnabled ?? true,
         autoCoverEnabled: data.autoCoverEnabled ?? true,
         autoRejectEnabled: data.autoRejectEnabled ?? true,
+        currentTrend: data.currentTrend ?? null,
+        trendTimer: data.trendTimer ?? 300,
+        blacklistedGenres: data.blacklistedGenres ?? [],
         triggeredMilestones: new Set(data.triggeredMilestones ?? []),
         cloudSaveCode: code,
         isInitialized: true,

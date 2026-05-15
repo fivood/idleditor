@@ -18,9 +18,14 @@ export function processAuthorPhase({ world, result }: TickContext) {
       if (author.booksWritten >= author.maxBooks) continue // Retired / max books reached
       const interval = Math.round(manuscriptSpawnInterval(author) * (1 - personaPassiveFor(author).speedBonus))
       if (world.playTicks % interval === 0) {
-        const ms = createManuscriptForAuthor(world, author)
-        world.manuscripts.set(ms.id, ms)
-        result.newManuscripts.push(ms)
+        const submitted = [...world.manuscripts.values()].filter(m => m.status === 'submitted')
+        const normalSubmitted = submitted.filter(m => world.authors.get(m.authorId)?.tier !== 'idol')
+        // Idol authors bypass the queue limit
+        if (author.tier === 'idol' || normalSubmitted.length < 7) {
+          const ms = createManuscriptForAuthor(world, author)
+          world.manuscripts.set(ms.id, ms)
+          result.newManuscripts.push(ms)
+        }
       }
     }
   }

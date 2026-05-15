@@ -66,6 +66,9 @@ export interface GameWorldState {
   salonBooksRemaining: number
   activeEventChain: { chainId: string; step: number } | null
   bookstores: import('./types').Bookstore[]
+  currentTrend: Genre | null
+  trendTimer: number
+  blacklistedGenres: Genre[]
 }
 
 // ──── World initialization ────
@@ -122,6 +125,9 @@ export function createInitialWorld(): GameWorldState {
     salonBooksRemaining: 0,
     activeEventChain: null,
     bookstores: [],
+    currentTrend: null,
+    trendTimer: 300,
+    blacklistedGenres: [],
   }
 }
 

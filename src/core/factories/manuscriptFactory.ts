@@ -1,4 +1,4 @@
-import type { Author, Manuscript } from '../types'
+import type { Author, Manuscript, Genre } from '../types'
 import { GENRE_ICONS, GENRES } from '../types'
 import { GENRE_COVER_COLORS } from '../constants'
 import { TITLE_SUBTITLES } from '../data/editorNotes'
@@ -67,7 +67,26 @@ function getDeptEfficiency(world: GameWorldState, type: string): number {
 // ──── Manuscript creation (from pool / random author) ────
 export function createManuscript(world: GameWorldState, qualityBonus = 0): Manuscript {
   const traitQBonus = world.trait ? EDITOR_TRAIT_BONUSES[world.trait].qualityBonus : 0
-  const genre = pick(GENRES)
+  // Calculate weights for genres
+  const genreWeights = new Map<Genre, number>()
+  let totalWeight = 0
+  for (const g of GENRES as Genre[]) {
+    let weight = 10
+    if (g === world.currentTrend) weight += 15 // +150% for trend
+    if (world.preferredGenres.includes(g)) weight += 10 // +100% for preference
+    genreWeights.set(g, weight)
+    totalWeight += weight
+  }
+  let roll = Math.random() * totalWeight
+  let genre: Genre = GENRES[0] as Genre
+  for (const [g, w] of genreWeights.entries()) {
+    roll -= w
+    if (roll <= 0) {
+      genre = g
+      break
+    }
+  }
+
   const prefCount = world.preferredGenres.filter(g => g === genre).length
   const prefQBonus = prefCount * GENRE_PREFERENCE_QUALITY_BONUS
   const quality = rollQuality() + world.permanentBonuses.manuscriptQualityBonus + traitQBonus + prefQBonus + qualityBonus + levelBonuses(world.editorLevel).quality + (world.permanentBonuses.epochPath === 'scholar' ? 3 : 0)

@@ -1,6 +1,7 @@
 import { getDeptEfficiency, getDeptLevel } from '../helpers'
 import { rangeInt, pick } from '@/utils/random'
 import { DEPARTMENT_COST_MULTIPLIER, AUTO_REVIEW_DEPT_LEVEL, AUTO_COVER_PRESTIGE, AUTO_REJECT_PRESTIGE, MILESTONES } from '../constants'
+import { GENRES, type Genre } from '../types'
 import { SHELVED_RESUBMISSION_NOTES } from '../data/editorNotes'
 import type { TickContext } from './types'
 
@@ -72,8 +73,8 @@ export function processAutomationPhase({ world, result, ct }: TickContext) {
 
   // Auto-reject unsuitable: prestige >= 200 && editing dept >= 5
   if (prestige >= AUTO_REJECT_PRESTIGE && editingDeptLevel >= 5 && world.autoRejectEnabled) {
-    const unsuitable = [...world.manuscripts.values()].filter(m => m.status === 'submitted' && m.isUnsuitable)
-    for (const ms of unsuitable) {
+    const toReject = [...world.manuscripts.values()].filter(m => m.status === 'submitted' && (m.isUnsuitable || world.blacklistedGenres.includes(m.genre)))
+    for (const ms of toReject) {
       ms.status = 'rejected'
       world.totalRejections++
       world.currencies.revisionPoints += 8
@@ -84,8 +85,25 @@ export function processAutomationPhase({ world, result, ct }: TickContext) {
         author.rejectedCount++
         author.cooldownUntil = 900 + author.rejectedCount * 180
       }
-      result.toasts.push(ct(`🤖 自动退稿：《${ms.title}》——不值得人类编辑的注意力。`, 'info'))
+      if (world.blacklistedGenres.includes(ms.genre)) {
+        result.toasts.push(ct(`🤖 自动退稿（黑名单）：《${ms.title}》——我们目前不收此类题材。`, 'info'))
+      } else {
+        result.toasts.push(ct(`🤖 自动退稿：《${ms.title}》——不值得人类编辑的注意力。`, 'info'))
+      }
     }
+  }
+
+  // Market Trend Rotation (every 2 in-game years = 720 ticks)
+  world.trendTimer--
+  if (world.trendTimer <= 0) {
+    world.trendTimer = 720
+    const oldTrend = world.currentTrend
+    let newTrend = pick(GENRES)
+    while (newTrend === oldTrend) {
+      newTrend = pick(GENRES)
+    }
+    world.currentTrend = newTrend as Genre
+    result.toasts.push(ct(`📈 市场风向标：近期【${newTrend}】类小说似乎格外受到读者追捧，相关作品自然投稿率与销量大幅提升。`, 'milestone'))
   }
 
   // 10. Check milestones

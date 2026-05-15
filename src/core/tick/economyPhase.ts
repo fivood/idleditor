@@ -17,6 +17,7 @@ export function processEconomyPhase({ world, result, ct, talentBonuses, epochMer
     world.currencies.royalties += royalty * (1 + (talentBonuses.royaltyIncome || 0) + (talentBonuses.allStats || 0) + authorPassive.royaltyBonus)
     result.royaltiesEarned += royalty
     const hasGenreBuff = world.activeDateEvent && (world.activeDateEvent.genre === null || world.activeDateEvent.genre === m.genre)
+    const trendBuff = world.currentTrend === m.genre ? 1.3 : 1
     const prefSalesBonus = 1 + world.preferredGenres.filter(g => g === m.genre).length * GENRE_PREFERENCE_SALES_BONUS
     const reissueBoost = (m.reissueBoostUntil && world.playTicks < m.reissueBoostUntil) ? 1.5 : 1
     const collectionBoost = getCollectionBoost(m.genre, world.unlockedCollections)
@@ -31,7 +32,7 @@ export function processEconomyPhase({ world, result, ct, talentBonuses, epochMer
         break
       }
     }
-    m.salesCount += salesPerTick(marketingEfficiency, m.quality) * (hasGenreBuff ? salesMult : 1) * prefSalesBonus * reissueBoost * collectionBoost * talentSalesMult * bookstoreMult
+    m.salesCount += salesPerTick(marketingEfficiency, m.quality) * (hasGenreBuff ? salesMult : 1) * trendBuff * prefSalesBonus * reissueBoost * collectionBoost * talentSalesMult * bookstoreMult
 
     // Passive affection gain from good sales (1% chance per tick)
     if (Math.random() < 0.01 && m.salesCount > 1000) {

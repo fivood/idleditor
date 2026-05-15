@@ -1,4 +1,4 @@
-﻿import { useGameStore } from '@/store/gameStore'
+import { useGameStore } from '@/store/gameStore'
 import { getPreferenceSlots } from '@/store/gameStore'
 import type { DepartmentType, Department, Genre } from '@/core/types'
 import { GENRE_ICONS } from '@/core/types'
@@ -29,6 +29,8 @@ export function OfficeView() {
   const upgradeDepartment = useGameStore(s => s.upgradeDepartment)
   const setPreferredGenre = useGameStore(s => s.setPreferredGenre)
   const removePreferredGenre = useGameStore(s => s.removePreferredGenre)
+  const blacklistedGenres = useGameStore(s => s.blacklistedGenres || [])
+  const toggleBlacklistedGenre = useGameStore(s => s.toggleBlacklistedGenre)
   const upgradePublishingQuota = useGameStore(s => s.upgradePublishingQuota)
   const toggleAutoReview = useGameStore(s => s.toggleAutoReview)
   const toggleAutoCover = useGameStore(s => s.toggleAutoCover)
@@ -216,6 +218,31 @@ export function OfficeView() {
               </button>
             )
           })}
+        </div>
+
+        {/* Blacklisted Genres */}
+        <div className="mt-4 pt-3 border-t-2 border-border-dark">
+          <h2 className="text-xs md:text-sm font-bold text-ink mb-1 font-mono">投稿黑名单</h2>
+          <p className="text-[14px] md:text-[16px] text-muted mb-2 md:mb-3 font-mono">
+            将题材加入黑名单后，当"自动退稿"特权开启时，包含该题材的投稿会被自动无情退回。
+          </p>
+          <div className="flex flex-wrap gap-1 md:gap-1.5">
+            {ALL_GENRES.map(genre => {
+              const isBlacklisted = blacklistedGenres.includes(genre)
+              return (
+                <button
+                  key={genre}
+                  onClick={() => toggleBlacklistedGenre(genre)}
+                  className={`flex items-center gap-1 text-[14px] md:text-xs px-1.5 md:px-2 py-0.5 md:py-1 border-2 border-border-dark font-mono transition-all cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[1px] active:translate-y-[1px] ${
+                    isBlacklisted ? 'bg-amber-100 text-amber-800' : 'bg-cream text-muted hover:bg-cream-dark'
+                  }`}
+                >
+                  {isBlacklisted && <span className="font-bold">🚫</span>}
+                  <span>{GENRE_LABELS[genre]}</span>
+                </button>
+              )
+            })}
+          </div>
         </div>
       </div>
 

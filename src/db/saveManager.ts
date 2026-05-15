@@ -32,6 +32,9 @@ export interface GameSaveData {
   departments: Map<string, Department>
   events: GameEvent[]
   activeDateEvent?: import('@/core/dateEvents').DateEvent | null
+  currentTrend: import('@/core/types').Genre | null
+  trendTimer: number
+  blacklistedGenres: import('@/core/types').Genre[]
 }
 
 export async function saveGameToDb(data: GameSaveData): Promise<void> {
@@ -63,6 +66,9 @@ export async function saveGameToDb(data: GameSaveData): Promise<void> {
     manuscriptsJson: serializeMap(data.manuscripts),
     authorsJson: serializeMap(data.authors),
     departmentsJson: serializeMap(data.departments),
+    currentTrend: data.currentTrend,
+    trendTimer: data.trendTimer,
+    blacklistedGenres: data.blacklistedGenres,
     updatedAt: Date.now(),
   }
   await db.saves.put(save)
@@ -99,6 +105,9 @@ export async function loadGameFromDb(): Promise<GameSaveData | null> {
     authors: deserializeMap<string, Author>(save.authorsJson),
     departments: deserializeMap<string, Department>(save.departmentsJson),
     events: [],
+    currentTrend: (save as any).currentTrend ?? null,
+    trendTimer: (save as any).trendTimer ?? 300,
+    blacklistedGenres: (save as any).blacklistedGenres ?? [],
   }
 }
 
