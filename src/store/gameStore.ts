@@ -145,7 +145,7 @@ export interface GameStore extends GameWorldState {
   toasts: ToastMessage[]
   isInitialized: boolean
   isRunning: boolean
-  activeTab: 'desk' | 'shelf' | 'authors' | 'office' | 'study'
+  activeTab: 'desk' | 'shelf' | 'authors' | 'office' | 'study' | 'stats'
   cloudSaveCode: string | null
   llmCallsRemaining: number
   llmMonthLastReset: number

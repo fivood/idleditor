@@ -4,6 +4,7 @@ import { ShelfView } from '@/components/shelf/ShelfView'
 import { AuthorView } from '@/components/author/AuthorView'
 import { OfficeView } from '@/components/office/OfficeView'
 import { StudyView } from '@/components/study/StudyView'
+import { StatsView } from '@/components/stats/StatsView'
 import { WelcomeView } from './WelcomeView'
 import { OfflineReportModal } from './OfflineReportModal'
 import { DecisionModal } from './DecisionModal'
@@ -75,6 +76,7 @@ export function Shell() {
             <div hidden={activeTab !== 'authors'} className="flex-1 min-h-0"><AuthorView /></div>
             <div hidden={activeTab !== 'office'} className="flex-1 min-h-0"><OfficeView /></div>
             <div hidden={activeTab !== 'study'} className="flex-1 min-h-0"><StudyView /></div>
+            <div hidden={activeTab !== 'stats'} className="flex-1 min-h-0"><StatsView /></div>
           </main>
           <nav className="h-11 md:h-12 border-t-2 border-border-dark bg-cream-dark flex items-center shrink-0">
             {[
@@ -83,6 +85,7 @@ export function Shell() {
               ['authors', '作者'],
               ['office', '办公室'],
               ['study', '书房'],
+              ['stats', '档案'],
             ].map(([tab, label]) => (
               <button
                 key={tab}
