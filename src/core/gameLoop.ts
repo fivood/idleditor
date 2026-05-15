@@ -47,6 +47,7 @@ import { TALENTS, type Talent } from './talents'
 import { generatePublishNote, generateLevelUpToast, SHELVED_RESUBMISSION_NOTES } from './data/editorNotes'
 import { createManuscript, createManuscriptForAuthor } from './factories/manuscriptFactory'
 import { loadAuthorNamePool } from './data/authorNames'
+import { personaPassiveFor } from './data/personaPassives'
 
 // Re-export for consumers
 export { loadAuthorNamePool }
@@ -444,13 +445,15 @@ export function tick(world: GameWorldState): TickResult {
   for (const m of world.manuscripts.values()) {
     if (m.status !== 'published') continue
     const royalty = royaltyPerTick(m, world.permanentBonuses.royaltyMultiplier + (epochMerchant ? 0.2 : 0), marketingEfficiency)
-    world.currencies.royalties += royalty * (1 + (talentBonuses.royaltyIncome || 0) + (talentBonuses.allStats || 0))
+    const bookAuthor = world.authors.get(m.authorId)
+    const authorPassive = bookAuthor ? personaPassiveFor(bookAuthor) : { royaltyBonus: 0, salesBonus: 0, prestigeBonus: 0, bestsellerThresholdReduction: 0 }
+    world.currencies.royalties += royalty * (1 + (talentBonuses.royaltyIncome || 0) + (talentBonuses.allStats || 0) + authorPassive.royaltyBonus)
     result.royaltiesEarned += royalty
     const hasGenreBuff = world.activeDateEvent && (world.activeDateEvent.genre === null || world.activeDateEvent.genre === m.genre)
     const prefSalesBonus = 1 + world.preferredGenres.filter(g => g === m.genre).length * GENRE_PREFERENCE_SALES_BONUS
     const reissueBoost = (m.reissueBoostUntil && world.playTicks < m.reissueBoostUntil) ? 1.5 : 1
     const collectionBoost = getCollectionBoost(m.genre, world.unlockedCollections)
-    const talentSalesMult = 1 + (talentBonuses.salesBoost || 0) + (talentBonuses.allStats || 0)
+    const talentSalesMult = 1 + (talentBonuses.salesBoost || 0) + (talentBonuses.allStats || 0) + authorPassive.salesBonus
     m.salesCount += salesPerTick(marketingEfficiency, m.quality) * (hasGenreBuff ? salesMult : 1) * prefSalesBonus * reissueBoost * collectionBoost * talentSalesMult
 
     // Passive affection gain from good sales (1% chance per tick)
@@ -462,7 +465,7 @@ export function tick(world: GameWorldState): TickResult {
     }
 
     // Check bestseller
-    const bestsellerThreshold = epochSocialite ? 24000 : BESTSELLER_SALES
+    const bestsellerThreshold = (epochSocialite ? 24000 : BESTSELLER_SALES) - authorPassive.bestsellerThresholdReduction
     if (!m.isBestseller && m.salesCount >= bestsellerThreshold) {
       m.isBestseller = true
       world.totalBestsellers++
@@ -488,7 +491,7 @@ export function tick(world: GameWorldState): TickResult {
     } else if (author.tier !== 'new') {
       // Active signed+ authors occasionally submit manuscripts
       if (author.booksWritten >= author.maxBooks) continue // Retired / max books reached
-      const interval = manuscriptSpawnInterval(author)
+      const interval = Math.round(manuscriptSpawnInterval(author) * (1 - personaPassiveFor(author).speedBonus))
       if (world.playTicks % interval === 0) {
         const ms = createManuscriptForAuthor(world, author)
         world.manuscripts.set(ms.id, ms)

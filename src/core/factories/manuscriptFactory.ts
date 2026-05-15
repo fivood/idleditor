@@ -11,6 +11,7 @@ import {
   authorQualityBoost,
 } from '../formulas'
 import { EDITOR_TRAIT_BONUSES, GENRE_PREFERENCE_QUALITY_BONUS } from '../constants'
+import { personaPassiveFor } from '../data/personaPassives'
 import { TITLE_POOLS, getBaseTitle, titleToSlug } from '../titlePools'
 import { levelBonuses } from '../leveling'
 import { generateSynopsis, generateRejectionReason, isClearlyUnsuitable } from '../humor/synopsis'
@@ -134,6 +135,7 @@ export function createManuscriptForAuthor(world: GameWorldState, author: Author)
   const prefCount = world.preferredGenres.filter(g => g === author.genre).length
   const prefQBonus = prefCount * GENRE_PREFERENCE_QUALITY_BONUS
   const quality = Math.min(100, effectiveQuality(baseQuality, author.talent + world.permanentBonuses.authorTalentBoost, world.permanentBonuses) + traitQBonus + prefQBonus + levelBonuses(world.editorLevel).quality + (world.permanentBonuses.epochPath === 'scholar' ? 3 : 0))
+  const passive = personaPassiveFor(author)
   const title = generateTitle(author.genre, world)
 
   author.booksWritten++
@@ -143,8 +145,8 @@ export function createManuscriptForAuthor(world: GameWorldState, author: Author)
     title,
     authorId: author.id,
     genre: author.genre,
-    quality: Math.min(100, quality),
-    wordCount: rollWordCount(),
+    quality: Math.min(100, quality + passive.qualityBonus),
+    wordCount: Math.round(rollWordCount() * (1 + passive.wordCountBonus)),
     marketPotential: effectiveMarketPotential(quality, getDeptEfficiency(world, 'marketing')),
     status: 'submitted',
     editingProgress: 0,
