@@ -241,49 +241,6 @@ export interface GameStore extends GameWorldState {
   addToast: (toast: ToastMessage) => void
 }
 
-function buildSolicitWorld(state: GameStore): GameWorldState {
-  return {
-    manuscripts: state.manuscripts,
-    authors: state.authors,
-    departments: state.departments,
-    events: state.events,
-    playTicks: state.playTicks,
-    totalPublished: state.totalPublished,
-    totalBestsellers: state.totalBestsellers,
-    totalRejections: state.totalRejections,
-    currencies: { ...state.currencies },
-    permanentBonuses: state.permanentBonuses,
-    trait: state.trait,
-    playerName: state.playerName,
-    calendar: { ...state.calendar },
-    spawnTimer: state.spawnTimer,
-    solicitCooldown: state.solicitCooldown,
-    awardTimer: state.awardTimer,
-    trendTimer: state.trendTimer,
-    triggeredMilestones: new Set(state.triggeredMilestones),
-    activeDateEvent: state.activeDateEvent,
-    coversManifest: state.coversManifest,
-    preferredGenres: [...state.preferredGenres],
-    booksPublishedThisMonth: state.booksPublishedThisMonth,
-    publishedTitles: new Set(state.publishedTitles),
-    editorXP: state.editorXP,
-    editorLevel: state.editorLevel,
-    publishingQuotaUpgrades: state.publishingQuotaUpgrades,
-    autoReviewEnabled: state.autoReviewEnabled,
-    autoCoverEnabled: state.autoCoverEnabled,
-    autoRejectEnabled: state.autoRejectEnabled,
-    unlockedCollections: new Set(state.unlockedCollections),
-    prActive: state.prActive,
-    readingRoomRenovated: state.readingRoomRenovated,
-    selectedTalents: { ...state.selectedTalents },
-    playerGender: state.playerGender,
-    qualityThreshold: state.qualityThreshold,
-    catState: state.catState,
-    catPetCooldown: state.catPetCooldown,
-    catRejectedUntilYear: state.catRejectedUntilYear,
-  }
-}
-
 export const useGameStore = create<GameStore>()(immer((set, get) => ({
   // ──── Initial state ────
   ...createInitialWorld(),
@@ -756,79 +713,65 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
   },
 
   solicitFree: () => {
-    const state = get()
-    if (state.solicitCooldown > 0) return
-    const world = buildSolicitWorld(state)
-    const count = 2 + Math.floor(Math.random() * 3)
-    const spawned: string[] = []
-    for (let i = 0; i < count; i++) {
-      const ms = createManuscript(world)
-      world.manuscripts.set(ms.id, ms)
-      spawned.push(ms.title)
-    }
-    set({
-      manuscripts: new Map(world.manuscripts),
-      publishedTitles: new Set(world.publishedTitles),
-      solicitCooldown: 300,
-    })
-    get().addToast({
-      id: nanoid(),
-      text: `向出版业界发布了匿名征稿函。${count}份稿件应声而至：${spawned.join('、')}`,
-      type: 'info',
-      createdAt: get().playTicks,
+    set(draft => {
+      if (draft.solicitCooldown > 0) return
+      const count = 2 + Math.floor(Math.random() * 3)
+      const spawned: string[] = []
+      for (let i = 0; i < count; i++) {
+        const ms = createManuscript(draft)
+        draft.manuscripts.set(ms.id, ms)
+        spawned.push(ms.title)
+      }
+      draft.solicitCooldown = 300
+      get().addToast({
+        id: nanoid(),
+        text: `向出版业界发布了匿名征稿函。${count}份稿件应声而至：${spawned.join('、')}`,
+        type: 'info',
+        createdAt: draft.playTicks,
+      })
     })
   },
 
   solicitTargeted: () => {
-    const state = get()
-    if (state.solicitCooldown > 0) return
-    if (state.currencies.revisionPoints < 30) return
-    const world = buildSolicitWorld(state)
-    world.currencies.revisionPoints -= 30
-    const count = 2 + Math.floor(Math.random() * 2)
-    const spawned: string[] = []
-    for (let i = 0; i < count; i++) {
-      const ms = createManuscript(world, 10)
-      world.manuscripts.set(ms.id, ms)
-      spawned.push(ms.title)
-    }
-    set({
-      manuscripts: new Map(world.manuscripts),
-      publishedTitles: new Set(world.publishedTitles),
-      currencies: { ...world.currencies },
-      solicitCooldown: 480,
-    })
-    get().addToast({
-      id: nanoid(),
-      text: `向${state.preferredGenres.length > 0 ? state.preferredGenres.map(g => ({'sci-fi':'科幻','mystery':'推理','suspense':'悬疑','social-science':'社科','hybrid':'混血','light-novel':'轻小说'}[g] ?? g)).join('、') + '领域' : '各领域'}定向约稿。${count}份高质量稿件已到：${spawned.join('、')}`,
-      type: 'info',
-      createdAt: get().playTicks,
+    set(draft => {
+      if (draft.solicitCooldown > 0) return
+      if (draft.currencies.revisionPoints < 30) return
+      draft.currencies.revisionPoints -= 30
+      const count = 2 + Math.floor(Math.random() * 2)
+      const spawned: string[] = []
+      for (let i = 0; i < count; i++) {
+        const ms = createManuscript(draft, 10)
+        draft.manuscripts.set(ms.id, ms)
+        spawned.push(ms.title)
+      }
+      draft.solicitCooldown = 480
+      get().addToast({
+        id: nanoid(),
+        text: `向${draft.preferredGenres.length > 0 ? draft.preferredGenres.map(g => ({'sci-fi':'科幻','mystery':'推理','suspense':'悬疑','social-science':'社科','hybrid':'混血','light-novel':'轻小说'}[g] ?? g)).join('、') + '领域' : '各领域'}定向约稿。${count}份高质量稿件已到：${spawned.join('、')}`,
+        type: 'info',
+        createdAt: draft.playTicks,
+      })
     })
   },
 
   solicitRush: () => {
-    const state = get()
-    if (state.currencies.royalties < 100) return
-    const world = buildSolicitWorld(state)
-    world.currencies.royalties -= 100
-    const count = 1 + Math.floor(Math.random() * 2)
-    const spawned: string[] = []
-    for (let i = 0; i < count; i++) {
-      const ms = createManuscript(world)
-      world.manuscripts.set(ms.id, ms)
-      spawned.push(ms.title)
-    }
-    set({
-      manuscripts: new Map(world.manuscripts),
-      publishedTitles: new Set(world.publishedTitles),
-      currencies: { ...world.currencies },
-      solicitCooldown: 120,
-    })
-    get().addToast({
-      id: nanoid(),
-      text: `动用宣传预算紧急征稿。${count}份稿件火速抵达：${spawned.join('、')}`,
-      type: 'info',
-      createdAt: get().playTicks,
+    set(draft => {
+      if (draft.currencies.royalties < 100) return
+      draft.currencies.royalties -= 100
+      const count = 1 + Math.floor(Math.random() * 2)
+      const spawned: string[] = []
+      for (let i = 0; i < count; i++) {
+        const ms = createManuscript(draft)
+        draft.manuscripts.set(ms.id, ms)
+        spawned.push(ms.title)
+      }
+      draft.solicitCooldown = 120
+      get().addToast({
+        id: nanoid(),
+        text: `动用宣传预算紧急征稿。${count}份稿件火速抵达：${spawned.join('、')}`,
+        type: 'info',
+        createdAt: draft.playTicks,
+      })
     })
   },
 
