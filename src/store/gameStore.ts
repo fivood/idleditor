@@ -167,6 +167,7 @@ export interface GameStore extends GameWorldState {
   catState: CatState | null
   catPetCooldown: number
   catRejectedUntilYear: number
+  salonBooksRemaining: number
 
   // Actions: lifecycle
   initialize: () => Promise<void>
@@ -206,6 +207,7 @@ export interface GameStore extends GameWorldState {
   petCat: () => void
   makeCatImmortal: () => void
   shooCat: () => void
+  hostSalon: () => void
   generateEditorNote: (id: string) => Promise<void>
   updateCustomNote: (id: string, note: string) => void
 
@@ -269,6 +271,7 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
   catState: null,
   catPetCooldown: 0,
   catRejectedUntilYear: 0,
+  salonBooksRemaining: 0,
 
   // ──── Lifecycle ────
   initialize: async () => {
@@ -1323,6 +1326,21 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
       currencies: { ...state.currencies, royalties: state.currencies.royalties - 1000, prestige: state.currencies.prestige + 50 },
     })
     get().addToast({ id: nanoid(), text: `赞助文学奖！《${book.title}》获得 +50 声望。`, type: 'milestone', createdAt: get().playTicks })
+  },
+
+  hostSalon: () => {
+    const state = get()
+    if (state.currencies.prestige < 200) return
+    set(draft => {
+      draft.currencies.prestige -= 200
+      draft.salonBooksRemaining = 5
+    })
+    get().addToast({
+      id: nanoid(),
+      text: '你在地下室的蜡烛圆桌上举办了一场文学沙龙。几位作家举着红酒杯讨论了三个小时的"灵感来源"——实际内容是谁的经纪人更离谱。未来5本出版的品质 +5。',
+      type: 'milestone',
+      createdAt: get().playTicks,
+    })
   },
 
   setPreferredGenre: (genre) => {

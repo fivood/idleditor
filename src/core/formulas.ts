@@ -100,8 +100,10 @@ export function rpPerProof(editorSpeedBonus: number): number {
   return Math.round(RP_PER_PROOF * (1 + editorSpeedBonus))
 }
 
-export function rpPerPublish(quality: number, rpBonus: number): number {
-  return Math.round(RP_BASE_PER_PUBLISH * (quality / 50) * (1 + rpBonus))
+export function rpPerPublish(quality: number, rpBonus: number, monthlyIndex = 0): number {
+  const decay = 1 - (monthlyIndex * 0.05) // 100% → 50% over ~10 books
+  const multiplier = Math.max(0.5, decay)
+  return Math.round(RP_BASE_PER_PUBLISH * (quality / 50) * (1 + rpBonus) * multiplier)
 }
 
 export function royaltyPerTick(book: Manuscript, royaltyMultiplier: number, marketingEfficiency: number): number {

@@ -92,6 +92,7 @@ export interface GameWorldState {
   catState: CatState | null
   catPetCooldown: number
   catRejectedUntilYear: number
+  salonBooksRemaining: number
 }
 
 // ──── Title/Cover generation moved to factories/manuscriptFactory.ts ────
@@ -146,6 +147,7 @@ export function createInitialWorld(): GameWorldState {
     catState: null,
     catPetCooldown: 0,
     catRejectedUntilYear: 0,
+    salonBooksRemaining: 0,
   }
 }
 
@@ -353,12 +355,17 @@ export function tick(world: GameWorldState): TickResult {
       m.status = 'published'
       m.publishTime = world.playTicks
       m.editingProgress = 0
+      // Salon boost: apply quality bonus to recent publications
+      if (world.salonBooksRemaining > 0) {
+        m.quality = Math.min(100, m.quality + 5)
+        world.salonBooksRemaining--
+      }
       // Generate editor note from template pool
       if (!m.editorNote) {
         m.editorNote = generatePublishNote(m)
       }
       world.totalPublished++
-      world.currencies.revisionPoints += rpPerPublish(m.quality, 0)
+      world.currencies.revisionPoints += rpPerPublish(m.quality, 0, world.booksPublishedThisMonth)
       const pubPrestige = m.isUnsuitable ? -10 : 10
       world.currencies.prestige += pubPrestige
       world.booksPublishedThisMonth++

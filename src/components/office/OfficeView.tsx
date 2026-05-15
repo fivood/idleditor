@@ -40,6 +40,8 @@ export function OfficeView() {
   const hirePR = useGameStore(s => s.hirePR)
   const renovateReadingRoom = useGameStore(s => s.renovateReadingRoom)
   const sponsorAward = useGameStore(s => s.sponsorAward)
+  const salonBooksRemaining = useGameStore(s => s.salonBooksRemaining)
+  const hostSalon = useGameStore(s => s.hostSalon)
   const selectedTalents = useGameStore(s => s.selectedTalents)
   const editorLevel = useGameStore(s => s.editorLevel)
   const selectTalent = useGameStore(s => s.selectTalent)
@@ -304,6 +306,27 @@ export function OfficeView() {
                 </div>
                 <button onClick={sponsorAward} disabled={!canAfford} className={`text-[12px] md:text-xs px-3 py-1 border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${canAfford ? 'bg-progress text-white' : 'bg-cream-dark text-muted cursor-not-allowed'}`}>
                   {cost} 税
+                </button>
+              </div>
+            </div>
+          )
+        })()}
+
+        {/* Host Salon */}
+        {(() => {
+          const costPrestige = 200
+          const canAfford = currencies.prestige >= costPrestige
+          const active = salonBooksRemaining > 0
+          return (
+            <div className={`border-2 p-2 md:p-3 mt-1.5 ${active ? 'bg-cream-dark border-border-dark opacity-70' : canAfford ? 'bg-cream border-progress shadow-[3px_3px_0_#3a6491]' : 'bg-cream-dark border-border-dark opacity-50'}`}>
+              <div className="flex items-center gap-2">
+                <span className="text-sm md:text-lg">🕯️</span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[12px] md:text-xs font-bold text-ink font-mono">举办文学沙龙</span>
+                  <p className="text-[12px] md:text-[13px] text-muted font-mono">{active ? `进行中：未来 ${salonBooksRemaining} 本出版品质 +5` : '地下室的蜡烛圆桌 · 未来5本出版品质+5'}</p>
+                </div>
+                <button onClick={hostSalon} disabled={!canAfford || active} className={`text-[12px] md:text-xs px-3 py-1 border-2 border-border-dark font-mono transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${active ? 'bg-card-inset text-muted cursor-not-allowed' : canAfford ? 'bg-progress text-white cursor-pointer' : 'bg-cream-dark text-muted cursor-not-allowed'}`}>
+                  {active ? '进行中' : costPrestige + ' 声'}
                 </button>
               </div>
             </div>
