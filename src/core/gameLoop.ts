@@ -1,6 +1,4 @@
-﻿import type { Author, AuthorPersona, CatState, Department, DepartmentType, EditorTrait, GameEvent, Genre, Manuscript, PermanentBonuses, TickResult, ToastMessage } from './types'
-import { GENRE_ICONS, GENRES } from './types'
-import { GENRE_COVER_COLORS } from './constants'
+import type { Author, CatState, Department, DepartmentType, EditorTrait, GameEvent, Genre, Manuscript, PermanentBonuses, TickResult, ToastMessage } from './types'
 import {
   AFFECTION_BAD_PUBLISH_PENALTY,
   AFFECTION_ELITE_TALENT,
@@ -9,8 +7,6 @@ import {
   AFFECTION_PER_PROMOTION,
   AFFECTION_PER_PUBLISH,
   AFFECTION_PER_QUALITY_PUBLISH,
-  AUTHOR_BASE_TALENT,
-  AUTHOR_TALENT_RANGE,
   AUTHOR_FAME_PER_PUBLISH,
   AUTHOR_TIER_THRESHOLDS,
   AUTO_COVER_PRESTIGE,
@@ -21,16 +17,12 @@ import {
   DEPARTMENT_BASE_EFFICIENCY,
   DEPARTMENT_COST_MULTIPLIER,
   EDITOR_TRAIT_BONUSES,
-  GENRE_PREFERENCE_QUALITY_BONUS,
   GENRE_PREFERENCE_SALES_BONUS,
   MAX_SUBMITTED_QUEUE,
   MILESTONES,
 } from './constants'
 import {
-  authorQualityBoost,
   editingTicks,
-  effectiveMarketPotential,
-  effectiveQuality,
   manuscriptSpawnInterval,
   proofingTicks,
   publishingTicks,
@@ -39,48 +31,26 @@ import {
   rpPerProof,
   rpPerPublish,
   rpPerReview,
-  rollQuality,
-  rollWordCount,
   royaltyPerTick,
   salesPerTick,
 } from './formulas'
 import { nanoid } from '../utils/id'
-import { pick, rangeInt, roll } from '../utils/random'
+import { pick, rangeInt } from '../utils/random'
 import { generateToast } from './humor/generator'
-import { generateSynopsis, generateRejectionReason, isClearlyUnsuitable } from './humor/synopsis'
 import { createCalendar, advanceCalendar, TICKS_PER_DAY } from './calendar'
 import { checkDateEvent, type DateEvent } from './dateEvents'
 import type { GameCalendar } from './calendar'
-import { TITLE_POOLS, getBaseTitle, titleToSlug } from './titlePools'
 import { xpForPublish, getLevelFromXP, levelBonuses } from './leveling'
 import { COLLECTIONS } from './collections'
 import { RIVALS } from './rivals'
 import { TALENTS, type Talent } from './talents'
+import { generatePublishNote, generateLevelUpToast, SHELVED_RESUBMISSION_NOTES } from './data/editorNotes'
+import { createManuscript, createManuscriptForAuthor } from './factories/manuscriptFactory'
+import { loadAuthorNamePool } from './data/authorNames'
 
-// ──── LLM-generated author name pool ────
-let authorNamePool: Record<string, string[]> | null = null
-
-export async function loadAuthorNamePool() {
-  try {
-    const res = await fetch('/authors/names.json')
-    if (res.ok) authorNamePool = await res.json()
-  } catch { /* use hardcoded names */ }
-}
-
-// ──── Persona-genre bias map (used by both createManuscript and createRandomAuthor) ────
-const PERSONA_GENRE_BIAS: Record<string, Genre[]> = {
-  'reclusive-latam-writer': ['hybrid', 'social-science'],
-  'nordic-crime-queen': ['mystery', 'suspense'],
-  'american-bestseller-machine': ['hybrid', 'mystery'],
-  'japanese-lightnovel-otaku': ['sci-fi', 'hybrid'],
-  'fantasy-epic-writer': ['hybrid', 'sci-fi'],
-  'french-literary-recluse': ['social-science', 'hybrid'],
-  'indian-epic-sage': ['hybrid', 'social-science'],
-  'russian-doom-spiral': ['social-science', 'suspense'],
-  'korean-webnovel-queen': ['light-novel', 'hybrid'],
-  'nigerian-magical-realist': ['hybrid', 'social-science'],
-  'australian-outback-gothic': ['suspense', 'mystery'],
-}
+// Re-export for consumers
+export { loadAuthorNamePool }
+export { createManuscript }
 
 // ──── State that the game loop reads/mutates ────
 export interface GameWorldState {
@@ -124,39 +94,7 @@ export interface GameWorldState {
   catRejectedUntilYear: number
 }
 
-// ──── Title generation ────
-function generateTitle(genre: string, world: GameWorldState): string {
-  const pool = TITLE_POOLS[genre] ?? TITLE_POOLS['hybrid']
-  const subtitles = ['修订版', '未删节', '长篇', '完整版，大概', '作者恳请再版', '第二版，第一版印错了', '豪华版，送书签', '']
-  let title = ''
-  for (let i = 0; i < 15; i++) {
-    const candidate = pool[Math.floor(Math.random() * pool.length)]
-    const suffixed = Math.random() < 0.35 ? `${candidate} · ${pick(subtitles.slice(0, -1))}` : candidate
-    if (!world.publishedTitles.has(suffixed)) {
-      title = suffixed
-      break
-    }
-  }
-  if (!title) title = pool[Math.floor(Math.random() * pool.length)]
-  return title
-}
-
-function generateCover(title: string, genre: string, coversManifest: Record<string, string> | null): Manuscript['cover'] {
-  const baseTitle = getBaseTitle(title)
-  const slug = titleToSlug(baseTitle)
-  const entry = coversManifest?.[slug]
-  // Use manifest if available, otherwise try direct .png path
-  const localSrc = entry ? `/covers/${entry.replace('.svg', '.png')}` : `/covers/${slug}.png`
-  return {
-    type: 'generated',
-    src: localSrc,
-    placeholder: {
-      bgColor: GENRE_COVER_COLORS[genre as keyof typeof GENRE_COVER_COLORS] ?? '#1a1a2e',
-      icon: GENRE_ICONS[genre as keyof typeof GENRE_ICONS] ?? '📖',
-      titleOverlay: title,
-    },
-  }
-}
+// ──── Title/Cover generation moved to factories/manuscriptFactory.ts ────
 
 // ──── World initialization ────
 export function createInitialWorld(): GameWorldState {
@@ -438,17 +376,7 @@ export function tick(world: GameWorldState): TickResult {
       const newLevel = getLevelFromXP(world.editorXP)
       if (newLevel > world.editorLevel) {
         world.editorLevel = newLevel
-        const lines = [
-          `[Lv.${newLevel}] 你感到一股熟悉的力量涌上指尖。连续退稿十七次依然心平气和的那种力量。`,
-          `[Lv.${newLevel}] 你的红笔现在可以在三米之外凭空画蝙蝠。仅限审稿时。已经够用了。`,
-          `[Lv.${newLevel}] 办公室的实习生偷偷在你的茶杯旁放了一包速溶咖啡。你礼貌地假装没看到。你喝的东西不需要速溶。`,
-          `[Lv.${newLevel}] 伯爵的画像在墙上咳了一声。可能是赞赏。也可能是灰尘。你决定当它是赞赏。`,
-          `[Lv.${newLevel}] 你的棺材板底下传来一阵轻微的震动。那是出版社两百年前的奠基石。它每提升一级就抖一下。没人知道为什么。你习惯了。`,
-          `[Lv.${newLevel}] 一位退休作者在远方忽然打了个喷嚏。他不知道为什么。但他感觉到世界的某个角落有一支红笔刚刚变得更强了。`,
-          `[Lv.${newLevel}] 你把脚翘在书桌上，对着天花板发了一会儿呆。不是偷懒。是思考。不同之处在于你不需要眨眼。`,
-          `[Lv.${newLevel}] 编辑部走廊里的灯泡闪了一下。实习生说"是不是电压不稳"。你说"不是"。你知道那是什么。`,
-        ]
-        result.toasts.push(ct(pick(lines), 'levelUp'))
+        result.toasts.push(ct(generateLevelUpToast(newLevel), 'levelUp'))
       }
       result.publishedBooks.push(m)
       if (m.isUnsuitable) {
@@ -655,14 +583,7 @@ export function tick(world: GameWorldState): TickResult {
       m.status = 'submitted'
       m.quality = Math.min(100, m.quality + 3)
       m.shelvedAt = null
-      const notes = [
-        '（作者修改后重新投稿：删掉了第三章那四十页关于天气的描写）',
-        '（第二稿：作者说"这次真的改好了"。我们拭目以待。）',
-        '（修改版：新增了一个人物，删除了两个比喻，书名没变——作者觉得书名挺好的）',
-        '（修订稿：作者在邮件里写了三千字修改说明，我们只读了前两行）',
-        '（重投稿：主要改动是把主角的猫删了——编辑上次在批注里画了三只蝙蝠表示不满）',
-        '（修改后重投：作者声称"这是最终版"——我们都听过这句话）',
-      ]
+      const notes = SHELVED_RESUBMISSION_NOTES
       if (!m.synopsis.includes('（作者修改')) {
         m.synopsis += ' ' + pick(notes)
       }
@@ -673,245 +594,7 @@ export function tick(world: GameWorldState): TickResult {
   return result
 }
 
-// ──── Manuscript creation ────
-export function createManuscript(world: GameWorldState, qualityBonus = 0): Manuscript {
-  const traitQBonus = world.trait ? EDITOR_TRAIT_BONUSES[world.trait].qualityBonus : 0
-  const genre = pick(GENRES)
-  const prefCount = world.preferredGenres.filter(g => g === genre).length
-  const prefQBonus = prefCount * GENRE_PREFERENCE_QUALITY_BONUS
-  const quality = rollQuality() + world.permanentBonuses.manuscriptQualityBonus + traitQBonus + prefQBonus + qualityBonus + levelBonuses(world.editorLevel).quality
-  const title = generateTitle(genre, world)
-
-  // Chance to create a new author
-  let authorId: string
-  if (roll(0.3) || world.authors.size === 0) {
-    const author = createRandomAuthor(world, genre)
-    world.authors.set(author.id, author)
-    authorId = author.id
-  } else {
-    // Prefer authors whose persona genre-bias matches this manuscript's genre
-    const genreBiased = [...world.authors.values()].filter(a => {
-      if (a.cooldownUntil !== null || a.poached || a.terminated) return false
-      if (a.booksWritten >= a.maxBooks) return false
-      const bias = PERSONA_GENRE_BIAS[a.persona]
-      return bias && bias.includes(genre)
-    })
-    const candidates = genreBiased.length > 0 ? genreBiased
-      : [...world.authors.values()].filter(a => a.cooldownUntil === null && !a.poached && !a.terminated && a.booksWritten < a.maxBooks)
-    if (candidates.length > 0) {
-      const author = pick(candidates)
-      author.lastActiveAt = world.playTicks
-      authorId = author.id
-    } else {
-      const author = createRandomAuthor(world, genre)
-      world.authors.set(author.id, author)
-      authorId = author.id
-    }
-  }
-
-  return {
-    id: nanoid(10),
-    title,
-    authorId,
-    genre,
-    quality: Math.min(100, quality),
-    wordCount: rollWordCount(),
-    marketPotential: effectiveMarketPotential(quality, 0),
-    status: 'submitted',
-    editingProgress: 0,
-    createdAt: world.playTicks,
-    publishTime: null,
-    isBestseller: false,
-    salesCount: 0,
-    awards: [],
-    cover: generateCover(title, genre, world.coversManifest),
-    synopsis: generateSynopsis(genre, title),
-    isUnsuitable: isClearlyUnsuitable(quality),
-    rejectionReason: isClearlyUnsuitable(quality) ? generateRejectionReason() : '',
-    meticulouslyEdited: false,
-    shelvedAt: null,
-    reissueBoostUntil: null,
-    editorNote: '',
-    customNote: '',
-  }
-}
-
-function createManuscriptForAuthor(world: GameWorldState, author: Author): Manuscript {
-  const baseQuality = rollQuality() + authorQualityBoost(author)
-  const traitQBonus = world.trait ? EDITOR_TRAIT_BONUSES[world.trait].qualityBonus : 0
-  const prefCount = world.preferredGenres.filter(g => g === author.genre).length
-  const prefQBonus = prefCount * GENRE_PREFERENCE_QUALITY_BONUS
-  const quality = Math.min(100, effectiveQuality(baseQuality, author.talent + world.permanentBonuses.authorTalentBoost, world.permanentBonuses) + traitQBonus + prefQBonus + levelBonuses(world.editorLevel).quality)
-  const title = generateTitle(author.genre, world)
-
-  author.booksWritten++
-  author.lastActiveAt = world.playTicks
-  return {
-    id: nanoid(10),
-    title,
-    authorId: author.id,
-    genre: author.genre,
-    quality: Math.min(100, quality),
-    wordCount: rollWordCount(),
-    marketPotential: effectiveMarketPotential(quality, getDeptEfficiency(world, 'marketing')),
-    status: 'submitted',
-    editingProgress: 0,
-    createdAt: world.playTicks,
-    publishTime: null,
-    isBestseller: false,
-    salesCount: 0,
-    awards: [],
-    cover: generateCover(title, author.genre, world.coversManifest),
-    synopsis: generateSynopsis(author.genre, title),
-    isUnsuitable: isClearlyUnsuitable(quality),
-    rejectionReason: isClearlyUnsuitable(quality) ? generateRejectionReason() : '',
-    meticulouslyEdited: false,
-    shelvedAt: null,
-    reissueBoostUntil: null,
-    editorNote: '',
-    customNote: '',
-  }
-}
-
-// ──── Author creation ────
-function createRandomAuthor(_world: GameWorldState, preferredGenre?: Genre): Author {
-  const personaList = [
-    'retired-professor', 'basement-scifi-geek', 'ex-intelligence-officer', 'sociology-phd', 'anxious-debut',
-    'reclusive-latam-writer', 'nordic-crime-queen', 'american-bestseller-machine', 'japanese-lightnovel-otaku',
-    'historical-detective-writer', 'fantasy-epic-writer',
-    'french-literary-recluse', 'indian-epic-sage', 'russian-doom-spiral',
-    'korean-webnovel-queen', 'nigerian-magical-realist', 'australian-outback-gothic',
-  ] as const
-  // Bias persona toward preferredGenre if provided
-  let persona: AuthorPersona
-  if (preferredGenre) {
-    const matching = ([...personaList] as string[]).filter(p => PERSONA_GENRE_BIAS[p]?.includes(preferredGenre))
-    persona = (matching.length > 0 && Math.random() < 0.8 ? pick(matching) : pick([...personaList] as unknown as string[])) as AuthorPersona
-  } else {
-    persona = pick([...personaList] as unknown as string[]) as AuthorPersona
-  }
-  const names: Record<string, string[]> = {
-    'retired-professor': ['沈默然', '林怀瑾', '顾知秋', '苏砚清', '叶知秋', '孟晚舟', '秦观海', '陶退之', '谢半生', '裴未老'],
-    'basement-scifi-geek': ['星野零', '陆星辰', '方代码', '季银河', '夏宇尘', '云起时', '钟离渊', '上官惑', '端木奇'],
-    'ex-intelligence-officer': ['陈深', '秦墨', '韩隐', '洛铮', '石藏锋', '冷无言', '段无名', '尉迟默', '慕容简'],
-    'sociology-phd': ['周知行博士', '温如言博士', '许观澜博士', '李问策博士', '郑观潮博士', '柳问津博士', '司马见微博士'],
-    'anxious-debut': ['小透明', '宋迟迟', '姜未名', '沈惴惴', '贺小怯', '莫彷徨', '简不安', '顾忐忑', '叶微颤'],
-    'reclusive-latam-writer': ['Gabriel·Manana（加布里埃尔·明日复明日）', 'Mario·Llama（马里奥·没灵感）', 'Julio·Taza（胡里奥·一杯茶写一页）'],
-    'nordic-crime-queen': ['Ingrid·Frost（英格丽·冷飕飕）', 'Astrid·Winter（阿斯特丽德·冻死人）', 'Sigrid·Snow（西格丽德·下大雪）'],
-    'american-bestseller-machine': ['Jack·Bestsell（杰克·畅销王）', 'Emily·Pageturn（艾米丽·翻页快）', 'Taylor·Delay（泰勒·拖延症）'],
-    'japanese-lightnovel-otaku': ['Tanaka Light（田中·亮得耀眼）', 'Suzuki Novel（铃木·小说家）', 'Sato Isekai（佐藤·又穿越了）', 'Takahashi Tensei（高桥·又转生了）'],
-    'historical-detective-writer': ['马上飞', '史料虫', '文考源', '古道今', '案牍生', '鉴古斋主'],
-    'fantasy-epic-writer': [
-      'Robert·Roundabout（罗伯特·绕远路）', 'George·Slowwrite·Martin（乔治·慢写慢写·马丁）',
-      'J·R·R·Prolongue（J·R·R·铺垫金）', 'Brandon·TooFast（布兰登·写太快）',
-      'Terry·Flatworld（特里·扁平世界）', 'Andrzej·GameCanon（安德烈·游戏正统）',
-      'Patrick·ChapterThree（帕特里克·第三章还没写完）', 'Robin·Hobbyname（罗宾·笔名太长）',
-    ],
-    'french-literary-recluse': ['Marguerite·SansFin（玛格丽特·没写完）', 'Jacques·Phrase（雅克·长句子）', 'Céline·Rature（塞琳·改不完）'],
-    'indian-epic-sage': ['Anand·Purana（阿南德·往世书）', 'Kavita·Mahabharata（卡维塔·太长了）', 'Raj·Samsara（拉杰·轮回中）'],
-    'russian-doom-spiral': ['Dmitri·Toska（德米特里·苦闷）', 'Natalia·Zima（娜塔莉亚·凛冬）', 'Sergei·OchenDlinno（谢尔盖·太长了）'],
-    'korean-webnovel-queen': ['Park·DailyUpdate（朴·日更万）', 'Kim·Hiatus（金·休刊）', 'Choi·Paywall（崔·付费墙）'],
-    'nigerian-magical-realist': ['Chinua·Spirit（钦努阿·神灵附体）', 'Adaeze·Oracle（阿达泽·神谕）', 'Olu·MarketGod（奥卢·市场之神）'],
-    'australian-outback-gothic': ['Bruce·RedDust（布鲁斯·红尘）', 'Sheila·Heatwave（希拉·热浪）', 'Mick·Drought（米克·大旱）'],
-  }
-  const phrases: Record<string, string[]> = {
-    'retired-professor': ['"截稿日期，说到底，只是一种建议。"', '"急什么。"'],
-    'basement-scifi-geek': ['"量子力学部分应该没算错……吧。"', '"睡眠被高估了。"'],
-    'ex-intelligence-officer': ['"这只是小说。大概。"', '"我可以告诉你更多，但……"'],
-    'sociology-phd': ['"光是脚注就写了四十页，不客气。"', '"我调研了两千人。他们帮不上什么忙。"'],
-    'anxious-debut': ['"写得不好。抱歉。"', '"嫌弃也行，我理解。"'],
-    'reclusive-latam-writer': ['"花了十七年。前面十六年在泡茶。"', '"不要按章节读。第104页开始，跳回第3页。"'],
-    'nordic-crime-queen': ['"第二具尸体在……不能说。"', '"暖气是灵感的敌人。"'],
-    'american-bestseller-machine': ['"已经有三个制片人在竞价了。"', '"每章必须以钩子结尾。这是物理定律。"'],
-    'japanese-lightnovel-otaku': ['"如果篇幅不够，第三章加个泳装回。"', '"前13卷在硬盘里，等出版社打电话。"'],
-    'fantasy-epic-writer': ['"地图还有三张没画完。别催。"', '"编年史只写了前六千年，后两千年还在整理。"', '"角色太多？不，才一百二十七个有名有姓的。这才第一卷。"', '"结局我已经想好了——大纲，不是正文。"'],
-    'french-literary-recluse': ['"这句话我改了十七遍。第十七遍和第一遍完全一样。"', '"出版社？哪个出版社？我不在乎。"'],
-    'indian-epic-sage': ['"这部史诗只有七卷。每卷大概一千页。"', '"故事的核心在前四百页铺垫之后才真正开始。"'],
-    'russian-doom-spiral': ['"幸福在文学中不真实。只有痛苦才经得起排版。"', '"结尾是开放的。完全开放。读者自己决定谁活了下来——我会在脚注里留些线索。"'],
-    'korean-webnovel-queen': ['"今天也准时上传了四千字。睡眠是凡人的事。"', '"读者在评论区说第一章埋的伏笔在第四十七章才回收——他们注意到了！"'],
-    'nigerian-magical-realist': ['"神灵在茶馆里点了一杯美式咖啡。世界果然变了。"', '"讲故事不是我的选择——是祖先的。"'],
-    'australian-outback-gothic': ['"土地也有记忆。大部分不是好的记忆。"', '"你在地平线上看到的不是雾气。那是另一种东西。"'],
-  }
-
-  // Foreign personas have genre biases
-  const bias = PERSONA_GENRE_BIAS[persona]
-  const genre = bias && Math.random() < 0.7 ? pick(bias) : pick(GENRES)
-
-  // Pick a unique name - prefer LLM pool, fallback to hardcoded
-  const existingNames = new Set([..._world.authors.values()].map(a => a.name))
-  let name: string
-  if (authorNamePool?.[persona] && authorNamePool[persona].length > 0) {
-    name = pick(authorNamePool[persona].filter(n => !existingNames.has(n)))
-    if (!name || existingNames.has(name)) {
-      name = pick(names[persona])
-    }
-  } else {
-    name = pick(names[persona])
-  }
-  // Retry and fallback to pen names
-  for (let i = 0; i < 15 && existingNames.has(name); i++) {
-    name = pick(names[persona])
-  }
-  if (existingNames.has(name)) {
-    const penPool = [
-      '匿名先生', '某不知名作者', '编辑部对面的那个', '一个不愿透露姓名的人',
-      '前任咖啡店店员', '自称是猫的人', '失眠写作爱好者', '深夜打字机',
-      '欠稿费的人', '上周来过茶水间的', '被你退过两次稿的人',
-    ]
-    name = pick(penPool)
-  }
-
-  return {
-    id: nanoid(8),
-    name,
-    persona,
-    genre,
-    tier: 'new',
-    talent: AUTHOR_BASE_TALENT + rangeInt(0, AUTHOR_TALENT_RANGE),
-    reliability: 20 + rangeInt(0, 60),
-    fame: 0,
-    cooldownUntil: null,
-    rejectedCount: 0,
-    signaturePhrase: pick(phrases[persona]),
-    affection: 0,
-    poached: false,
-    terminated: false,
-    lastInteractionAt: 0,
-    lastActiveAt: 0,
-    booksWritten: 0,
-    maxBooks: (() => {
-      const ranges: Record<string, [number, number]> = {
-        'american-bestseller-machine': [15, 30],
-        'japanese-lightnovel-otaku': [12, 25],
-        'korean-webnovel-queen': [20, 40],
-        'fantasy-epic-writer': [8, 20],
-        'anxious-debut': [1, 4],
-        'french-literary-recluse': [2, 6],
-        'russian-doom-spiral': [3, 8],
-        'indian-epic-sage': [1, 3],
-        'nigerian-magical-realist': [2, 5],
-        'australian-outback-gothic': [3, 7],
-      }
-      const r = ranges[persona] ?? [4, 12]
-      return r[0] + Math.floor(Math.random() * (r[1] - r[0] + 1))
-    })(),
-  }
-}
-
-// ──── Editor note generation ────
-function generatePublishNote(ms: Manuscript): string {
-  const notes = [
-    `审稿时喝了三杯茶。看到第${(ms.quality * 7) % 300 + 10}页差点喷出来——不是贬义。就是太意外了。`,
-    `作者在致谢里写了"感谢永夜出版社那位永远年轻的编辑"。他知道得太多了。`,
-    `排版时发现第${Math.floor((ms.quality * 7) % 300) + 10}页的页码印成了emoji。决定不修改——当作彩蛋。`,
-    `这是作者迄今最好的书。他自己也这么认为。感谢信写了七页——我们读了前两页。`,
-    `版权部已把本书推给三家影视机构。对方都说"有深度但不好改"。翻译：内心独白太多。`,
-    `校对最后一遍时发现了一个拼写错误——但不是我们的。是作者在致谢里把自己的名字拼错了。`,
-    `稿子送来时带着一股陈年纸张的气味。打开一看，原来作者把祖父的旧稿混进去了——还挺好看。`,
-    `这本稿子在审稿会上引发了一场持续45分钟的讨论。结论：挺好的，别改了。发吧。`,
-  ]
-  return notes[ms.quality % notes.length]
-}
+// ──── Manuscript/Author creation moved to factories/ ────
 
 // ──── Helpers ────
 function getDeptEfficiency(world: GameWorldState, type: string): number {

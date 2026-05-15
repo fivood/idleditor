@@ -8,6 +8,7 @@ export interface DecisionOption {
 
 export interface Decision {
   id: string
+  effectId?: string
   title: string
   description: string
   options: DecisionOption[]
@@ -15,6 +16,7 @@ export interface Decision {
 
 // Template pool — split into categories for variety
 interface DecisionTemplate {
+  effectId: string  // Stable identifier for effect dispatch (see decisionEffects.ts)
   condition: (state: GameStore) => boolean
   generate: (state: GameStore) => Decision
 }
@@ -26,12 +28,14 @@ export function generateTemplateDecision(state: GameStore): Decision | null {
   const template = pick(eligible)
   const decision = template.generate(state)
   decision.id = Math.random().toString(36).slice(2, 10)
+  decision.effectId = template.effectId
   return decision
 }
 
 const ALL_TEMPLATES: DecisionTemplate[] = [
   // ── Book quality decisions ──
   {
+    effectId: 'critic-preview',
     condition: (s) => [...s.manuscripts.values()].some(m => m.status === 'submitted'),
     generate: (s) => {
       const ms = pick([...s.manuscripts.values()].filter(m => m.status === 'submitted'))
@@ -46,6 +50,7 @@ const ALL_TEMPLATES: DecisionTemplate[] = [
     },
   },
   {
+    effectId: 'rush-publish',
     condition: (s) => [...s.manuscripts.values()].some(m => m.status === 'submitted'),
     generate: (s) => {
       const ms = pick([...s.manuscripts.values()].filter(m => m.status === 'submitted'))
@@ -60,6 +65,7 @@ const ALL_TEMPLATES: DecisionTemplate[] = [
     },
   },
   {
+    effectId: 'anonymous-report',
     condition: () => true,
     generate: () => ({
       id: '', title: '匿名举报',
@@ -73,6 +79,7 @@ const ALL_TEMPLATES: DecisionTemplate[] = [
 
   // ── Resource decisions ──
   {
+    effectId: 'book-fair',
     condition: (s) => s.currencies.revisionPoints >= 50,
     generate: () => {
       const amount = rangeInt(30, 80)
@@ -87,6 +94,7 @@ const ALL_TEMPLATES: DecisionTemplate[] = [
     },
   },
   {
+    effectId: 'film-adaptation',
     condition: (s) => s.currencies.prestige >= 100,
     generate: () => ({
       id: '', title: '影视改编报价',
@@ -100,6 +108,7 @@ const ALL_TEMPLATES: DecisionTemplate[] = [
 
   // ── Author decisions ──
   {
+    effectId: 'advance-payment',
     condition: (s) => [...s.authors.values()].some(a => a.tier === 'signed' || a.tier === 'known'),
     generate: (s) => {
       const author = pick([...s.authors.values()].filter(a => a.tier === 'signed' || a.tier === 'known'))
@@ -114,6 +123,7 @@ const ALL_TEMPLATES: DecisionTemplate[] = [
     },
   },
   {
+    effectId: 'newcomer-award',
     condition: (s) => [...s.authors.values()].some(a => a.tier === 'new'),
     generate: (s) => {
       const author = pick([...s.authors.values()].filter(a => a.tier === 'new'))
@@ -130,6 +140,7 @@ const ALL_TEMPLATES: DecisionTemplate[] = [
 
   // ── Crisis decisions ──
   {
+    effectId: 'printing-strike',
     condition: (s) => s.totalPublished >= 3,
     generate: (s) => {
       const count = s.currencies.prestige > 200 ? '大量' : '一些'
@@ -144,6 +155,7 @@ const ALL_TEMPLATES: DecisionTemplate[] = [
     },
   },
   {
+    effectId: 'negative-review',
     condition: (s) => s.currencies.prestige >= 50,
     generate: () => ({
       id: '', title: '负面书评风暴',
@@ -158,6 +170,7 @@ const ALL_TEMPLATES: DecisionTemplate[] = [
 
   // ── Long-term strategy ──
   {
+    effectId: 'branch-office',
     condition: (s) => s.totalBestsellers >= 1,
     generate: () => ({
       id: '', title: '开设分社',
@@ -169,6 +182,7 @@ const ALL_TEMPLATES: DecisionTemplate[] = [
     }),
   },
   {
+    effectId: 'editor-memoir',
     condition: (s) => s.currencies.statues >= 3,
     generate: (s) => {
       const n = s.currencies.statues
@@ -183,6 +197,7 @@ const ALL_TEMPLATES: DecisionTemplate[] = [
     },
   },
   {
+    effectId: 'tea-room-budget',
     condition: () => true,
     generate: () => ({
       id: '', title: '茶水间预算',
@@ -196,6 +211,7 @@ const ALL_TEMPLATES: DecisionTemplate[] = [
 
   // ── Affection-risk decisions ──
   {
+    effectId: 'genre-change',
     condition: (s) => [...s.authors.values()].some(a => a.tier !== 'new' && a.tier !== 'idol'),
     generate: (s) => {
       const author = pick([...s.authors.values()].filter(a => a.tier !== 'new' && a.tier !== 'idol'))
@@ -210,6 +226,7 @@ const ALL_TEMPLATES: DecisionTemplate[] = [
     },
   },
   {
+    effectId: 'deadline-conflict',
     condition: (s) => [...s.authors.values()].some(a => a.tier !== 'new'),
     generate: (s) => {
       const author = pick([...s.authors.values()].filter(a => a.tier !== 'new'))
@@ -224,6 +241,7 @@ const ALL_TEMPLATES: DecisionTemplate[] = [
     },
   },
   {
+    effectId: 'personal-favor',
     condition: (s) => [...s.authors.values()].some(a => a.affection >= 50),
     generate: (s) => {
       const author = pick([...s.authors.values()].filter(a => a.affection >= 50))
@@ -238,6 +256,7 @@ const ALL_TEMPLATES: DecisionTemplate[] = [
     },
   },
   {
+    effectId: 'social-media',
     condition: (s) => [...s.authors.values()].some(a => a.tier === 'signed' || a.tier === 'known'),
     generate: (s) => {
       const author = pick([...s.authors.values()].filter(a => a.tier === 'signed' || a.tier === 'known'))

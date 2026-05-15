@@ -1,4 +1,4 @@
-﻿import { create } from 'zustand'
+import { create } from 'zustand'
 import type { Department, EditorTrait, Manuscript, CatState, PermanentBonuses, ToastMessage } from '@/core/types'
 import { GENRE_PREFERENCE_THRESHOLDS } from '@/core/constants'
 import type { Decision } from '@/core/decisions'
@@ -8,6 +8,7 @@ import type { GameWorldState } from '@/core/gameLoop'
 import { saveGameToDb, loadGameFromDb, hasExistingSave } from '@/db/saveManager'
 import { nanoid } from '@/utils/id'
 import { generateTemplateDecision } from '@/core/decisions'
+import { DECISION_EFFECTS } from '@/core/decisionEffects'
 import { loadSynopsisPool } from '@/core/humor/synopsis'
 import { loadAuthorNamePool } from '@/core/gameLoop'
 import { COUNT_SCENES, type CountScene } from '@/core/countStory'
@@ -1172,10 +1173,13 @@ export const useGameStore = create<GameStore>()((set, get) => ({
       return
     }
 
-    applyDecisionEffect(decision.id, decision.title, optionIndex, state)
-
-    // For LLM-generated decisions, parse and apply effects from description
-    applyLLMEffects(choice.description, state)
+    // Dispatch effect by effectId (replaces old title-matching)
+    if (decision.effectId && DECISION_EFFECTS[decision.effectId]) {
+      DECISION_EFFECTS[decision.effectId](state, optionIndex)
+    } else {
+      // Fallback for LLM-generated decisions without effectId
+      applyLLMEffects(choice.description, state)
+    }
 
     set({
       pendingDecision: null,
@@ -1417,212 +1421,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
   },
 }))
 
-function applyDecisionEffect(_id: string, title: string, optionIndex: number, state: GameStore) {
-  const set = (partial: Partial<GameStore>) => useGameStore.setState(partial)
-  const addToast = (text: string) => {
-    const s = useGameStore.getState()
-    useGameStore.setState({ toasts: [...s.toasts, { id: nanoid(), text, type: 'milestone' as const, createdAt: s.playTicks }].slice(-100) })
-  }
 
-  if (title === '评论家提前审读') {
-    if (optionIndex === 0) {
-      const submitted = [...state.manuscripts.values()].filter(m => m.status === 'submitted')
-      const ms = submitted[Math.floor(Math.random() * submitted.length)]
-      if (ms) {
-        ms.quality = Math.max(0, ms.quality - 10)
-        ms.status = 'publishing'
-        ms.editingProgress = 0
-        set({ manuscripts: new Map(state.manuscripts) })
-        addToast(`"${ms.title}" 跳过编辑，直接出版！品质 -10。` )
-      }
-    }
-    return
-  }
-  if (title === '作者请求加急') {
-    if (optionIndex === 0) {
-      const submitted = [...state.manuscripts.values()].filter(m => m.status === 'submitted')
-      const ms = submitted[Math.floor(Math.random() * submitted.length)]
-      if (ms) {
-        ms.quality = Math.max(0, ms.quality - 5)
-        ms.status = 'publishing'
-        set({ manuscripts: new Map(state.manuscripts) })
-        addToast(`"${ms.title}" 加急出版！品质 -5。`)
-      }
-    }
-    return
-  }
-  if (title === '匿名举报') {
-    if (optionIndex === 0) {
-      const authors = [...state.authors.values()].filter(a => a.tier !== 'new')
-      if (authors.length > 0) {
-        const a = authors[Math.floor(Math.random() * authors.length)]
-        a.cooldownUntil = 1800
-        set({ authors: new Map(state.authors) })
-      }
-      set({ currencies: { ...state.currencies, prestige: state.currencies.prestige + 15 } })
-      addToast('调查结束。一位作者被暂时停职。声望 +15。')
-    } else {
-      set({ currencies: { ...state.currencies, prestige: Math.max(0, state.currencies.prestige - 5) } })
-      addToast('搁置举报。声望 -5。')
-    }
-    return
-  }
-  if (title === '图书博览会邀请') {
-    if (optionIndex === 0) {
-      const cost = Math.min(state.currencies.revisionPoints, 50)
-      const success = Math.random() < 0.7
-      set({
-        currencies: {
-          ...state.currencies,
-          revisionPoints: state.currencies.revisionPoints - cost,
-          prestige: state.currencies.prestige + (success ? 30 : 3),
-        },
-      })
-      addToast(success ? '参展大获成功！声望 +30。' : '效果平平，但茶歇点心不错。+3 声望。')
-    }
-    return
-  }
-  if (title === '影视改编报价') {
-    if (optionIndex === 0) {
-      set({ currencies: { ...state.currencies, revisionPoints: state.currencies.revisionPoints + 200 } })
-      addToast('买断成交！200 RP 到账。')
-    }
-    return
-  }
-  if (title.includes('预支稿费')) {
-    if (optionIndex === 0) {
-      set({ currencies: { ...state.currencies, revisionPoints: state.currencies.revisionPoints - 50 } })
-      addToast('预支 50 RP。作者承诺下本品质 +15。')
-    } else {
-      if (Math.random() < 0.5) {
-        const authors = [...state.authors.values()].filter(a => a.tier !== 'new')
-        if (authors.length > 0) {
-          const a = authors[Math.floor(Math.random() * authors.length)]
-          a.cooldownUntil = 1200
-          set({ authors: new Map(state.authors) })
-          addToast(`${a.name} 被拒后进入冷却。`)
-        }
-      }
-    }
-    return
-  }
-  if (title.includes('新人推荐')) {
-    if (optionIndex === 0) {
-      const newcomers = [...state.authors.values()].filter(a => a.tier === 'new')
-      if (newcomers.length > 0) {
-        const a = newcomers[Math.floor(Math.random() * newcomers.length)]
-        a.tier = 'signed'
-        set({ authors: new Map(state.authors) })
-        addToast(`${a.name} 签约成功！${Math.random() < 0.5 ? '入选新人奖！声望 +30。' : ''}`)
-        if (Math.random() < 0.5) {
-          set({ currencies: { ...state.currencies, prestige: state.currencies.prestige + 30 } })
-        }
-      }
-    }
-    return
-  }
-  if (title === '印刷厂罢工') {
-    if (optionIndex === 0) {
-      set({ currencies: { ...state.currencies, revisionPoints: Math.max(0, state.currencies.revisionPoints - 30) } })
-      addToast('涨薪同意。印刷继续。')
-    } else {
-      for (const m of state.manuscripts.values()) {
-        if (m.status === 'publishing') m.editingProgress = 0
-      }
-      set({ manuscripts: new Map(state.manuscripts) })
-      addToast('拒绝涨薪。印刷进度归零。')
-    }
-    return
-  }
-  if (title === '负面书评风暴') {
-    if (optionIndex === 0) {
-      set({ currencies: { ...state.currencies, prestige: Math.max(0, state.currencies.prestige - 10) } })
-      addToast('公开回应。声望 -10。')
-    } else if (optionIndex === 1) {
-      set({ currencies: { ...state.currencies, revisionPoints: Math.max(0, state.currencies.revisionPoints - 20) } })
-      addToast('私下摆平。花了 20 RP。')
-    }
-    return
-  }
-  if (title === '开设分社') {
-    if (optionIndex === 0) {
-      if (Math.random() < 0.4) {
-        addToast('分社开业！作者提交速度 +30%。')
-      } else {
-        set({ currencies: { ...state.currencies, revisionPoints: Math.max(0, state.currencies.revisionPoints - 500), prestige: Math.max(0, state.currencies.prestige - 100) } })
-        addToast('分社失败。500 RP 和 100 声望打水漂。')
-      }
-    }
-    return
-  }
-  if (title.includes('退休编辑')) {
-    if (optionIndex === 0) {
-      const signed = [...state.authors.values()].filter(a => a.tier !== 'new')
-      for (let i = 0; i < Math.min(3, signed.length); i++) signed[i].cooldownUntil = 1200
-      set({ authors: new Map(state.authors), currencies: { ...state.currencies, prestige: state.currencies.prestige + 50 } })
-      addToast('回忆录出版！声望 +50。三位作者不满。')
-    } else {
-      set({ currencies: { ...state.currencies, prestige: state.currencies.prestige + 10 } })
-      addToast('劝阻成功。声望 +10。')
-    }
-    return
-  }
-  if (title === '茶水间预算') {
-    if (optionIndex === 0) {
-      set({ currencies: { ...state.currencies, revisionPoints: state.currencies.revisionPoints + 20 } })
-      addToast('省下 20 RP。编辑们不开心。')
-    } else {
-      set({ currencies: { ...state.currencies, revisionPoints: Math.max(0, state.currencies.revisionPoints - 20) } })
-      addToast('继续供应。消耗 20 RP。编辑们满意。')
-    }
-    return
-  }
-
-  // ── Affection-risk decision effects ──
-  if (title.includes('想换类型')) {
-    const author = [...state.authors.values()].find(a => a.tier !== 'new' && a.tier !== 'idol')
-    if (author) {
-      if (optionIndex === 0) { author.affection = Math.min(100, author.affection + 10); addToast(`${author.name}很感激你的支持。好感 +10。`) }
-      else { author.affection = Math.max(0, author.affection - 5); addToast(`${author.name}表示理解。好感 -5。`) }
-      set({ authors: new Map(state.authors) })
-    }
-    return
-  }
-  if (title.includes('截稿日冲突')) {
-    const author = [...state.authors.values()].find(a => a.tier !== 'new')
-    if (author) {
-      if (optionIndex === 0) { author.affection = Math.min(100, author.affection + 8); addToast(`再给两周。好感 +8。`) }
-      else { author.affection = Math.max(0, author.affection - 8); author.cooldownUntil = 600; addToast(`勉强接受。好感 -8。`) }
-      set({ authors: new Map(state.authors) })
-    }
-    return
-  }
-  if (title.includes('私人请求')) {
-    const author = [...state.authors.values()].find(a => a.affection >= 50)
-    if (author) {
-      if (optionIndex === 0) { author.affection = Math.min(100, author.affection + 5); addToast(`帮忙看了稿子。好感 +5。`) }
-      else { author.affection = Math.max(0, author.affection - 5); addToast(`拒绝了。好感 -5。`) }
-      set({ authors: new Map(state.authors) })
-    }
-    return
-  }
-  if (title.includes('社交媒体')) {
-    const author = [...state.authors.values()].find(a => a.tier === 'signed' || a.tier === 'known')
-    if (author) {
-      if (optionIndex === 0) {
-        const prestige = Math.random() < 0.5 ? 15 : -5
-        set({ currencies: { ...state.currencies, prestige: state.currencies.prestige + prestige } })
-        addToast(`公开支持。舆论：${prestige > 0 ? '正面' : '翻车'}。`)
-      } else {
-        author.affection = Math.max(0, author.affection - 5)
-        set({ authors: new Map(state.authors) })
-        addToast(`保持沉默。好感 -5。`)
-      }
-    }
-    return
-  }
-  addToast(`决策已执行：${title}`)
-}
+// ── Decision effect logic moved to core/decisionEffects.ts ──
 
 function applyLLMEffects(description: string, state: GameStore) {
   const set = (partial: Partial<GameStore>) => useGameStore.setState(partial)
