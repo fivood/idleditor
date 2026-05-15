@@ -95,6 +95,7 @@ export interface GameWorldState {
   catRejectedUntilYear: number
   salonBooksRemaining: number
   activeEventChain: { chainId: string; step: number } | null
+  bookstores: import('./types').Bookstore[]
 }
 
 // ──── Title/Cover generation moved to factories/manuscriptFactory.ts ────
@@ -152,6 +153,7 @@ export function createInitialWorld(): GameWorldState {
     catRejectedUntilYear: 0,
     salonBooksRemaining: 0,
     activeEventChain: null,
+    bookstores: [],
   }
 }
 
@@ -456,7 +458,17 @@ export function tick(world: GameWorldState): TickResult {
     const reissueBoost = (m.reissueBoostUntil && world.playTicks < m.reissueBoostUntil) ? 1.5 : 1
     const collectionBoost = getCollectionBoost(m.genre, world.unlockedCollections)
     const talentSalesMult = 1 + (talentBonuses.salesBoost || 0) + (talentBonuses.allStats || 0) + authorPassive.salesBonus
-    m.salesCount += salesPerTick(marketingEfficiency, m.quality) * (hasGenreBuff ? salesMult : 1) * prefSalesBonus * reissueBoost * collectionBoost * talentSalesMult
+    // Bookstore boost: stocked books sell faster
+    let bookstoreMult = 1
+    for (const store of world.bookstores) {
+      if (store.shelf.includes(m.id)) {
+        bookstoreMult = [1, 1.2, 1.5, 2.0][store.tier] || 1
+        if (store.decorated) bookstoreMult *= 1.3
+        if (store.signingUntil && world.playTicks < store.signingUntil) bookstoreMult *= 2
+        break
+      }
+    }
+    m.salesCount += salesPerTick(marketingEfficiency, m.quality) * (hasGenreBuff ? salesMult : 1) * prefSalesBonus * reissueBoost * collectionBoost * talentSalesMult * bookstoreMult
 
     // Passive affection gain from good sales (1% chance per tick)
     if (Math.random() < 0.01 && m.salesCount > 1000) {

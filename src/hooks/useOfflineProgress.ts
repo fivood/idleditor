@@ -59,6 +59,7 @@ export function useOfflineProgress() {
       catRejectedUntilYear: 0,
       salonBooksRemaining: 0,
       activeEventChain: null,
+      bookstores: [],
     }
 
     for (const [id, ms] of saved.manuscripts) world.manuscripts.set(id, ms)

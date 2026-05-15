@@ -131,6 +131,15 @@ export interface Author {
   maxBooks: number
 }
 
+export interface Bookstore {
+  id: string
+  name: string
+  tier: number
+  shelf: string[]
+  decorated: boolean
+  signingUntil: number | null  // playTicks when signing boost ends
+}
+
 export interface Department {
   id: string
   type: DepartmentType

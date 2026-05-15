@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
-import type { Department, EditorTrait, Manuscript, CatState, PermanentBonuses, ToastMessage } from '@/core/types'
+import type { Department, EditorTrait, Manuscript, Bookstore, CatState, PermanentBonuses, ToastMessage } from '@/core/types'
 import { GENRE_PREFERENCE_THRESHOLDS } from '@/core/constants'
 import type { Decision } from '@/core/decisions'
 import { createInitialWorld, tick } from '@/core/gameLoop'
@@ -170,6 +170,7 @@ export interface GameStore extends GameWorldState {
   catRejectedUntilYear: number
   salonBooksRemaining: number
   activeEventChain: { chainId: string; step: number } | null
+  bookstores: Bookstore[]
 
   // Actions: lifecycle
   initialize: () => Promise<void>
@@ -194,6 +195,10 @@ export interface GameStore extends GameWorldState {
   hirePR: () => void
   renovateReadingRoom: () => void
   sponsorAward: () => void
+  openBookstore: () => void
+  stockBook: (storeId: string, bookId: string) => void
+  unstockBook: (storeId: string, bookId: string) => void
+  hostSigning: (storeId: string) => void
   onCountSceneChoice: (choiceIndex: number) => void
   onCountGenderChoice: (gender: 'male' | 'female') => void
   dismissEnding: () => void
@@ -277,6 +282,7 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
   catRejectedUntilYear: 0,
   salonBooksRemaining: 0,
   activeEventChain: null,
+  bookstores: [],
 
   // ──── Lifecycle ────
   initialize: async () => {
@@ -518,6 +524,71 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
     get().addToast({
       id: nanoid(),
       text: '你在地下室的蜡烛圆桌上举办了一场文学沙龙。几位作家举着红酒杯讨论了三个小时的"灵感来源"——实际内容是谁的经纪人更离谱。未来5本出版的品质 +5。',
+      type: 'milestone',
+      createdAt: get().playTicks,
+    })
+  },
+
+  openBookstore: () => {
+    const state = get()
+    if (state.bookstores.length >= 3) return
+    const costs = [300, 800, 2000]
+    const tier = state.bookstores.length + 1
+    if (state.currencies.royalties < costs[tier - 1]) return
+    const names = ['街角书屋', '地下室文库', '猫与书房', '旧纸堆书店', '墨水巷']
+    set(draft => {
+      draft.currencies.royalties -= costs[tier - 1]
+      draft.bookstores.push({
+        id: nanoid(),
+        name: names[Math.floor(Math.random() * names.length)],
+        tier,
+        shelf: [],
+        decorated: false,
+        signingUntil: null,
+      })
+    })
+    const slots = [4, 6, 8][tier - 1]
+    const mult = ['×1.2', '×1.5', '×2.0'][tier - 1]
+    get().addToast({
+      id: nanoid(),
+      text: `你在街角盘下了一家店——"${get().bookstores[get().bookstores.length - 1]?.name || '无名'}"。${slots}个货架位，销量 ${mult}。`,
+      type: 'milestone',
+      createdAt: get().playTicks,
+    })
+  },
+
+  stockBook: (storeId, bookId) => {
+    const maxSlots = [4, 6, 8]
+    set(draft => {
+      const store = draft.bookstores.find(s => s.id === storeId)
+      const book = draft.manuscripts.get(bookId)
+      if (!store || !book || book.status !== 'published') return
+      if (store.shelf.includes(bookId)) return
+      if (store.shelf.length >= maxSlots[store.tier - 1]) return
+      store.shelf.push(bookId)
+    })
+  },
+
+  unstockBook: (storeId, bookId) => {
+    set(draft => {
+      const store = draft.bookstores.find(s => s.id === storeId)
+      if (!store) return
+      store.shelf = store.shelf.filter(id => id !== bookId)
+    })
+  },
+
+  hostSigning: (storeId) => {
+    const state = get()
+    if (state.currencies.prestige < 50) return
+    set(draft => {
+      const store = draft.bookstores.find(s => s.id === storeId)
+      if (!store || store.signingUntil) return
+      draft.currencies.prestige -= 50
+      store.signingUntil = state.playTicks + 180
+    })
+    get().addToast({
+      id: nanoid(),
+      text: `签售会开始！${get().bookstores.find(s => s.id === storeId)?.name || '书店'}门口排起了长龙。未来3分钟库存书籍销量 ×2。`,
       type: 'milestone',
       createdAt: get().playTicks,
     })
