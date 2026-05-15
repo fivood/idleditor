@@ -69,7 +69,7 @@ export function createManuscript(world: GameWorldState, qualityBonus = 0): Manus
   const genre = pick(GENRES)
   const prefCount = world.preferredGenres.filter(g => g === genre).length
   const prefQBonus = prefCount * GENRE_PREFERENCE_QUALITY_BONUS
-  const quality = rollQuality() + world.permanentBonuses.manuscriptQualityBonus + traitQBonus + prefQBonus + qualityBonus + levelBonuses(world.editorLevel).quality
+  const quality = rollQuality() + world.permanentBonuses.manuscriptQualityBonus + traitQBonus + prefQBonus + qualityBonus + levelBonuses(world.editorLevel).quality + (world.permanentBonuses.epochPath === 'scholar' ? 3 : 0)
   const title = generateTitle(genre, world)
 
   // Chance to create a new author
@@ -133,7 +133,7 @@ export function createManuscriptForAuthor(world: GameWorldState, author: Author)
   const traitQBonus = world.trait ? EDITOR_TRAIT_BONUSES[world.trait].qualityBonus : 0
   const prefCount = world.preferredGenres.filter(g => g === author.genre).length
   const prefQBonus = prefCount * GENRE_PREFERENCE_QUALITY_BONUS
-  const quality = Math.min(100, effectiveQuality(baseQuality, author.talent + world.permanentBonuses.authorTalentBoost, world.permanentBonuses) + traitQBonus + prefQBonus + levelBonuses(world.editorLevel).quality)
+  const quality = Math.min(100, effectiveQuality(baseQuality, author.talent + world.permanentBonuses.authorTalentBoost, world.permanentBonuses) + traitQBonus + prefQBonus + levelBonuses(world.editorLevel).quality + (world.permanentBonuses.epochPath === 'scholar' ? 3 : 0))
   const title = generateTitle(author.genre, world)
 
   author.booksWritten++

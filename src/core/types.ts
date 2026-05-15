@@ -157,6 +157,7 @@ export interface PermanentBonuses {
   bossYears: number
   countRelation: number
   countGender: 'male' | 'female'
+  epochPath: 'scholar' | 'merchant' | 'socialite' | null
 }
 
 export interface PlayerState {

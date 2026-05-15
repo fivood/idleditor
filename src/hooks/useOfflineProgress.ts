@@ -28,7 +28,7 @@ export function useOfflineProgress() {
       totalBestsellers: saved.totalBestsellers,
       totalRejections: saved.totalRejections,
       currencies: { ...saved.currencies },
-      permanentBonuses: { ...saved.permanentBonuses, countRelation: saved.permanentBonuses?.countRelation ?? 0, countGender: saved.permanentBonuses?.countGender ?? 'male' },
+      permanentBonuses: { ...saved.permanentBonuses, countRelation: saved.permanentBonuses?.countRelation ?? 0, countGender: saved.permanentBonuses?.countGender ?? 'male', epochPath: (saved.permanentBonuses as any)?.epochPath ?? null },
       trait: null,
       playerName: saved.playerName ?? '',
       calendar: saved.calendar ?? { day: 1, month: 0, year: 1, totalDays: 0 },

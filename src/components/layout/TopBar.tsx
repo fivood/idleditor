@@ -20,7 +20,10 @@ export function TopBar() {
   const totalRejections = useGameStore(s => s.totalRejections)
   const authors = useGameStore(s => s.authors)
   const editorLevel = useGameStore(s => s.editorLevel)
+  const setEpochPath = useGameStore(s => s.setEpochPath)
+  const epochPath = useGameStore(s => s.permanentBonuses.epochPath)
   const [showRebirth, setShowRebirth] = useState(false)
+  const [selectedEpochPath, setSelectedEpochPath] = useState<'scholar' | 'merchant' | 'socialite' | null>(null)
 
   const canReborn = totalBestsellers >= 1
 
@@ -86,12 +89,18 @@ export function TopBar() {
 
       {showRebirth && (
         <RebirthModal
-          onConfirm={() => { reborn(); setShowRebirth(false) }}
-          onCancel={() => setShowRebirth(false)}
+          onConfirm={() => {
+            if (selectedEpochPath && !epochPath) setEpochPath(selectedEpochPath)
+            reborn(); setShowRebirth(false); setSelectedEpochPath(null)
+          }}
+          onCancel={() => { setShowRebirth(false); setSelectedEpochPath(null) }}
           bonuses={permanentBonuses}
           statues={currencies.statues}
           trait={trait}
           stats={{ totalPublished, totalBestsellers, totalRejections, authorCount: authors.size, editorLevel }}
+          selectedPath={selectedEpochPath}
+          epochPath={epochPath}
+          onSelectPath={setSelectedEpochPath}
         />
       )}
     </header>
@@ -117,13 +126,16 @@ function StatueDisplay({ count }: { count: number }) {
   )
 }
 
-function RebirthModal({ onConfirm, onCancel, bonuses, statues, trait, stats }: {
+function RebirthModal({ onConfirm, onCancel, bonuses, statues, trait, stats, onSelectPath, selectedPath, epochPath }: {
   onConfirm: () => void
   onCancel: () => void
   bonuses: { manuscriptQualityBonus: number; editingSpeedBonus: number; royaltyMultiplier: number; authorTalentBoost: number; bossYears: number }
   statues: number
   trait: string | null
   stats: { totalPublished: number; totalBestsellers: number; totalRejections: number; authorCount: number; editorLevel: number }
+  onSelectPath: (path: 'scholar' | 'merchant' | 'socialite') => void
+  selectedPath: 'scholar' | 'merchant' | 'socialite' | null
+  epochPath: 'scholar' | 'merchant' | 'socialite' | null
 }) {
   const nextCount = statues + 1
   const nextBossYears = Math.max(0, bonuses.bossYears - 1)
@@ -161,6 +173,37 @@ function RebirthModal({ onConfirm, onCancel, bonuses, statues, trait, stats }: {
               <p className="text-progress mt-1">🎭 编辑风格「{trait === 'decisive' ? '果断' : trait === 'meticulous' ? '细致' : '远见'}」将保留。</p>
             )}
             <p className="text-copper-dark font-bold mt-1">⚠ 所有进度将重置。铜像效果永久保留。</p>
+          </div>
+        </div>
+
+        {/* Epoch Path */}
+        <div className="bg-card-inset border-2 border-border-dark p-2 md:p-3 mb-3 md:mb-4">
+          <p className="text-[16px] md:text-xs text-ink font-bold mb-1 md:mb-2 font-mono">🏛️ 纪元之路（可选）</p>
+          <p className="text-[14px] md:text-[16px] text-muted mb-2 font-mono">选择你在新纪元的专精方向。首次纪元可免选（沿用基础加成）。</p>
+          <div className="space-y-1.5">
+            {(['scholar', 'merchant', 'socialite'] as const).map(path => {
+              const selected = selectedPath === path
+              const current = epochPath === path
+              const labels = { scholar: '📖 学者之路', merchant: '💼 商人之路', socialite: '🎭 名流之路' }
+              const descs = { scholar: '品质 +5 · 编辑速度 +15%', merchant: '版税 ×1.2 · 作者投稿速度 +20%', socialite: '声望 ×1.5 · 畅销书阈值 24,000' }
+              return (
+                <button
+                  key={path}
+                  onClick={() => onSelectPath(path)}
+                  className={`w-full text-left p-2 border-2 font-mono text-[15px] md:text-xs transition-all ${
+                    selected ? 'bg-amber-50 border-copper shadow-[2px_2px_0_#b87333]' :
+                    current ? 'bg-cream-dark border-border-medium opacity-50' :
+                    'bg-cream border-border-dark hover:bg-cream-dark'
+                  } ${current ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                  disabled={!!current}
+                >
+                  <span className="font-bold text-ink">{labels[path]}</span>
+                  {current && <span className="text-muted ml-1">（当前选择）</span>}
+                  {selected && !current && <span className="text-copper font-bold ml-1">✓</span>}
+                  <p className="text-muted mt-0.5">{descs[path]}</p>
+                </button>
+              )
+            })}
           </div>
         </div>
 

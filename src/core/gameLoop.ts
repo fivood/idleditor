@@ -118,6 +118,7 @@ export function createInitialWorld(): GameWorldState {
       bossYears: BOSS_START_YEARS,
       countRelation: 0,
       countGender: 'male',
+      epochPath: null,
     },
     trait: null,
     playerName: '',
@@ -173,7 +174,11 @@ export function tick(world: GameWorldState): TickResult {
   const talentBonuses = getTalentEffects(world.selectedTalents)
   // Level bonuses
   const lvlBonuses = levelBonuses(world.editorLevel)
-  const effSpeedBonus = world.permanentBonuses.editingSpeedBonus + trait.speedBonus + (talentBonuses.editSpeed || 0) + (talentBonuses.allStats || 0) + lvlBonuses.speed
+  // Epoch path bonuses
+  const epochScholar = world.permanentBonuses.epochPath === 'scholar'
+  const epochMerchant = world.permanentBonuses.epochPath === 'merchant'
+  const epochSocialite = world.permanentBonuses.epochPath === 'socialite'
+  const effSpeedBonus = world.permanentBonuses.editingSpeedBonus + trait.speedBonus + (talentBonuses.editSpeed || 0) + (talentBonuses.allStats || 0) + lvlBonuses.speed + (epochScholar ? 0.05 : 0)
   const effRpBonus = trait.rpBonus + (talentBonuses.allStats || 0) + lvlBonuses.rp
 
   // Advance calendar every TICKS_PER_DAY ticks
@@ -367,7 +372,7 @@ export function tick(world: GameWorldState): TickResult {
       world.totalPublished++
       world.currencies.revisionPoints += rpPerPublish(m.quality, 0, world.booksPublishedThisMonth)
       const pubPrestige = m.isUnsuitable ? -10 : 10
-      world.currencies.prestige += pubPrestige
+      world.currencies.prestige += pubPrestige * (epochSocialite ? 1.5 : 1)
       world.booksPublishedThisMonth++
       world.publishedTitles.add(m.title)
 
@@ -438,7 +443,7 @@ export function tick(world: GameWorldState): TickResult {
   const salesMult = world.activeDateEvent ? world.activeDateEvent.multiplier : 1
   for (const m of world.manuscripts.values()) {
     if (m.status !== 'published') continue
-    const royalty = royaltyPerTick(m, world.permanentBonuses.royaltyMultiplier, marketingEfficiency)
+    const royalty = royaltyPerTick(m, world.permanentBonuses.royaltyMultiplier + (epochMerchant ? 0.2 : 0), marketingEfficiency)
     world.currencies.royalties += royalty * (1 + (talentBonuses.royaltyIncome || 0) + (talentBonuses.allStats || 0))
     result.royaltiesEarned += royalty
     const hasGenreBuff = world.activeDateEvent && (world.activeDateEvent.genre === null || world.activeDateEvent.genre === m.genre)
@@ -457,7 +462,8 @@ export function tick(world: GameWorldState): TickResult {
     }
 
     // Check bestseller
-    if (!m.isBestseller && m.salesCount >= BESTSELLER_SALES) {
+    const bestsellerThreshold = epochSocialite ? 24000 : BESTSELLER_SALES
+    if (!m.isBestseller && m.salesCount >= bestsellerThreshold) {
       m.isBestseller = true
       world.totalBestsellers++
       world.currencies.prestige += 50
