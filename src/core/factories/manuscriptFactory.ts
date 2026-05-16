@@ -16,6 +16,7 @@ import { TITLE_POOLS, getBaseTitle, titleToSlug } from '../titlePools'
 import { NIGHT_TITLE_POOLS } from '../lore/nightTitles'
 import { levelBonuses } from '../leveling'
 import { generateSynopsis, generateRejectionReason, isClearlyUnsuitable } from '../humor/synopsis'
+import { createRandomAuthor } from './authorFactory'
 import { nanoid } from '../../utils/id'
 import { pick } from '../../utils/random'
 import type { GameWorldState } from '../gameLoop'
@@ -100,7 +101,6 @@ export function createManuscript(world: GameWorldState, qualityBonus = 0): Manus
 
   // Chance to create a new author
   let authorId: string
-  const { createRandomAuthor } = require('./authorFactory')
   if (Math.random() < 0.3 || world.authors.size === 0) {
     const author = createRandomAuthor(world, genre)
     world.authors.set(author.id, author)
@@ -153,6 +153,12 @@ export function createManuscript(world: GameWorldState, qualityBonus = 0): Manus
   }
 }
 
+export function createManuscriptWithWorld(world: GameWorldState, qualityBonus = 0): { world: GameWorldState; manuscript: Manuscript } {
+  const nextWorld = structuredClone(world) as GameWorldState
+  const manuscript = createManuscript(nextWorld, qualityBonus)
+  return { world: nextWorld, manuscript }
+}
+
 // ──── Manuscript creation for a specific signed author ────
 export function createManuscriptForAuthor(world: GameWorldState, author: Author): Manuscript {
   const baseQuality = rollQuality() + authorQualityBoost(author)
@@ -190,4 +196,14 @@ export function createManuscriptForAuthor(world: GameWorldState, author: Author)
     editorNote: '',
     customNote: '',
   }
+}
+
+export function createManuscriptForAuthorWithWorld(world: GameWorldState, author: Author): { world: GameWorldState; manuscript: Manuscript } {
+  const nextWorld = structuredClone(world) as GameWorldState
+  const nextAuthor = nextWorld.authors.get(author.id)
+  if (!nextAuthor) {
+    throw new Error(`Cannot create manuscript for missing author: ${author.id}`)
+  }
+  const manuscript = createManuscriptForAuthor(nextWorld, nextAuthor)
+  return { world: nextWorld, manuscript }
 }
