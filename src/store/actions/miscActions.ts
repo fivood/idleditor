@@ -182,12 +182,12 @@ export const createMiscActions = (
         spawned.push(ms.title)
       }
       draft.solicitCooldown = 300
-      get().addToast({
+      draft.toasts = [...draft.toasts, {
         id: nanoid(),
         text: `向出版业界发布了匿名征稿函。${count}份稿件应声而至：${spawned.join('、')}`,
-        type: 'info',
+        type: 'info' as const,
         createdAt: draft.playTicks,
-      })
+      }].slice(-100)
     })
   },
 
@@ -204,12 +204,12 @@ export const createMiscActions = (
         spawned.push(ms.title)
       }
       draft.solicitCooldown = 480
-      get().addToast({
+      draft.toasts = [...draft.toasts, {
         id: nanoid(),
         text: `向${draft.preferredGenres.length > 0 ? draft.preferredGenres.map(g => ({'sci-fi':'科幻','mystery':'推理','suspense':'悬疑','social-science':'社科','hybrid':'混合','light-novel':'轻小说'}[g] ?? g)).join('、') + '领域' : '各领域'}定向约稿。${count}份高质量稿件已到：${spawned.join('、')}`,
-        type: 'info',
+        type: 'info' as const,
         createdAt: draft.playTicks,
-      })
+      }].slice(-100)
     })
   },
 
@@ -225,12 +225,12 @@ export const createMiscActions = (
         spawned.push(ms.title)
       }
       draft.solicitCooldown = 120
-      get().addToast({
+      draft.toasts = [...draft.toasts, {
         id: nanoid(),
         text: `动用宣传预算紧急征稿。${count}份稿件火速抵达：${spawned.join('、')}`,
-        type: 'info',
+        type: 'info' as const,
         createdAt: draft.playTicks,
-      })
+      }].slice(-100)
     })
   },
 
