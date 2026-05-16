@@ -1,4 +1,4 @@
-import { checkRateLimit, getClientIP, validateLength, errorResponse, jsonResponse } from './_shared.js'
+import { checkRateLimit, getClientIP, validateLength, errorResponse, jsonResponse, hashSecret, checkFailedAttempts, recordFailedAttempt, clearFailedAttempts } from './_shared.js'
 
 export async function onRequestGet(context) {
   const { request, env } = context
@@ -29,8 +29,20 @@ export async function onRequestGet(context) {
     const existingMeta = await env.SAVE_KV.get(`meta:${code}`)
     if (existingMeta) {
       const meta = JSON.parse(existingMeta)
-      if (meta.secret && meta.secret !== secret) {
-        return errorResponse('Invalid secret for this save code', 403)
+      if (meta.secretHash) {
+        // Check lockout
+        const lockout = await checkFailedAttempts(env, code, ip)
+        if (lockout.locked) {
+          return errorResponse('Too many failed attempts. Locked for 15 minutes.', 423)
+        }
+
+        const inputHash = await hashSecret(secret, meta.salt)
+        if (inputHash !== meta.secretHash) {
+          await recordFailedAttempt(env, code, ip)
+          return errorResponse('Invalid credentials', 403)
+        }
+
+        await clearFailedAttempts(env, code, ip)
       }
     }
 

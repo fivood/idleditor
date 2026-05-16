@@ -65,6 +65,53 @@ export function jsonResponse(data, status = 200) {
 }
 
 /**
+ * Hash a secret with a salt using SHA-256 (Web Crypto API, available in CF Workers).
+ * Returns hex string.
+ */
+export async function hashSecret(secret, salt) {
+  const encoder = new TextEncoder()
+  const data = encoder.encode(salt + ':' + secret)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
+/**
+ * Check if an IP is locked out from a specific save code due to too many failed attempts.
+ * Returns { locked: boolean, attemptsLeft: number }
+ */
+export async function checkFailedAttempts(env, code, ip, maxAttempts = 5, lockoutSeconds = 900) {
+  const key = `lockout:${code}:${ip}`
+  const raw = await env.SAVE_KV.get(key)
+  if (!raw) return { locked: false, attemptsLeft: maxAttempts }
+
+  const record = JSON.parse(raw)
+  if (record.count >= maxAttempts) {
+    return { locked: true, attemptsLeft: 0 }
+  }
+  return { locked: false, attemptsLeft: maxAttempts - record.count }
+}
+
+/**
+ * Record a failed authentication attempt.
+ */
+export async function recordFailedAttempt(env, code, ip, lockoutSeconds = 900) {
+  const key = `lockout:${code}:${ip}`
+  const raw = await env.SAVE_KV.get(key)
+  const record = raw ? JSON.parse(raw) : { count: 0 }
+  record.count++
+  await env.SAVE_KV.put(key, JSON.stringify(record), { expirationTtl: lockoutSeconds })
+}
+
+/**
+ * Clear failed attempts after successful auth.
+ */
+export async function clearFailedAttempts(env, code, ip) {
+  const key = `lockout:${code}:${ip}`
+  await env.SAVE_KV.delete(key)
+}
+
+/**
  * Sanitize user input before inserting into LLM prompts.
  * Strips potential prompt injection patterns.
  */
