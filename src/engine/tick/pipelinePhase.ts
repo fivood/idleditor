@@ -21,6 +21,7 @@ export function processPipelinePhase(world: GameWorldState, { ct, effSpeedBonus,
   const editEfficiency = getDeptEfficiency(world, 'editing')
   const designEfficiency = getDeptEfficiency(world, 'design')
   const speedMult = 1 + effSpeedBonus
+  let thresholdSkips = 0
 
   for (const m of world.manuscripts.values()) {
     if (m.status === 'reviewing') {
@@ -60,9 +61,12 @@ export function processPipelinePhase(world: GameWorldState, { ct, effSpeedBonus,
         if (designEfficiency > 0) {
           m.quality = Math.min(100, m.quality + Math.round(designEfficiency * 10))
         }
+        const quota = 10 + world.publishingQuotaUpgrades
         if (world.qualityThreshold > 0 && m.quality < world.qualityThreshold && world.autoCoverEnabled) {
+          if (world.booksPublishedThisMonth + thresholdSkips >= quota) continue
           m.status = 'publishing'
           m.editingProgress = 0
+          thresholdSkips++
           result.toasts.push(ct(`🤖 全自动流水线跳过封面审核：《${m.title}》（品质${m.quality}，门槛${world.qualityThreshold}）`, 'info'))
         } else {
           m.status = 'cover_select'
@@ -77,6 +81,9 @@ export function processPipelinePhase(world: GameWorldState, { ct, effSpeedBonus,
     const needed = publishingTicks(editEfficiency)
     m.editingProgress += (1 / needed) * speedMult
     if (m.editingProgress < 1) continue
+
+    const quota = 10 + world.publishingQuotaUpgrades
+    if (world.booksPublishedThisMonth >= quota) continue
 
     m.status = 'published'
     m.publishTime = world.playTicks
