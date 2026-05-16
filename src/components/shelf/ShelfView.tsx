@@ -201,7 +201,7 @@ function BookSpine({ book, stocked, onClick }: { book: Manuscript; stocked?: boo
       style={{ width: `${spineW + 6}px` }}
     >
       <div
-        className="border border-border-medium overflow-hidden transition-all group-hover:shadow-[3px_3px_0_#4a3728]"
+        className="relative border border-border-medium overflow-hidden transition-all group-hover:shadow-[3px_3px_0_#4a3728]"
         style={{
           width: `${spineW}px`,
           height: `${spineH}px`,
@@ -210,9 +210,9 @@ function BookSpine({ book, stocked, onClick }: { book: Manuscript; stocked?: boo
           borderLeft: stocked ? '3px solid #4caf50' : undefined,
         }}
       >
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-xs text-ink-light opacity-60 font-mono" style={{ writingMode: 'vertical-rl', letterSpacing: '2px' }}>
-            {book.title.slice(0, 8)}
+        <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
+          <span className="text-[10px] text-ink-light opacity-60 font-mono leading-none" style={{ writingMode: 'vertical-rl', letterSpacing: '1px' }}>
+            {book.title.slice(0, 6)}
           </span>
         </div>
         {book.isBestseller && (
