@@ -4,6 +4,7 @@ import { createManuscript } from '@/core/factories/manuscriptFactory'
 import { TALENTS, TALENT_UNLOCK_LEVELS, type Talent } from '@/core/talents'
 import type { CountScene } from '@/core/countStory'
 import type { Department } from '@/core/types'
+import { GENRE_LABELS } from '@/core/types'
 
 export const createMiscActions = (
   set: (updater: ((draft: GameStore) => void | Partial<GameStore>) | Partial<GameStore>) => void,
@@ -206,7 +207,7 @@ export const createMiscActions = (
       draft.solicitCooldown = 480
       draft.toasts = [...draft.toasts, {
         id: nanoid(),
-        text: `向${draft.preferredGenres.length > 0 ? draft.preferredGenres.map(g => ({'sci-fi':'科幻','mystery':'推理','suspense':'悬疑','social-science':'社科','hybrid':'混合','light-novel':'轻小说'}[g] ?? g)).join('、') + '领域' : '各领域'}定向约稿。${count}份高质量稿件已到：${spawned.join('、')}`,
+        text: `向${draft.preferredGenres.length > 0 ? draft.preferredGenres.map(g => GENRE_LABELS[g as keyof typeof GENRE_LABELS] ?? g).join('、') + '领域' : '各领域'}定向约稿。${count}份高质量稿件已到：${spawned.join('、')}`,
         type: 'info' as const,
         createdAt: draft.playTicks,
       }].slice(-100)
@@ -567,6 +568,7 @@ export const createMiscActions = (
   toggleAutoReview: () => set(draft => { draft.autoReviewEnabled = !draft.autoReviewEnabled }),
   toggleAutoCover: () => set(draft => { draft.autoCoverEnabled = !draft.autoCoverEnabled }),
   toggleAutoReject: () => set(draft => { draft.autoRejectEnabled = !draft.autoRejectEnabled }),
+  toggleAcceptMortalSubmissions: () => set(draft => { draft.acceptMortalSubmissions = !draft.acceptMortalSubmissions }),
   toggleBlacklistedGenre: (genre: string) => set(draft => {
     const list = draft.blacklistedGenres || []
     if (list.includes(genre as any)) {

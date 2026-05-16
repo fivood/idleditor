@@ -1,5 +1,6 @@
 import { useGameStore } from '@/store/gameStore'
 import { useMemo } from 'react'
+import { GENRE_LABELS } from '@/core/types'
 
 export function StatsView() {
   const manuscripts = useGameStore(s => s.manuscripts)
@@ -112,7 +113,7 @@ function KV({ label, value }: { label: string; value: string | number }) {
 }
 
 function BarChart({ data, max }: { data: Record<string, number>; max: number }) {
-  const labels: Record<string, string> = { 'sci-fi': '科幻', mystery: '推理', suspense: '悬疑', 'social-science': '社科', hybrid: '混血', 'light-novel': '轻小说' }
+  const labels = GENRE_LABELS
   const colors: Record<string, string> = { 'sci-fi': 'bg-blue-400', mystery: 'bg-purple-400', suspense: 'bg-red-400', 'social-science': 'bg-amber-400', hybrid: 'bg-emerald-400', 'light-novel': 'bg-pink-400' }
   return (
     <div className="space-y-1">

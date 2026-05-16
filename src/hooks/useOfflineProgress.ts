@@ -62,6 +62,7 @@ export function useOfflineProgress() {
       currentTrend: null,
       trendTimer: 300,
       blacklistedGenres: [],
+      acceptMortalSubmissions: saved.acceptMortalSubmissions ?? false,
     }
 
     for (const [id, ms] of saved.manuscripts) world.manuscripts.set(id, ms)

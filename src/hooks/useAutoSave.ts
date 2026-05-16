@@ -41,6 +41,7 @@ export function useAutoSave() {
         currentTrend: state.currentTrend,
         trendTimer: state.trendTimer,
         blacklistedGenres: state.blacklistedGenres,
+        acceptMortalSubmissions: state.acceptMortalSubmissions,
       }).catch(() => {})
     }, 60_000)
 
@@ -83,6 +84,7 @@ export function useAutoSave() {
         currentTrend: state.currentTrend,
         trendTimer: state.trendTimer,
         blacklistedGenres: state.blacklistedGenres,
+        acceptMortalSubmissions: state.acceptMortalSubmissions,
       }).catch(() => {})
     }
     window.addEventListener('beforeunload', handleBeforeUnload)

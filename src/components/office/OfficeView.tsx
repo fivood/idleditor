@@ -1,7 +1,7 @@
 import { useGameStore } from '@/store/gameStore'
 import { getPreferenceSlots } from '@/store/gameStore'
 import type { DepartmentType, Department, Genre } from '@/core/types'
-import { GENRE_ICONS } from '@/core/types'
+import { GENRE_ICONS, GENRE_LABELS } from '@/core/types'
 import { GENRE_PREFERENCE_THRESHOLDS, AUTO_REVIEW_DEPT_LEVEL, AUTO_COVER_PRESTIGE, AUTO_REJECT_PRESTIGE } from '@/core/constants'
 import { TALENTS, TALENT_UNLOCK_LEVELS } from '@/core/talents'
 import { useMemo, useState } from 'react'
@@ -12,11 +12,6 @@ const DEPT_INFO: Record<DepartmentType, { label: string; icon: string; getEffect
   design: { label: '设计部', icon: '🎨', getEffect: (l) => l === 0 ? '未雇佣' : `封面阶段品质 +${Math.round(l * 0.3)}` },
   marketing: { label: '市场部', icon: '📢', getEffect: (l) => l === 0 ? '未雇佣' : `书籍销量 +${Math.round(l * 2)}%` },
   rights: { label: '版权部', icon: '📜', getEffect: (l) => l === 0 ? '未雇佣' : `每分钟声望 +${(l * 0.9).toFixed(1)}` },
-}
-
-const GENRE_LABELS: Record<string, string> = {
-  'sci-fi': '科幻', mystery: '推理', suspense: '悬疑',
-  'social-science': '社科', hybrid: '混合', 'light-novel': '轻小说',
 }
 
 const ALL_GENRES: Genre[] = ['sci-fi', 'mystery', 'suspense', 'social-science', 'hybrid', 'light-novel']
@@ -31,6 +26,8 @@ export function OfficeView() {
   const removePreferredGenre = useGameStore(s => s.removePreferredGenre)
   const blacklistedGenres = useGameStore(s => s.blacklistedGenres || [])
   const toggleBlacklistedGenre = useGameStore(s => s.toggleBlacklistedGenre)
+  const acceptMortalSubmissions = useGameStore(s => s.acceptMortalSubmissions)
+  const toggleAcceptMortalSubmissions = useGameStore(s => s.toggleAcceptMortalSubmissions)
   const upgradePublishingQuota = useGameStore(s => s.upgradePublishingQuota)
   const toggleAutoReview = useGameStore(s => s.toggleAutoReview)
   const toggleAutoCover = useGameStore(s => s.toggleAutoCover)
@@ -218,6 +215,30 @@ export function OfficeView() {
               </button>
             )
           })}
+        </div>
+
+        {/* Mortal Column Toggle */}
+        <div className="mt-4 pt-3 border-t-2 border-border-dark">
+          <h2 className="text-xs md:text-sm font-bold text-ink mb-1 font-mono">凡间专栏</h2>
+          <p className="text-[14px] md:text-[16px] text-muted mb-2 md:mb-3 font-mono leading-relaxed">
+            是否接受来自白班世界的人类作者投稿？开启后，约 30% 的稿件会是人类作家写的「现实戏仿」——
+            《四体》《祈尔摩斯》《修道院物管疑云》等。关闭则只接收永夜原生题材。
+          </p>
+          <button
+            onClick={toggleAcceptMortalSubmissions}
+            className={`text-[14px] md:text-xs px-3 py-1.5 border-2 border-border-dark font-mono transition-all cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[1px] active:translate-y-[1px] ${
+              acceptMortalSubmissions
+                ? 'bg-progress text-white'
+                : 'bg-cream-dark text-muted hover:bg-cream'
+            }`}
+          >
+            {acceptMortalSubmissions ? '✓ 已开放凡间投稿通道' : '✕ 仅收永夜原生稿件'}
+          </button>
+          <p className="text-[12px] text-muted/70 mt-2 font-mono italic">
+            {acceptMortalSubmissions
+              ? '夜行邮政总局的人类专员表示，最近的投稿量略有上升。'
+              : '人类作家的来稿被自动退回，附「我们仅服务夜行族裔」的标准回复。'}
+          </p>
         </div>
 
         {/* Blacklisted Genres */}

@@ -47,6 +47,8 @@ export interface SavedGame {
   currentTrend?: import('@/core/types').Genre | null
   trendTimer?: number
   blacklistedGenres?: import('@/core/types').Genre[]
+  // v1.8+
+  acceptMortalSubmissions?: boolean
   updatedAt: number
 }
 

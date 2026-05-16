@@ -5,7 +5,21 @@ export type Genre = 'sci-fi' | 'mystery' | 'suspense'   | 'social-science'
 
 export const GENRES: Genre[] = ['sci-fi', 'mystery', 'suspense', 'social-science', 'hybrid', 'light-novel']
 
-export const GENRE_LABELS: Record<Genre, string> = {
+// 永夜版语义：把题材标签反转为永夜世界的视角
+// 真实世界看起来是"奇幻"的东西（吸血鬼/狼人）在永夜是日常
+// 真实世界的"日常"（阳光/人类生活）在永夜是奇幻
+// 类型用 Record<string, string> 以兼容旧的字符串索引访问。
+export const GENRE_LABELS: Record<string, string> = {
+  'sci-fi': '日光幻想',          // 原"科幻"——关于阳光/人类的奇想
+  mystery: '凡间悬案',           // 原"推理"——人类视角的离奇案件
+  suspense: '银器恐怖',          // 原"悬疑"——涉及银/十字/阳光禁忌
+  'social-science': '真实研究',  // 原"社科"——关于永夜社会的纪实
+  hybrid: '跨种合著',            // 原"混血"——两个物种作者合作
+  'light-novel': '少年血宫',     // 原"轻小说"——年轻吸血鬼/狼人爽文
+}
+
+// 旧称谓（人类世界视角），用于"凡间专栏"开关开启时显示
+export const GENRE_LABELS_MORTAL: Record<string, string> = {
   'sci-fi': '科幻',
   mystery: '推理',
   suspense: '悬疑',

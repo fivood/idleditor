@@ -3,6 +3,7 @@ import { useGameStore } from '@/store/gameStore'
 import { ManuscriptCard } from './ManuscriptCard'
 import { LogPanel } from '@/components/shared/LogPanel'
 import { CoverSelectModal } from './CoverSelectModal'
+import { DeskScene } from '@/assets/scenes/DeskScene'
 import type { Manuscript } from '@/core/types'
 
 const STAGE_ICONS: Record<string, string> = {
@@ -49,8 +50,19 @@ export function DeskView() {
 
   const modalMs = coverModalId ? manuscripts.get(coverModalId) : null
 
+  // 计算稿件堆叠层数（用于场景动态变化）
+  const stackSize: 0 | 1 | 2 | 3 =
+    submitted.length === 0 ? 0 :
+    submitted.length <= 2 ? 1 :
+    submitted.length <= 4 ? 2 : 3
+
   return (
-    <div className="flex flex-col md:grid md:grid-cols-[3fr_1.2fr] gap-2 md:gap-4 h-full p-2 md:p-4">
+    <div className="flex flex-col h-full">
+      {/* 桌面像素艺术场景（仅桌面端显示，移动端隐藏节省空间） */}
+      <div className="hidden md:block h-32 lg:h-40 shrink-0 border-b-2 border-border-dark overflow-hidden bg-[#0a0806]">
+        <DeskScene manuscriptStackSize={stackSize} showCat={!!catState} />
+      </div>
+      <div className="flex flex-col md:grid md:grid-cols-[3fr_1.2fr] gap-2 md:gap-4 flex-1 min-h-0 p-2 md:p-4">
       <div className="flex flex-col gap-2 md:gap-3 min-h-0">
         <div className="flex items-center gap-2 text-[15px] md:text-xs text-muted shrink-0 font-mono">
           <span className="text-ink font-bold border border-border-dark px-1.5 md:px-2 py-0.5 bg-cream">📥 {submitted.length}</span>
@@ -203,6 +215,7 @@ export function DeskView() {
           onCancel={() => setCoverModalId(null)}
         />
       )}
+      </div>
     </div>
   )
 }

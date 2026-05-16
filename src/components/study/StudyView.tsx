@@ -2,12 +2,8 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { db, type PlayerNovel, type Bookmark } from '@/db/database'
 import { nanoid } from '@/utils/id'
 import JSZip from 'jszip'
-import { type Genre } from '@/core/types'
+import { type Genre, GENRE_LABELS } from '@/core/types'
 
-const GENRE_LABELS: Record<string, string> = {
-  'sci-fi': '科幻', mystery: '推理', suspense: '悬疑',
-  'social-science': '社科', hybrid: '混合', 'light-novel': '轻小说',
-}
 const ALL_GENRES: Genre[] = ['sci-fi', 'mystery', 'suspense', 'social-science', 'hybrid', 'light-novel']
 
 function BookInfoPanel({ novel, novels, onBack, onSelect }: { novel: PlayerNovel; novels: PlayerNovel[]; onBack: () => void; onSelect: (n: PlayerNovel) => void }) {

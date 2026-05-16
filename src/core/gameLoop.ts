@@ -68,6 +68,7 @@ export interface GameWorldState {
   bookstores: import('./types').Bookstore[]
   currentTrend: Genre | null
   blacklistedGenres: Genre[]
+  acceptMortalSubmissions: boolean
 }
 
 // ──── World initialization ────
@@ -126,6 +127,7 @@ export function createInitialWorld(): GameWorldState {
     currentTrend: null,
     trendTimer: 300,
     blacklistedGenres: [],
+    acceptMortalSubmissions: false,  // 默认关闭：只产出永夜原生题材
   }
 }
 

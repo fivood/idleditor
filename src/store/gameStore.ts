@@ -135,6 +135,7 @@ async function syncToCloudImpl(state: GameStore): Promise<boolean> {
           currentTrend: state.currentTrend,
           trendTimer: state.trendTimer,
           blacklistedGenres: state.blacklistedGenres,
+          acceptMortalSubmissions: state.acceptMortalSubmissions,
           triggeredMilestones: [...state.triggeredMilestones],
           manuscriptsJson: serializeMapForDb(state.manuscripts),
           authorsJson: serializeMapForDb(state.authors),
@@ -193,6 +194,7 @@ export interface GameStore extends GameWorldState {
   toggleAutoCover: () => void
   toggleAutoReject: () => void
   toggleBlacklistedGenre: (genre: string) => void
+  toggleAcceptMortalSubmissions: () => void
   reissueBook: (id: string) => void
   buyAuthorMeal: (id: string) => void
   sendAuthorGift: (id: string) => void
@@ -457,6 +459,7 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
         currentTrend: state.currentTrend,
         trendTimer: state.trendTimer,
         blacklistedGenres: state.blacklistedGenres,
+        acceptMortalSubmissions: state.acceptMortalSubmissions,
       }).catch(() => {})
     }
   },
@@ -661,6 +664,7 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
         currentTrend: data.currentTrend ?? null,
         trendTimer: data.trendTimer ?? 300,
         blacklistedGenres: data.blacklistedGenres ?? [],
+        acceptMortalSubmissions: data.acceptMortalSubmissions ?? false,
         triggeredMilestones: new Set(data.triggeredMilestones ?? []),
         cloudSaveCode: code,
         isInitialized: true,

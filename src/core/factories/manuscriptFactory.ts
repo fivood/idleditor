@@ -13,6 +13,7 @@ import {
 import { EDITOR_TRAIT_BONUSES, GENRE_PREFERENCE_QUALITY_BONUS } from '../constants'
 import { personaPassiveFor } from '../data/personaPassives'
 import { TITLE_POOLS, getBaseTitle, titleToSlug } from '../titlePools'
+import { NIGHT_TITLE_POOLS } from '../lore/nightTitles'
 import { levelBonuses } from '../leveling'
 import { generateSynopsis, generateRejectionReason, isClearlyUnsuitable } from '../humor/synopsis'
 import { nanoid } from '../../utils/id'
@@ -20,8 +21,13 @@ import { pick } from '../../utils/random'
 import type { GameWorldState } from '../gameLoop'
 
 // ──── Title generation ────
+// 永夜世界优先：默认从永夜原生标题池抽取。
+// 凡间专栏开启时，30% 概率从现实戏仿池抽取（标记为"来自白班世界的稀奇投稿"）。
 export function generateTitle(genre: string, world: GameWorldState): string {
-  const pool = TITLE_POOLS[genre] ?? TITLE_POOLS['hybrid']
+  const nightPool = NIGHT_TITLE_POOLS[genre] ?? NIGHT_TITLE_POOLS['hybrid']
+  const mortalPool = TITLE_POOLS[genre] ?? TITLE_POOLS['hybrid']
+  const useMortal = world.acceptMortalSubmissions && Math.random() < 0.3
+  const pool = useMortal ? mortalPool : nightPool
   let title = ''
   for (let i = 0; i < 15; i++) {
     const candidate = pool[Math.floor(Math.random() * pool.length)]

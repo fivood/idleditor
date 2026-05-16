@@ -1,11 +1,7 @@
 ﻿import { useState, useMemo, useRef, useEffect } from 'react'
 import { useGameStore } from '@/store/gameStore'
 import type { Manuscript } from '@/core/types'
-
-const GENRE_LABELS: Record<string, string> = {
-  'sci-fi': '科幻', mystery: '推理', suspense: '悬疑',
-  'social-science': '社科', hybrid: '混合', 'light-novel': '轻小说',
-}
+import { GENRE_LABELS } from '@/core/types'
 
 // Light grayscale spine palette
 const SPINE_GRAYS = ['#e8e8e4', '#e0e0dc', '#dcdcd8', '#d6d6d2', '#d0d0cc', '#ccccca', '#c6c6c4', '#c0c0be']
