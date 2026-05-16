@@ -5,9 +5,10 @@ import { createMiscActions } from './actions/miscActions'
 import type { Department, EditorTrait, Manuscript, Bookstore, CatState, PermanentBonuses, ToastMessage, Genre } from '@/core/types'
 import { GENRE_PREFERENCE_THRESHOLDS } from '@/core/constants'
 import type { Decision } from '@/core/decisions'
-import { createInitialWorld, tick } from '@/core/gameLoop'
+import { createInitialWorld } from '@/core/gameLoop'
 import type { TickResult } from '@/core/types'
 import type { GameWorldState } from '@/core/gameLoop'
+import { runTick } from '@/engine'
 import { saveGameToDb, loadGameFromDb, hasExistingSave } from '@/db/saveManager'
 import { nanoid } from '@/utils/id'
 import { generateTemplateDecision } from '@/core/decisions'
@@ -31,6 +32,115 @@ export function getPreferenceSlots(prestige: number): number {
     if (prestige >= t) slots++
   }
   return slots
+}
+
+function applyWorldToDraft(draft: GameWorldState, world: GameWorldState) {
+  draft.manuscripts.clear()
+  for (const [id, manuscript] of world.manuscripts) draft.manuscripts.set(id, manuscript)
+  draft.authors.clear()
+  for (const [id, author] of world.authors) draft.authors.set(id, author)
+  draft.departments.clear()
+  for (const [id, department] of world.departments) draft.departments.set(id, department)
+
+  draft.events = world.events
+  draft.playTicks = world.playTicks
+  draft.totalPublished = world.totalPublished
+  draft.totalBestsellers = world.totalBestsellers
+  draft.totalRejections = world.totalRejections
+  draft.currencies = world.currencies
+  draft.permanentBonuses = world.permanentBonuses
+  draft.trait = world.trait
+  draft.playerName = world.playerName
+  draft.calendar = world.calendar
+  draft.spawnTimer = world.spawnTimer
+  draft.solicitCooldown = world.solicitCooldown
+  draft.awardTimer = world.awardTimer
+  draft.trendTimer = world.trendTimer
+  draft.triggeredMilestones.clear()
+  for (const tick of world.triggeredMilestones) draft.triggeredMilestones.add(tick)
+  draft.activeDateEvent = world.activeDateEvent
+  draft.coversManifest = world.coversManifest
+  draft.preferredGenres = world.preferredGenres
+  draft.booksPublishedThisMonth = world.booksPublishedThisMonth
+  draft.publishedTitles.clear()
+  for (const title of world.publishedTitles) draft.publishedTitles.add(title)
+  draft.editorXP = world.editorXP
+  draft.editorLevel = world.editorLevel
+  draft.publishingQuotaUpgrades = world.publishingQuotaUpgrades
+  draft.autoReviewEnabled = world.autoReviewEnabled
+  draft.autoCoverEnabled = world.autoCoverEnabled
+  draft.autoRejectEnabled = world.autoRejectEnabled
+  draft.unlockedCollections.clear()
+  for (const collection of world.unlockedCollections) draft.unlockedCollections.add(collection)
+  draft.prActive = world.prActive
+  draft.readingRoomRenovated = world.readingRoomRenovated
+  draft.selectedTalents = world.selectedTalents
+  draft.playerGender = world.playerGender
+  draft.qualityThreshold = world.qualityThreshold
+  draft.catState = world.catState
+  draft.catPetCooldown = world.catPetCooldown
+  draft.catRejectedUntilYear = world.catRejectedUntilYear
+  draft.salonBooksRemaining = world.salonBooksRemaining
+  draft.activeEventChain = world.activeEventChain
+  draft.bookstores = world.bookstores
+  draft.currentTrend = world.currentTrend
+  draft.blacklistedGenres = world.blacklistedGenres
+  draft.acceptMortalSubmissions = world.acceptMortalSubmissions
+
+  if (import.meta.env.DEV) {
+    if (draft.manuscripts.size !== world.manuscripts.size || draft.authors.size !== world.authors.size || draft.departments.size !== world.departments.size) {
+      throw new Error('Engine world apply failed: Map sizes diverged after tick')
+    }
+  }
+}
+
+function extractWorldFromState(state: GameStore): GameWorldState {
+  return {
+    manuscripts: new Map(state.manuscripts),
+    authors: new Map(state.authors),
+    departments: new Map(state.departments),
+    events: structuredClone(state.events),
+    playTicks: state.playTicks,
+    totalPublished: state.totalPublished,
+    totalBestsellers: state.totalBestsellers,
+    totalRejections: state.totalRejections,
+    currencies: structuredClone(state.currencies),
+    permanentBonuses: structuredClone(state.permanentBonuses),
+    trait: state.trait,
+    playerName: state.playerName,
+    calendar: structuredClone(state.calendar),
+    spawnTimer: state.spawnTimer,
+    solicitCooldown: state.solicitCooldown,
+    awardTimer: state.awardTimer,
+    trendTimer: state.trendTimer,
+    triggeredMilestones: new Set(state.triggeredMilestones),
+    activeDateEvent: structuredClone(state.activeDateEvent),
+    coversManifest: structuredClone(state.coversManifest),
+    preferredGenres: structuredClone(state.preferredGenres),
+    booksPublishedThisMonth: state.booksPublishedThisMonth,
+    publishedTitles: new Set(state.publishedTitles),
+    editorXP: state.editorXP,
+    editorLevel: state.editorLevel,
+    publishingQuotaUpgrades: state.publishingQuotaUpgrades,
+    autoReviewEnabled: state.autoReviewEnabled,
+    autoCoverEnabled: state.autoCoverEnabled,
+    autoRejectEnabled: state.autoRejectEnabled,
+    unlockedCollections: new Set(state.unlockedCollections),
+    prActive: state.prActive,
+    readingRoomRenovated: state.readingRoomRenovated,
+    selectedTalents: structuredClone(state.selectedTalents),
+    playerGender: state.playerGender,
+    qualityThreshold: state.qualityThreshold,
+    catState: structuredClone(state.catState),
+    catPetCooldown: state.catPetCooldown,
+    catRejectedUntilYear: state.catRejectedUntilYear,
+    salonBooksRemaining: state.salonBooksRemaining,
+    activeEventChain: structuredClone(state.activeEventChain),
+    bookstores: structuredClone(state.bookstores),
+    currentTrend: state.currentTrend,
+    blacklistedGenres: structuredClone(state.blacklistedGenres),
+    acceptMortalSubmissions: state.acceptMortalSubmissions,
+  }
 }
 
 async function tryTriggerDecision() {
@@ -352,8 +462,24 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
   },
 
   tick: () => {
+    let engineTick: ReturnType<typeof runTick>
+    try {
+      engineTick = runTick(extractWorldFromState(get()))
+    } catch (error) {
+      console.error(error)
+      const message = error instanceof Error ? error.message : '未知 tick 错误'
+      get().addToast({
+        id: nanoid(),
+        text: `引擎本轮执行失败，状态已回滚：${message}`,
+        type: 'info',
+        createdAt: get().playTicks,
+      })
+      return
+    }
+
     set(draft => {
-      const result = tick(draft as unknown as GameWorldState)
+      applyWorldToDraft(draft as unknown as GameWorldState, engineTick.world)
+      const result = engineTick.result
       draft.decisionCooldown = Math.max(0, (draft.decisionCooldown || 0) - 1)
       draft.catPetCooldown = Math.max(0, (draft.catPetCooldown ?? 0) - 1)
       draft.toasts = [...draft.toasts, ...result.toasts].slice(-100)

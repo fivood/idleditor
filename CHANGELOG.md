@@ -1,5 +1,26 @@
 # 开发日志 (Devlog)
 
+## [v2.0.1 引擎解耦与决策按钮修复] - 2026-05-17
+
+### 引擎架构重构 (Engine Extraction)
+- **引擎独立为纯函数层**：游戏模拟从 `src/core/tick/*` 提取至 `src/engine/tick/*`。每个 phase 接收克隆后的 world，返回 `{world, result}`，不再直接依赖 Zustand/Immer/浏览器环境。
+- **runTick 管道**：`src/engine/index.ts` 提供 `runTick(world, { rng })` 入口，clone 输入 → 顺序执行 7 个 phase → 返回新 world。Phase 注册从 `gameLoop.ts` 移至 `TICK_PHASES` 数组。
+- **可播种 RNG**：支持 `options.rng` 种子随机数，引擎 phase 内部通过 `Math.random` monkey-patch 获取确定性。
+- **Phase 模板**：`src/engine/tick/_template.ts` 供新机制参考——拷贝文件、实现逻辑、在 `index.ts` 注册即可。
+- **工厂纯化**：新增 `createManuscriptWithWorld()` / `createManuscriptForAuthorWithWorld()` 纯函数包装，引擎 phase 不再直接调用会修改输入 world 的旧工厂。
+
+### Store 集成
+- **extractWorldFromState**：引擎执行前从 Zustand state 剥离纯世界数据，避免 `structuredClone` 复制 action 函数导致异常。
+- **applyWorldToDraft**：引擎执行后将新 world 显式写回 Immer draft（Map 逐条 set + 属性赋值），开发模式断言 Map 数量一致性防数据丢失。
+- **错误边界**：`runTick()` 的 phase 循环带 `try/catch`，异常时抛带 phase 名称的 Error；Store `tick()` 外层 catch 并通过 toast 提示用户状态已回滚。
+
+### Bug 修复
+- **决策按钮无响应**：修复 `personal-favor`、`genre-change`、`deadline-conflict` 等决策 effect 直接修改 Immer 冻结对象的问题。现在先 clone Author/Manuscript 再写回 Map，解决了点击按钮后静默抛异常导致 UI 无反馈的 Bug。
+
+### 文档
+- 更新 `AGENTS.md` 引擎架构说明，新增 phase 注册指引和 `applyWorldToDraft` 风险提示。
+- 新增 `CLAUDE.md`（Claude Code 用户的上下文文件，fivood 的 AI 工具读取此文件）。
+
 ## [v1.7 投稿池优化] - 2026-05-15
 
 ### 投稿池机制优化 (Submission Pool Optimization)
