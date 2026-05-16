@@ -177,6 +177,14 @@ export const createMiscActions = (
     })
   },
 
+  setEditorNote: (id: string, note: string) => {
+    set(draft => {
+      const ms = draft.manuscripts.get(id)
+      if (!ms) return
+      ms.editorNote = note.trim().slice(0, 120)
+    })
+  },
+
   solicitFree: () => {
     set(draft => {
       if (draft.solicitCooldown > 0) return

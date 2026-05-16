@@ -17,6 +17,7 @@ export function CoverSelectModal({ manuscript, onConfirm, onReject, onCancel }: 
   const permanentBonuses = useGameStore(s => s.permanentBonuses)
   const playerName = useGameStore(s => s.playerName)
   const playTicks = useGameStore(s => s.playTicks)
+  const setEditorNote = useGameStore(s => s.setEditorNote)
 
   const pubPrestige = manuscript.isUnsuitable ? -10 : 10
   const marketLabel = manuscript.marketPotential >= 75 ? '极高' : manuscript.marketPotential >= 50 ? '良好' : manuscript.marketPotential >= 30 ? '一般' : '较低'
@@ -115,7 +116,7 @@ export function CoverSelectModal({ manuscript, onConfirm, onReject, onCancel }: 
                 <button
                   onClick={() => {
                     if (noteInput.trim()) {
-                      manuscript.editorNote = noteInput.trim()
+                      setEditorNote(manuscript.id, noteInput.trim())
                       setNoteSubmitted(true)
                       const state = useGameStore.getState()
                       state.addToast({
