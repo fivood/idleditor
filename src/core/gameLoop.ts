@@ -1,23 +1,11 @@
-import type { Author, CatState, Department, EditorTrait, GameEvent, Genre, Manuscript, PermanentBonuses, TickResult, ToastMessage } from './types'
-import { EDITOR_TRAIT_BONUSES, BOSS_START_YEARS } from './constants'
+import type { Author, CatState, Department, EditorTrait, GameEvent, Genre, Manuscript, PermanentBonuses, TickResult } from './types'
+import { BOSS_START_YEARS } from './constants'
 import { createCalendar } from './calendar'
 import type { GameCalendar } from './calendar'
 import { type DateEvent } from './dateEvents'
-import { levelBonuses } from './leveling'
 import { createManuscript } from './factories/manuscriptFactory'
 import { loadAuthorNamePool } from './data/authorNames'
-import { getTalentEffects } from './helpers'
-import { nanoid } from '@/utils/id'
-import {
-  processCalendarPhase,
-  processSpawnPhase,
-  processPipelinePhase,
-  processEconomyPhase,
-  processAuthorPhase,
-  processAutomationPhase,
-  processRandomEventPhase,
-  type TickContext
-} from './tick'
+import { runTick } from '@/engine'
 
 // Re-export for consumers
 export { loadAuthorNamePool }
@@ -133,58 +121,14 @@ export function createInitialWorld(): GameWorldState {
 
 // ──── Tick function ────
 export function tick(world: GameWorldState): TickResult {
-  const result: TickResult = {
-    newManuscripts: [],
-    publishedBooks: [],
-    royaltiesEarned: 0,
-    toasts: [],
-    eventsTriggered: [],
-    authorsReturned: [],
-    catDecisionAvailable: false,
-  }
-
-  world.playTicks++
-  const ct = (text: string, type: ToastMessage['type']) =>
-    ({ id: nanoid(), text, type, createdAt: world.playTicks })
-
-  // Trait & permanent bonuses
-  const trait = world.trait ? EDITOR_TRAIT_BONUSES[world.trait] : { rpBonus: 0, qualityBonus: 0, speedBonus: 0 }
-  const talentBonuses = getTalentEffects(world.selectedTalents)
-  const lvlBonuses = levelBonuses(world.editorLevel)
-  const epochScholar = world.permanentBonuses.epochPath === 'scholar'
-  const epochMerchant = world.permanentBonuses.epochPath === 'merchant'
-  const epochSocialite = world.permanentBonuses.epochPath === 'socialite'
-
-  const effSpeedBonus = world.permanentBonuses.editingSpeedBonus + trait.speedBonus + (talentBonuses.editSpeed || 0) + (talentBonuses.allStats || 0) + lvlBonuses.speed + (epochScholar ? 0.05 : 0)
-  const effRpBonus = trait.rpBonus + (talentBonuses.allStats || 0) + lvlBonuses.rp
-
-  const ctx: TickContext = {
-    world,
-    result,
-    effSpeedBonus,
-    effRpBonus,
-    talentBonuses,
-    lvlBonuses,
-    epochScholar,
-    epochMerchant,
-    epochSocialite,
-    ct
-  }
-
-  processCalendarPhase(ctx)
-  processRandomEventPhase(ctx)
-  processSpawnPhase(ctx)
-  processPipelinePhase(ctx)
-  processEconomyPhase(ctx)
-  processAuthorPhase(ctx)
-  processAutomationPhase(ctx)
-
+  const { world: nextWorld, result } = runTick(world)
+  Object.assign(world, nextWorld)
   return result
 }
 
 // ──── Offline progress simulation ────
 export function computeOfflineProgress(world: GameWorldState, tickCount: number): ReturnType<typeof tick> {
-  let combined: ReturnType<typeof tick> = {
+  const combined: ReturnType<typeof tick> = {
     newManuscripts: [],
     publishedBooks: [],
     royaltiesEarned: 0,
@@ -195,12 +139,15 @@ export function computeOfflineProgress(world: GameWorldState, tickCount: number)
   }
   // Simulate ticks in batches to avoid excessive computation
   const maxTicks = Math.min(tickCount, 3600) // Cap at 1 hour
+  let simulationWorld = world
   for (let i = 0; i < maxTicks; i++) {
-    const result = tick(world)
+    const { world: nextWorld, result } = runTick(simulationWorld)
+    simulationWorld = nextWorld
     combined.publishedBooks.push(...result.publishedBooks)
     combined.royaltiesEarned += result.royaltiesEarned
     combined.newManuscripts.push(...result.newManuscripts)
     combined.authorsReturned.push(...result.authorsReturned)
   }
+  Object.assign(world, simulationWorld)
   return combined
 }
