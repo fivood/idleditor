@@ -33,10 +33,10 @@ export const createMiscActions = (
   },
 
   onCountGenderChoice: (gender: 'male' | 'female') => {
-    set(s => ({
-      permanentBonuses: { ...s.permanentBonuses, countGender: gender },
-      activeCountScene: null,
-    }))
+    set(draft => {
+      draft.permanentBonuses.countGender = gender
+      draft.activeCountScene = null
+    })
     const label = gender === 'female' ? '女伯爵' : '伯爵'
     get().addToast({ id: nanoid(), text: `伯爵称号已更新。此后称呼为：${label}。`, type: 'milestone', createdAt: get().playTicks })
   },
@@ -502,10 +502,10 @@ export const createMiscActions = (
   setTrait: (trait) => set({ trait }),
   setActiveTab: (tab) => set({ activeTab: tab }),
   dismissToast: (id) => {
-    set(state => ({ toasts: state.toasts.filter(t => t.id !== id) }))
+    set(draft => { draft.toasts = draft.toasts.filter(t => t.id !== id) })
   },
   addToast: (toast) => {
-    set(state => ({ toasts: [...state.toasts, toast].slice(-100) }))
+    set(draft => { draft.toasts = [...draft.toasts, toast].slice(-100) })
   },
 
   // ──── Cloud save ────
@@ -566,15 +566,15 @@ export const createMiscActions = (
     })
   },
 
-  toggleAutoReview: () => set(s => ({ autoReviewEnabled: !s.autoReviewEnabled })),
-  toggleAutoCover: () => set(s => ({ autoCoverEnabled: !s.autoCoverEnabled })),
-  toggleAutoReject: () => set(s => ({ autoRejectEnabled: !s.autoRejectEnabled })),
-  toggleBlacklistedGenre: (genre: string) => set(s => {
-    const list = s.blacklistedGenres || []
-    return {
-      blacklistedGenres: list.includes(genre as any)
-        ? list.filter((g: any) => g !== genre)
-        : [...list, genre as any]
+  toggleAutoReview: () => set(draft => { draft.autoReviewEnabled = !draft.autoReviewEnabled }),
+  toggleAutoCover: () => set(draft => { draft.autoCoverEnabled = !draft.autoCoverEnabled }),
+  toggleAutoReject: () => set(draft => { draft.autoRejectEnabled = !draft.autoRejectEnabled }),
+  toggleBlacklistedGenre: (genre: string) => set(draft => {
+    const list = draft.blacklistedGenres || []
+    if (list.includes(genre as any)) {
+      draft.blacklistedGenres = list.filter((g: any) => g !== genre)
+    } else {
+      draft.blacklistedGenres = [...list, genre as any]
     }
   }),
 

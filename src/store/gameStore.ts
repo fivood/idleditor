@@ -610,9 +610,7 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
   },
 
   removePreferredGenre: (genre) => {
-    set(state => ({
-      preferredGenres: state.preferredGenres.filter(g => g !== genre),
-    }))
+    set(draft => { draft.preferredGenres = draft.preferredGenres.filter(g => g !== genre) })
   },
 
   ...createMiscActions(set, get),
@@ -668,19 +666,19 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
       if (data.manuscriptsJson) {
         try {
           const entries = JSON.parse(data.manuscriptsJson) as [string, unknown][]
-          set(s => { entries.forEach(([k, v]) => s.manuscripts.set(k, v as never)); return {} })
+          set(s => { entries.forEach(([k, v]) => s.manuscripts.set(k, v as never)) })
         } catch {}
       }
       if (data.authorsJson) {
         try {
           const entries = JSON.parse(data.authorsJson) as [string, unknown][]
-          set(s => { entries.forEach(([k, v]) => s.authors.set(k, v as never)); return {} })
+          set(s => { entries.forEach(([k, v]) => s.authors.set(k, v as never)) })
         } catch {}
       }
       if (data.departmentsJson) {
         try {
           const entries = JSON.parse(data.departmentsJson) as [string, unknown][]
-          set(s => { entries.forEach(([k, v]) => s.departments.set(k, v as never)); return {} })
+          set(s => { entries.forEach(([k, v]) => s.departments.set(k, v as never)) })
         } catch {}
       }
       return true
