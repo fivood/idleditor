@@ -7,6 +7,7 @@ import {
   DEPARTMENT_BASE_EFFICIENCY,
   DEPARTMENT_MAX_LEVEL,
   EDITING_TICKS_BASE,
+  GENRE_PREFERENCE_THRESHOLDS,
   MANUSCRIPT_QUALITY_MAX,
   MANUSCRIPT_QUALITY_MIN,
   MANUSCRIPT_WORDCOUNT_MIN,
@@ -143,4 +144,14 @@ export function trendMultiplier(): number {
 
 export function prestigePerBestseller(totalBestsellers: number): number {
   return 50 + totalBestsellers * 5
+}
+
+// ──── Genre preference slots ────
+
+export function getPreferenceSlots(prestige: number): number {
+  let slots = 0
+  for (const t of GENRE_PREFERENCE_THRESHOLDS) {
+    if (prestige >= t) slots++
+  }
+  return slots
 }

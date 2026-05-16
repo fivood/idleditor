@@ -16,12 +16,14 @@ import {
 import type { TickContext } from './types'
 
 export function processPipelinePhase({ world, result, ct, effSpeedBonus, effRpBonus, talentBonuses, epochSocialite }: TickContext) {
+  const editEfficiency = getDeptEfficiency(world, 'editing')
+  const designEfficiency = getDeptEfficiency(world, 'design')
+  const speedMult = 1 + effSpeedBonus
+
   // 2. Process reviewing
   for (const m of world.manuscripts.values()) {
     if (m.status !== 'reviewing') continue
-    const editEfficiency = getDeptEfficiency(world, 'editing')
     const needed = reviewTicks(editEfficiency)
-    const speedMult = 1 + effSpeedBonus
     m.editingProgress += (1 / needed) * speedMult
     if (m.editingProgress >= 1) {
       m.status = 'editing'
@@ -41,9 +43,7 @@ export function processPipelinePhase({ world, result, ct, effSpeedBonus, effRpBo
   // 3. Process editing
   for (const m of world.manuscripts.values()) {
     if (m.status !== 'editing') continue
-    const editEfficiency = getDeptEfficiency(world, 'editing')
     const needed = editingTicks(m.wordCount, editEfficiency)
-    const speedMult = 1 + effSpeedBonus
     m.editingProgress += (1 / needed) * speedMult
     if (m.editingProgress >= 1) {
       m.status = 'proofing'
@@ -55,13 +55,9 @@ export function processPipelinePhase({ world, result, ct, effSpeedBonus, effRpBo
   // 4. Process proofing
   for (const m of world.manuscripts.values()) {
     if (m.status !== 'proofing') continue
-    const editEfficiency = getDeptEfficiency(world, 'editing')
     const needed = proofingTicks(editEfficiency)
-    const speedMult = 1 + effSpeedBonus
     m.editingProgress += (1 / needed) * speedMult
     if (m.editingProgress >= 1) {
-      // Design department: apply quality bonus when cover is prepared
-      const designEfficiency = getDeptEfficiency(world, 'design')
       if (designEfficiency > 0) {
         m.quality = Math.min(100, m.quality + Math.round(designEfficiency * 10))
       }
@@ -81,9 +77,7 @@ export function processPipelinePhase({ world, result, ct, effSpeedBonus, effRpBo
   // 5. Process publishing
   for (const m of world.manuscripts.values()) {
     if (m.status !== 'publishing') continue
-    const editEfficiency = getDeptEfficiency(world, 'editing')
     const needed = publishingTicks(editEfficiency)
-    const speedMult = 1 + effSpeedBonus
     m.editingProgress += (1 / needed) * speedMult
     if (m.editingProgress >= 1) {
       m.status = 'published'

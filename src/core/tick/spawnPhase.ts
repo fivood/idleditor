@@ -7,8 +7,10 @@ export function processSpawnPhase({ world, result, ct }: TickContext) {
   // 1. Spawn manuscripts
   world.spawnTimer--
   if (world.solicitCooldown > 0) world.solicitCooldown--
+
+  const submitted = [...world.manuscripts.values()].filter(m => m.status === 'submitted')
+
   if (world.spawnTimer <= 0) {
-    const submitted = [...world.manuscripts.values()].filter(m => m.status === 'submitted')
     if (submitted.length < MAX_SUBMITTED_QUEUE) {
       const ms = createManuscript(world)
       world.manuscripts.set(ms.id, ms)
@@ -20,8 +22,6 @@ export function processSpawnPhase({ world, result, ct }: TickContext) {
 
   // 1.5 Auto-clear stale submissions (player away too long)
   {
-    const submitted = [...world.manuscripts.values()].filter(m => m.status === 'submitted')
-    // Filter out idol authors from auto-clear logic
     const normalSubmitted = submitted.filter(m => {
       const author = world.authors.get(m.authorId)
       return author?.tier !== 'idol'
