@@ -228,6 +228,7 @@ export interface GameStore extends GameWorldState {
   hostSalon: () => void
   generateEditorNote: (id: string) => Promise<void>
   updateCustomNote: (id: string, note: string) => void
+  setEditorNote: (id: string, note: string) => void
 
   // Actions: manuscript
   startReview: (id: string) => void
@@ -354,6 +355,7 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
     set(draft => {
       const result = tick(draft as unknown as GameWorldState)
       draft.decisionCooldown = Math.max(0, (draft.decisionCooldown || 0) - 1)
+      draft.catPetCooldown = Math.max(0, (draft.catPetCooldown ?? 0) - 1)
       draft.toasts = [...draft.toasts, ...result.toasts].slice(-100)
     })
 

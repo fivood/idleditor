@@ -46,6 +46,19 @@ export const CHANGELOG: ChangelogEntry[] = [
     ],
   },
   {
+    version: 'v1.7.2',
+    date: '2026-05-16',
+    title: 'Immer 冻结修复 · 猫生补丁 · 额度守卫',
+    items: [
+      'Immer Map/Set 支持开启后暴露的冻结对象直接修改全线修复——审稿、退稿、搁置、精校、封面确认、作者签约/解约、部门升级、再版、送礼、回信、催稿等十余处操作不再抛出 "Cannot assign to read only property"。',
+      '猫终于可以反复摸了——修复了摸猫冷却值设了 60 却从不在 tick 中递减，导致这辈子只能摸一次的"一次性猫综合征"。',
+      '出版额度不再有空子可钻：批量自动出版的循环只检查了当前已出版数，没计入本轮已排进出版队列的份数，导致"界 限 突 破"。补了批内计数。',
+      '修了出版备注生成时 quality 可能为非整数导致模板数组取下标爆炸的崩溃（It is not a function）。',
+      'PWA manifest 不再引用不存在的 icon-192.png / icon-512.png，改用已有的 favicon.svg。补了缺失的 /authors/names.json 空文件避免 404。',
+      'CoverSelectModal 不再直接修改被 Immer 冻结的 manuscript.editorNote，改为走新的 setEditorNote store action。',
+    ],
+  },
+  {
     version: 'v1.7.1',
     date: '2026-05-16',
     title: '崩溃修复 · 云存档加固 · 性能优化',
