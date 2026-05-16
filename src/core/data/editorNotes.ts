@@ -2,19 +2,20 @@ import type { Manuscript } from '../types'
 
 // ──── Editor note templates (generated at publish time) ────
 
-const PUBLISH_NOTE_TEMPLATES = [
+const PUBLISH_NOTE_TEMPLATES: Array<(ms: Manuscript) => string> = [
   (ms: Manuscript) => `审稿时喝了三杯茶。看到第${(ms.quality * 7) % 300 + 10}页差点喷出来——不是贬义。就是太意外了。`,
-  (_ms: Manuscript) => `作者在致谢里写了"感谢永夜出版社那位永远年轻的编辑"。他知道得太多了。`,
+  () => `作者在致谢里写了"感谢永夜出版社那位永远年轻的编辑"。他知道得太多了。`,
   (ms: Manuscript) => `排版时发现第${Math.floor((ms.quality * 7) % 300) + 10}页的页码印成了emoji。决定不修改——当作彩蛋。`,
-  (_ms: Manuscript) => `这是作者迄今最好的书。他自己也这么认为。感谢信写了七页——我们读了前两页。`,
-  (_ms: Manuscript) => `版权部已把本书推给三家影视机构。对方都说"有深度但不好改"。翻译：内心独白太多。`,
-  (_ms: Manuscript) => `校对最后一遍时发现了一个拼写错误——但不是我们的。是作者在致谢里把自己的名字拼错了。`,
-  (_ms: Manuscript) => `稿子送来时带着一股陈年纸张的气味。打开一看，原来作者把祖父的旧稿混进去了——还挺好看。`,
-  (_ms: Manuscript) => `这本稿子在审稿会上引发了一场持续45分钟的讨论。结论：挺好的，别改了。发吧。`,
+  () => `这是作者迄今最好的书。他自己也这么认为。感谢信写了七页——我们读了前两页。`,
+  () => `版权部已把本书推给三家影视机构。对方都说"有深度但不好改"。翻译：内心独白太多。`,
+  () => `校对最后一遍时发现了一个拼写错误——但不是我们的。是作者在致谢里把自己的名字拼错了。`,
+  () => `稿子送来时带着一股陈年纸张的气味。打开一看，原来作者把祖父的旧稿混进去了——还挺好看。`,
+  () => `这本稿子在审稿会上引发了一场持续45分钟的讨论。结论：挺好的，别改了。发吧。`,
 ]
 
 export function generatePublishNote(ms: Manuscript): string {
-  return PUBLISH_NOTE_TEMPLATES[ms.quality % PUBLISH_NOTE_TEMPLATES.length](ms)
+  const templateIndex = Math.floor(ms.quality) % PUBLISH_NOTE_TEMPLATES.length
+  return PUBLISH_NOTE_TEMPLATES[templateIndex](ms)
 }
 
 // ──── Level-up toast lines ────
