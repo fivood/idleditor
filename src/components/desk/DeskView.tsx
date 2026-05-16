@@ -58,8 +58,9 @@ export function DeskView() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* 桌面像素艺术场景（仅桌面端显示，移动端隐藏节省空间） */}
-      <div className="hidden md:block h-32 lg:h-40 shrink-0 border-b-2 border-border-dark overflow-hidden bg-[#0a0806]">
+      {/* 桌面氛围条：薄薄一层，只露墙顶+窗户+月亮，不抢操作区
+           （UI 卡片本身已经是"桌上稿件"的拟物化呈现） */}
+      <div className="hidden md:block h-16 lg:h-20 shrink-0 border-b-2 border-border-dark overflow-hidden bg-[#0a0806]">
         <DeskScene manuscriptStackSize={stackSize} showCat={!!catState} />
       </div>
       <div className="flex flex-col md:grid md:grid-cols-[3fr_1.2fr] gap-2 md:gap-4 flex-1 min-h-0 p-2 md:p-4">

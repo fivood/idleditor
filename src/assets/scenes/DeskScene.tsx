@@ -23,7 +23,7 @@ export function DeskScene({ manuscriptStackSize = 2, showCat = false }: DeskScen
   return (
     <svg
       viewBox="0 0 320 200"
-      preserveAspectRatio="xMidYMid slice"
+      preserveAspectRatio="xMidYMin slice"
       shapeRendering="crispEdges"
       className="w-full h-full"
       style={{ imageRendering: 'pixelated' }}
