@@ -8,7 +8,7 @@ export interface TickContext {
   effSpeedBonus: number
   effRpBonus: number
   talentBonuses: Talent['effects']
-  lvlBonuses: { rp: number; speed: number; cost: number; prestige: number }
+  lvlBonuses: { quality: number; speed: number; rp: number }
   epochScholar: boolean
   epochMerchant: boolean
   epochSocialite: boolean

@@ -50,9 +50,11 @@ export function TopBar() {
           <span className="text-[14px] md:text-xs text-muted font-mono" title="本月出版额度">
             {booksPublishedThisMonth}/{10 + publishingQuotaUpgrades}
           </span>
-          <span className="hidden md:inline text-[13px] text-ink font-bold bg-amber-100 border border-amber-300 px-1.5 py-0.5 ml-2" title="当前市场风向：相关题材销量大幅提升">
-            📈 {GENRE_LABELS[currentTrend] || currentTrend}
-          </span>
+          {currentTrend && (
+            <span className="hidden md:inline text-[13px] text-ink font-bold bg-amber-100 border border-amber-300 px-1.5 py-0.5 ml-2" title="当前市场风向：相关题材销量大幅提升">
+              📈 {GENRE_LABELS[currentTrend] || currentTrend}
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-1.5 md:gap-3">

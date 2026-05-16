@@ -43,6 +43,10 @@ export interface SavedGame {
   manuscriptsJson: string
   authorsJson: string
   departmentsJson: string
+  // v1.7+ fields (optional for backward compat with old saves)
+  currentTrend?: import('@/core/types').Genre | null
+  trendTimer?: number
+  blacklistedGenres?: import('@/core/types').Genre[]
   updatedAt: number
 }
 

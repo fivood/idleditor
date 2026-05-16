@@ -34,7 +34,6 @@ export function useOfflineProgress() {
       calendar: saved.calendar ?? { day: 1, month: 0, year: 1, totalDays: 0 },
       spawnTimer: 0,
       awardTimer: 0,
-      trendTimer: 0,
       triggeredMilestones: new Set(saved.triggeredMilestones),
       activeDateEvent: null,
       coversManifest: null,

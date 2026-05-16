@@ -38,6 +38,9 @@ export function useAutoSave() {
         authors: state.authors,
         departments: state.departments,
         events: state.events,
+        currentTrend: state.currentTrend,
+        trendTimer: state.trendTimer,
+        blacklistedGenres: state.blacklistedGenres,
       }).catch(() => {})
     }, 60_000)
 
@@ -77,6 +80,9 @@ export function useAutoSave() {
         authors: state.authors,
         departments: state.departments,
         events: state.events,
+        currentTrend: state.currentTrend,
+        trendTimer: state.trendTimer,
+        blacklistedGenres: state.blacklistedGenres,
       }).catch(() => {})
     }
     window.addEventListener('beforeunload', handleBeforeUnload)

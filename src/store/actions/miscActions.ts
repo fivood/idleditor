@@ -3,12 +3,10 @@ import type { GameStore } from '../gameStore'
 import { createManuscript } from '@/core/factories/manuscriptFactory'
 import { TALENTS, TALENT_UNLOCK_LEVELS, type Talent } from '@/core/talents'
 import type { CountScene } from '@/core/countStory'
-import type { Department, ToastMessage, Manuscript, EditorTrait } from '@/core/types'
-import { DECISION_EFFECTS, applyLLMEffects } from '@/core/decisionEffects'
-import { getPreferenceSlots } from '@/core/formulas'
+import type { Department } from '@/core/types'
 
 export const createMiscActions = (
-  set: (fn: (draft: GameStore) => void | Partial<GameStore>) => void,
+  set: (updater: ((draft: GameStore) => void | Partial<GameStore>) | Partial<GameStore>) => void,
   get: () => GameStore
 ): Partial<GameStore> => ({
   applyTickResult: (_result) => {
