@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { enableMapSet } from 'immer'
 import { immer } from 'zustand/middleware/immer'
 import { createMiscActions } from './actions/miscActions'
-import type { Department, EditorTrait, Manuscript, Bookstore, CatState, PermanentBonuses, ToastMessage } from '@/core/types'
+import type { Department, EditorTrait, Manuscript, Bookstore, CatState, PermanentBonuses, ToastMessage, Genre } from '@/core/types'
 import { GENRE_PREFERENCE_THRESHOLDS } from '@/core/constants'
 import type { Decision } from '@/core/decisions'
 import { createInitialWorld, tick } from '@/core/gameLoop'
@@ -193,7 +193,7 @@ export interface GameStore extends GameWorldState {
   toggleAutoReview: () => void
   toggleAutoCover: () => void
   toggleAutoReject: () => void
-  toggleBlacklistedGenre: (genre: string) => void
+  toggleBlacklistedGenre: (genre: Genre) => void
   toggleAcceptMortalSubmissions: () => void
   reissueBook: (id: string) => void
   buyAuthorMeal: (id: string) => void
@@ -631,6 +631,7 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
       if (!res.ok) return false
       const data = await res.json()
       if (!data) return false
+      const cloudPermanentBonuses = data.permanentBonuses as Partial<PermanentBonuses> | undefined
       // Restore from cloud data
       set({
         ...createInitialWorld(),
@@ -652,7 +653,7 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
           bossYears: data.permanentBonuses?.bossYears ?? 10,
           countRelation: data.permanentBonuses?.countRelation ?? 0,
           countGender: data.permanentBonuses?.countGender ?? 'male',
-          epochPath: (data.permanentBonuses as any)?.epochPath ?? null,
+          epochPath: cloudPermanentBonuses?.epochPath ?? null,
         },
         calendar: data.calendar ?? createInitialWorld().calendar,
         trait: data.trait ?? null,
@@ -674,19 +675,19 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
         try {
           const entries = JSON.parse(data.manuscriptsJson) as [string, unknown][]
           set(s => { entries.forEach(([k, v]) => s.manuscripts.set(k, v as never)) })
-        } catch {}
+        } catch { /* ignore malformed cloud manuscript data */ }
       }
       if (data.authorsJson) {
         try {
           const entries = JSON.parse(data.authorsJson) as [string, unknown][]
           set(s => { entries.forEach(([k, v]) => s.authors.set(k, v as never)) })
-        } catch {}
+        } catch { /* ignore malformed cloud author data */ }
       }
       if (data.departmentsJson) {
         try {
           const entries = JSON.parse(data.departmentsJson) as [string, unknown][]
           set(s => { entries.forEach(([k, v]) => s.departments.set(k, v as never)) })
-        } catch {}
+        } catch { /* ignore malformed cloud department data */ }
       }
       return true
     } catch {

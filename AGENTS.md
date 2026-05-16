@@ -26,6 +26,7 @@
 
 ## Repo Gotchas
 - **Immer Map/Set support must be enabled.** The store uses `Map`/`Set` for manuscripts, authors, and departments. Without `enableMapSet()` from `immer`, mutations like `draft.manuscripts.set(...)` inside a Zustand `set()` producer silently fail with `[Immer] minified error nr: 0` — manuscripts are lost, solicitation appears to do nothing.
+- Treat values returned by `get().manuscripts.get(...)`, `get().authors.get(...)`, etc. as read-only. Immer auto-freezes store objects; update them inside `set(draft => { ... })` instead of mutating the object then replacing the Map.
 - Never call `get().addToast()` or `get().setState()` inside a Zustand `set(draft => ...)` producer. This nests state updates and can lose log entries. Write to `draft.toasts` directly in the same draft.
 - Root files such as `temp_old_gameStore.ts`, `temp_utf8_gameStore.ts`, and `missing_actions.ts` are scratch/repair artifacts and are outside `tsconfig.app.json` (`include: ["src"]`). Do not update them when changing real app behavior.
 - TypeScript has `noUnusedLocals`, `noUnusedParameters`, `erasableSyntaxOnly`, and `verbatimModuleSyntax`; avoid TS features that need runtime emit and keep type-only imports explicit.
