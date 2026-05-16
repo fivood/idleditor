@@ -4,21 +4,22 @@ import { COLLECTIONS } from './collections'
 import { TALENTS, type Talent } from './talents'
 import type { GameWorldState } from './gameLoop'
 
-export function getDeptEfficiency(world: GameWorldState, type: string): number {
-  const base = DEPARTMENT_BASE_EFFICIENCY[type as DepartmentType] ?? 0.5
+function findDept(world: GameWorldState, type: string) {
   for (const dept of world.departments.values()) {
-    if (dept.type === type) {
-      return base * dept.level / 10
-    }
+    if (dept.type === type) return dept
   }
-  return 0
+  return null
+}
+
+export function getDeptEfficiency(world: GameWorldState, type: string): number {
+  const dept = findDept(world, type)
+  if (!dept) return 0
+  const base = DEPARTMENT_BASE_EFFICIENCY[type as DepartmentType] ?? 0.5
+  return base * dept.level / 10
 }
 
 export function getDeptLevel(world: GameWorldState, type: string): number {
-  for (const dept of world.departments.values()) {
-    if (dept.type === type) return dept.level
-  }
-  return 0
+  return findDept(world, type)?.level ?? 0
 }
 
 export function getCollectionBoost(genre: string, unlocked: Set<string>): number {

@@ -51,10 +51,7 @@ export function processCalendarPhase({ world, result, ct }: TickContext) {
     }
     // Tick down active date event duration
     if (world.activeDateEvent) {
-      world.activeDateEvent = {
-        ...world.activeDateEvent,
-        durationDays: world.activeDateEvent.durationDays - 1,
-      }
+      world.activeDateEvent.durationDays--
       if (world.activeDateEvent.durationDays <= 0) {
         world.activeDateEvent = null
       }

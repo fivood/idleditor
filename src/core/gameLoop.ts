@@ -67,7 +67,6 @@ export interface GameWorldState {
   activeEventChain: { chainId: string; step: number } | null
   bookstores: import('./types').Bookstore[]
   currentTrend: Genre | null
-  trendTimer: number
   blacklistedGenres: Genre[]
 }
 
@@ -100,7 +99,6 @@ export function createInitialWorld(): GameWorldState {
     spawnTimer: 5,
     solicitCooldown: 0,
     awardTimer: 0,
-    trendTimer: 0,
     triggeredMilestones: new Set(),
     activeDateEvent: null,
     coversManifest: null,
@@ -180,4 +178,27 @@ export function tick(world: GameWorldState): TickResult {
   processAutomationPhase(ctx)
 
   return result
+}
+
+// ──── Offline progress simulation ────
+export function computeOfflineProgress(world: GameWorldState, tickCount: number): ReturnType<typeof tick> {
+  let combined: ReturnType<typeof tick> = {
+    newManuscripts: [],
+    publishedBooks: [],
+    royaltiesEarned: 0,
+    toasts: [],
+    eventsTriggered: [],
+    authorsReturned: [],
+    catDecisionAvailable: false,
+  }
+  // Simulate ticks in batches to avoid excessive computation
+  const maxTicks = Math.min(tickCount, 3600) // Cap at 1 hour
+  for (let i = 0; i < maxTicks; i++) {
+    const result = tick(world)
+    combined.publishedBooks.push(...result.publishedBooks)
+    combined.royaltiesEarned += result.royaltiesEarned
+    combined.newManuscripts.push(...result.newManuscripts)
+    combined.authorsReturned.push(...result.authorsReturned)
+  }
+  return combined
 }

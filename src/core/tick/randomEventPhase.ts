@@ -147,6 +147,6 @@ export function rollRandomEvent(world: GameWorldState): string | null {
       return pick(newsItems)
     },
   ]
-  const fn = pool[Math.floor(Math.random() * pool.length)]
+  const fn = pick(pool)
   return fn()
 }

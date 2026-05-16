@@ -60,6 +60,9 @@ export function useOfflineProgress() {
       salonBooksRemaining: 0,
       activeEventChain: null,
       bookstores: [],
+      currentTrend: null,
+      trendTimer: 300,
+      blacklistedGenres: [],
     }
 
     for (const [id, ms] of saved.manuscripts) world.manuscripts.set(id, ms)

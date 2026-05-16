@@ -1,9 +1,14 @@
 import { getDeptEfficiency, getDeptLevel } from '../helpers'
 import { rangeInt, pick } from '@/utils/random'
+import { nanoid } from '@/utils/id'
 import { DEPARTMENT_COST_MULTIPLIER, AUTO_REVIEW_DEPT_LEVEL, AUTO_COVER_PRESTIGE, AUTO_REJECT_PRESTIGE, MILESTONES } from '../constants'
 import { GENRES, type Genre } from '../types'
 import { SHELVED_RESUBMISSION_NOTES } from '../data/editorNotes'
 import type { TickContext } from './types'
+
+const DEPT_NAMES: Record<string, string> = {
+  editing: '编辑部', design: '设计部', marketing: '市场部', rights: '版权部',
+}
 
 export function processAutomationPhase({ world, result, ct }: TickContext) {
   // 8. Department upgrade ticks
@@ -16,7 +21,7 @@ export function processAutomationPhase({ world, result, ct }: TickContext) {
         dept.upgradeCostRP = Math.round(dept.upgradeCostRP * DEPARTMENT_COST_MULTIPLIER)
         dept.upgradeCostPrestige = Math.max(0, Math.round((dept.upgradeCostPrestige + 3) * 1.3))
         dept.upgradeTicks = Math.round(dept.upgradeTicks * 1.15)
-        result.toasts.push(ct(`🏢 ${dept.type === 'editing' ? '编辑部' : dept.type === 'design' ? '设计部' : dept.type === 'marketing' ? '市场部' : '版权部'}升至 Lv.${dept.level}！`, 'milestone'))
+        result.toasts.push(ct(`🏢 ${DEPT_NAMES[dept.type] ?? dept.type}升至 Lv.${dept.level}！`, 'milestone'))
       }
     }
   }
@@ -130,6 +135,3 @@ export function processAutomationPhase({ world, result, ct }: TickContext) {
     }
   }
 }
-
-// Ensure nanoid import exists
-import { nanoid } from '@/utils/id'

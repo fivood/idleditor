@@ -9,7 +9,6 @@ type EffectFn = (state: GameStore, optionIndex: number) => void
 
 function getSet(_state: GameStore) {
   const set = (partial: Partial<GameStore>) => {
-    // Access the store's setState via the module-level import
     const { useGameStore } = require('@/store/gameStore')
     useGameStore.setState(partial)
   }
@@ -19,6 +18,57 @@ function getSet(_state: GameStore) {
     useGameStore.setState({ toasts: [...s.toasts, { id: nanoid(), text, type, createdAt: s.playTicks }].slice(-100) })
   }
   return { set, addToast }
+}
+
+/**
+ * Parse LLM-generated decision effect descriptions and apply currency/quality changes.
+ * Matches patterns like "+10 RP", "声望 +15", "品质 +5" etc.
+ */
+export function applyLLMEffects(description: string, state: GameStore) {
+  const { set, addToast } = getSet(state)
+  let changed = false
+
+  // Parse RP changes: +N RP / -N RP / 获得 N RP / N 修订点
+  const rpGain = description.match(/(?:获得|得到)\s*(\d+)\s*(?:RP|修订点)/) || description.match(/\+(\d+)\s*(?:RP|修订点)/)
+  const rpLoss = description.match(/[-－](\d+)\s*(?:RP|修订点)/)
+  if (rpGain) {
+    set({ currencies: { ...state.currencies, revisionPoints: state.currencies.revisionPoints + parseInt(rpGain[1]) } })
+    changed = true
+  }
+  if (rpLoss) {
+    set({ currencies: { ...state.currencies, revisionPoints: Math.max(0, state.currencies.revisionPoints - parseInt(rpLoss[1])) } })
+    changed = true
+  }
+
+  // Parse prestige changes
+  const prestigeGain = description.match(/声望\s*\+(\d+)/) || description.match(/声誉\s*\+(\d+)/)
+  const prestigeLoss = description.match(/声望\s*[-－](\d+)/) || description.match(/声誉\s*[-－](\d+)/)
+  if (prestigeGain) {
+    set({ currencies: { ...state.currencies, prestige: state.currencies.prestige + parseInt(prestigeGain[1]) } })
+    changed = true
+  }
+  if (prestigeLoss) {
+    set({ currencies: { ...state.currencies, prestige: Math.max(0, state.currencies.prestige - parseInt(prestigeLoss[1])) } })
+    changed = true
+  }
+
+  // Parse quality changes on manuscripts
+  const qualityGain = description.match(/品质\s*\+(\d+)/) || description.match(/质量\s*\+(\d+)/)
+  const qualityLoss = description.match(/品质\s*[-－](\d+)/) || description.match(/质量\s*[-－](\d+)/)
+  if (qualityGain || qualityLoss) {
+    const qty = qualityGain ? parseInt(qualityGain[1]) : -(parseInt(qualityLoss![1]))
+    const submitted = [...state.manuscripts.values()].filter(m => m.status === 'submitted')
+    if (submitted.length > 0) {
+      const ms = submitted[Math.floor(Math.random() * submitted.length)]
+      ms.quality = Math.max(0, Math.min(100, ms.quality + qty))
+      set({ manuscripts: new Map(state.manuscripts) })
+      changed = true
+    }
+  }
+
+  if (!changed) {
+    addToast(description, 'info')
+  }
 }
 
 export const DECISION_EFFECTS: Record<string, EffectFn> = {
