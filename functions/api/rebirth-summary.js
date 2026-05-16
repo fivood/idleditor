@@ -1,25 +1,42 @@
+import { checkRateLimit, getClientIP, sanitizeForPrompt, validateLength, errorResponse, jsonResponse } from './_shared.js'
+
 export async function onRequestPost(context) {
   const { request, env } = context
 
   try {
+    // Rate limit: 5 summaries per 10 minutes per IP
+    const ip = getClientIP(request)
+    const rl = await checkRateLimit(env, `rebirth:${ip}`, 5, 600)
+    if (!rl.allowed) {
+      return errorResponse('Rate limit exceeded. Try again later.', 429)
+    }
+
     const { stats } = await request.json()
     if (!stats) {
-      return new Response(JSON.stringify({ error: 'stats required' }), { status: 400 })
+      return errorResponse('stats required')
+    }
+
+    // Validate stats length (max 1000 chars)
+    const lenCheck = validateLength(stats, 1000, 'stats')
+    if (!lenCheck.valid) return errorResponse(lenCheck.error)
+
+    // Sanitize input
+    const sanitized = sanitizeForPrompt(stats, 1000)
+    if (!sanitized) {
+      return errorResponse('stats is empty after sanitization')
     }
 
     // Unique cache key based on stats content
-    const cacheKey = `rebirth-summary:${simpleHash(stats)}`
+    const cacheKey = `rebirth-summary:${simpleHash(sanitized)}`
 
     const cached = await env.SAVE_KV.get(cacheKey)
     if (cached) {
-      return new Response(JSON.stringify({ text: cached, cached: true }), {
-        headers: { 'Content-Type': 'application/json' },
-      })
+      return jsonResponse({ text: cached, cached: true })
     }
 
     const apiKey = env.LLM_API_KEY
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: 'LLM not configured' }), { status: 500 })
+      return errorResponse('LLM not configured', 500)
     }
 
     const provider = env.LLM_BASE_URL || 'https://api.deepseek.com'
@@ -27,9 +44,10 @@ export async function onRequestPost(context) {
 
     const prompt = `你是一位活了数百年的吸血鬼编辑。请用中文为以下编辑生涯写一段冷幽默的总结（3-4句话，150字以内，不要用破折号）。
 
-${stats}
+${sanitized}
 
 风格：冷幽默、略带怀念、带一点对出版行业荒谬感的吐槽。`
+
     const res = await fetch(`${provider}/chat/completions`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
@@ -37,7 +55,7 @@ ${stats}
     })
     const data = await res.json()
     if (!res.ok) {
-      return new Response(JSON.stringify({ error: data.error?.message || 'LLM failed' }), { status: 500 })
+      return errorResponse(data.error?.message || 'LLM failed', 500)
     }
 
     const text = data.choices?.[0]?.message?.content?.trim()?.replace(/^["""]|["""]$/g, '') || ''
@@ -46,11 +64,9 @@ ${stats}
       await env.SAVE_KV.put(cacheKey, text, { expirationTtl: 86400 * 90 })
     }
 
-    return new Response(JSON.stringify({ text, cached: false }), {
-      headers: { 'Content-Type': 'application/json' },
-    })
+    return jsonResponse({ text, cached: false })
   } catch (err) {
-    return new Response(JSON.stringify({ error: 'summary failed' }), { status: 500 })
+    return errorResponse('summary failed', 500)
   }
 }
 

@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c ' *)",
+      "Bash(python -c ' *)",
+      "Bash(git show *)",
+      "Read(//tmp/**)",
+      "Bash(git stash *)",
+      "Bash(powershell -Command \"[System.IO.File]::ReadAllBytes\\('G:\\\\idleditor\\\\.claude\\\\worktrees\\\\hardcore-fermi-f96976\\\\src\\\\store\\\\actions\\\\miscActions.ts'\\)[0..2] -join ','\")",
+      "Bash(del fix_encoding.py)",
+      "Bash(node -e ' *)",
+      "Bash(node fix_lines.js)",
+      "Bash(node fix_lines.cjs)",
+      "Bash(npx tsc *)",
+      "Bash(python fix_chinese.py)",
+      "Bash(git checkout *)",
+      "Bash(python fix_manuscript.py)",
+      "Bash(python build_replacements.py)",
+      "Bash(python fix_remaining.py)",
+      "Bash(python fix_final.py)",
+      "Bash(npx -y acorn --ecma2020 --module --allow-import-export-everywhere src/store/actions/manuscriptActions.ts)",
+      "Bash(npx vite *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
+    ]
+  }
+}

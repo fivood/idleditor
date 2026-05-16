@@ -1,15 +1,34 @@
+import { checkRateLimit, getClientIP, sanitizeForPrompt, validateLength, errorResponse, jsonResponse } from './_shared.js'
+
 export async function onRequestPost(context) {
   const { request, env } = context
 
   try {
+    // Rate limit: 10 decisions per 5 minutes per IP
+    const ip = getClientIP(request)
+    const rl = await checkRateLimit(env, `decision:${ip}`, 10, 300)
+    if (!rl.allowed) {
+      return errorResponse('Rate limit exceeded. Try again later.', 429)
+    }
+
     const { context: gameCtx } = await request.json()
     if (!gameCtx) {
-      return new Response(JSON.stringify({ error: 'context required' }), { status: 400 })
+      return errorResponse('context required')
+    }
+
+    // Validate context length (max 2000 chars)
+    const lenCheck = validateLength(gameCtx, 2000, 'context')
+    if (!lenCheck.valid) return errorResponse(lenCheck.error)
+
+    // Sanitize user-provided context before injecting into prompt
+    const sanitized = sanitizeForPrompt(gameCtx, 2000)
+    if (!sanitized) {
+      return errorResponse('context is empty after sanitization')
     }
 
     const apiKey = env.LLM_API_KEY
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: 'LLM not configured' }), { status: 500 })
+      return errorResponse('LLM not configured', 500)
     }
 
     const provider = env.LLM_BASE_URL || 'https://api.deepseek.com'
@@ -18,7 +37,7 @@ export async function onRequestPost(context) {
     const prompt = `你是一家中外文出版社的游戏事件生成器。根据当前游戏状态，生成一个有趣的二选一决策事件。用中文输出。
 
 当前游戏状态：
-${gameCtx}
+${sanitized}
 
 返回一个JSON对象，格式为：
 {
@@ -55,15 +74,33 @@ ${gameCtx}
 
     const data = await res.json()
     if (!res.ok) {
-      return new Response(JSON.stringify({ error: data.error?.message || 'LLM failed' }), { status: 500 })
+      return errorResponse(data.error?.message || 'LLM failed', 500)
     }
 
     const text = data.choices?.[0]?.message?.content?.trim() || ''
-    const parsed = JSON.parse(text)
-    return new Response(JSON.stringify(parsed), {
-      headers: { 'Content-Type': 'application/json' },
+
+    // Validate that the response is valid JSON with expected structure
+    let parsed
+    try {
+      parsed = JSON.parse(text)
+    } catch {
+      return errorResponse('LLM returned invalid JSON', 500)
+    }
+
+    if (!parsed.title || !parsed.description || !Array.isArray(parsed.options) || parsed.options.length < 2) {
+      return errorResponse('LLM returned malformed decision', 500)
+    }
+
+    // Only return the expected fields to prevent data leakage
+    return jsonResponse({
+      title: String(parsed.title).slice(0, 100),
+      description: String(parsed.description).slice(0, 500),
+      options: parsed.options.slice(0, 3).map(opt => ({
+        label: String(opt.label || '').slice(0, 50),
+        description: String(opt.description || '').slice(0, 200),
+      })),
     })
   } catch (err) {
-    return new Response(JSON.stringify({ error: 'decision generation failed' }), { status: 500 })
+    return errorResponse('decision generation failed', 500)
   }
 }
