@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { enableMapSet } from 'immer'
 import { immer } from 'zustand/middleware/immer'
 import { createMiscActions } from './actions/miscActions'
 import type { Department, EditorTrait, Manuscript, Bookstore, CatState, PermanentBonuses, ToastMessage } from '@/core/types'
@@ -17,6 +18,8 @@ import { COUNT_SCENES, type CountScene } from '@/core/countStory'
 import { type Talent } from '@/core/talents'
 import { COLLECTIONS } from '@/core/collections'
 import { EVENT_CHAINS } from '@/core/eventChains'
+
+enableMapSet()
 
 function serializeMapForDb(map: Map<unknown, unknown>): string {
   return JSON.stringify([...map.entries()])
