@@ -62,7 +62,7 @@ export function processAutomationPhase({ world, result, ct }: TickContext) {
       const toProcess = batchMode ? awaitingCover : [awaitingCover[0]]
       let count = 0
       for (const ms of toProcess) {
-        if (world.booksPublishedThisMonth >= 10 + world.publishingQuotaUpgrades) break
+        if (world.booksPublishedThisMonth + count >= 10 + world.publishingQuotaUpgrades) break
         ms.status = 'publishing'
         ms.editingProgress = 0
         count++
