@@ -149,12 +149,17 @@ export const createMiscActions = (
         const s = get()
         const m = s.manuscripts.get(id)
         if (m) {
-          m.editorNote = data.text.replace(/——/g, '--').replace(/—/g, '-')
-          set({ manuscripts: new Map(s.manuscripts), llmCallsRemaining: s.llmCallsRemaining - 1 })
+          const editorNote = data.text.replace(/——/g, '--').replace(/—/g, '-')
+          set(draft => {
+            const draftMs = draft.manuscripts.get(id)
+            if (!draftMs) return
+            draftMs.editorNote = editorNote
+            draft.llmCallsRemaining--
+          })
           const adverbs = ['心血来潮', '思前想后', '闲得没事']
           get().addToast({
             id: nanoid(),
-            text: `${s.playerName}${adverbs[Math.floor(Math.random() * adverbs.length)]}，给《${ms.title}》重写了一条评论：${m.editorNote}`,
+            text: `${s.playerName}${adverbs[Math.floor(Math.random() * adverbs.length)]}，给《${ms.title}》重写了一条评论：${editorNote}`,
             type: 'info',
             createdAt: s.playTicks,
           })
@@ -164,11 +169,11 @@ export const createMiscActions = (
   },
 
   updateCustomNote: (id: string, note: string) => {
-    const state = get()
-    const ms = state.manuscripts.get(id)
-    if (!ms) return
-    ms.customNote = note.trim().slice(0, 120)
-    set({ manuscripts: new Map(state.manuscripts) })
+    set(draft => {
+      const ms = draft.manuscripts.get(id)
+      if (!ms) return
+      ms.customNote = note.trim().slice(0, 120)
+    })
   },
 
   solicitFree: () => {
@@ -259,77 +264,50 @@ export const createMiscActions = (
 
   // ──── Manuscript actions ────
   startReview: (id: string) => {
-    const state = get()
-    const ms = state.manuscripts.get(id)
-    if (!ms || ms.status !== 'submitted') return
-    ms.status = 'reviewing'
-    ms.editingProgress = 0
-    set({ manuscripts: new Map(state.manuscripts) })
+    set(draft => {
+      const ms = draft.manuscripts.get(id)
+      if (!ms || ms.status !== 'submitted') return
+      ms.status = 'reviewing'
+      ms.editingProgress = 0
+    })
   },
 
   rejectManuscript: (id: string) => {
-    const state = get()
-    const ms = state.manuscripts.get(id)
-    if (!ms || (ms.status !== 'submitted' && ms.status !== 'cover_select')) return
-    ms.status = 'rejected'
-    const wasUnsuitable = ms.isUnsuitable
-    let rpReward = 0
-    let prestigeReward = 0
+    let commentaryTitle = ''
+    let commentaryGenre = ''
+    set(draft => {
+      const ms = draft.manuscripts.get(id)
+      if (!ms || (ms.status !== 'submitted' && ms.status !== 'cover_select')) return
+      ms.status = 'rejected'
+      const wasUnsuitable = ms.isUnsuitable
+      const rpReward = wasUnsuitable ? 8 : 0
+      const prestigeReward = wasUnsuitable ? 3 : -5
 
-    if (wasUnsuitable) {
-      rpReward = 8
-      prestigeReward = 3
-    } else {
-      // Rejecting a good manuscript: prestige penalty
-      prestigeReward = -5
-    }
-
-    const author = state.authors.get(ms.authorId)
-    if (author) {
-      author.rejectedCount++
-      author.cooldownUntil = 1800 + author.rejectedCount * 300
-      author.affection += -10
-      // Poached probability based on affection
-      if (!wasUnsuitable) {
-        const poachChance = author.affection >= 50 ? 0.1 : author.affection >= 20 ? 0.25 : 0.5
-        if (Math.random() < poachChance) {
-          author.poached = true
+      const author = draft.authors.get(ms.authorId)
+      if (author) {
+        author.rejectedCount++
+        author.cooldownUntil = 1800 + author.rejectedCount * 300
+        author.affection += -10
+        if (!wasUnsuitable) {
+          const poachChance = author.affection >= 50 ? 0.1 : author.affection >= 20 ? 0.25 : 0.5
+          if (Math.random() < poachChance) author.poached = true
         }
       }
-    }
-    set({
-      manuscripts: new Map(state.manuscripts),
-      authors: new Map(state.authors),
-      totalRejections: state.totalRejections + 1,
-      editorXP: state.editorXP + 2,
-      currencies: {
-        ...state.currencies,
-        revisionPoints: state.currencies.revisionPoints + rpReward,
-        prestige: state.currencies.prestige + prestigeReward,
-      },
-    })
-    const state2 = get()
-    if (wasUnsuitable) {
+
+      draft.totalRejections++
+      draft.editorXP += 2
+      draft.currencies.revisionPoints += rpReward
+      draft.currencies.prestige += prestigeReward
+
       const authorNote = author?.tier !== 'new' && author ? ` · ${author.name}好感 -10` : ''
-      const quips = [
+      const quips = wasUnsuitable ? [
         `"${ms.title}" 被果断退回。编辑的眼光又救了一次出版社。+${rpReward} 修订点 +${prestigeReward} 声誉${authorNote}`,
         `退稿："${ms.title}"。读者不需要这本书。说实话，作者可能也不太需要。+${rpReward} RP`,
         `又一本稿子进了退稿箱。"${ms.title}"的封面设计其实不错——可惜内容没跟上。+${rpReward} RP +${prestigeReward} 声望`,
         `${ms.title}——退。理由很充分：写得不好。具体哪里不好？全部。+${rpReward} RP`,
         `退稿《${ms.title}》。看完后你沉默了三秒，然后拿起了下一本。永生者的耐心也不是无限的。+${rpReward} RP`,
         `"${ms.title}"被退回作者手中。希望ta下本写得更好。或者至少更短。+${rpReward} RP`,
-      ]
-      state2.addToast({
-        id: nanoid(),
-        text: quips[Math.floor(Math.random() * quips.length)],
-        type: 'info',
-        createdAt: get().playTicks,
-      })
-      // LLM rejection commentary
-      state2.llmCommentary(ms.title, ms.genre, '被退稿')
-    } else {
-      const authorNote = author?.tier !== 'new' && author ? ` · ${author.name}好感 -10` : ''
-      const quips = [
+      ] : [
         `"${ms.title}" 已被退回。作者面露不悦——这本书本来还不错。声望 -5${authorNote}`,
         `退稿："${ms.title}"。说实话，写得还行——但还行不够。在永夜出版社，"还行"和"不够"之间只差一封退稿信。声望 -5`,
         `你退回了《${ms.title}》。作者大概会生一阵气——但一个活了两百年的人对"一阵"的定义和别人不太一样。声望 -5`,
@@ -337,78 +315,77 @@ export const createMiscActions = (
         `你合上《${ms.title}》，在退稿理由栏写了一个字："否"。实习生说是不是太简短了。你说这个字花了你两百年才学会。声望 -5`,
         `"${ms.title}"退回。作者可能会写一篇愤怒的博客，也可能从此发愤图强。你赌后者——因为你的投资回报率一直不错。声望 -5`,
       ]
-      state2.addToast({
+      draft.toasts = [...draft.toasts, {
         id: nanoid(),
-        text: quips[Math.floor(Math.random() * quips.length)] + (authorNote ? authorNote : ''),
-        type: 'rejection',
-        createdAt: get().playTicks,
-      })
-    }
+        text: quips[Math.floor(Math.random() * quips.length)] + (!wasUnsuitable && authorNote ? authorNote : ''),
+        type: wasUnsuitable ? 'info' as const : 'rejection' as const,
+        createdAt: draft.playTicks,
+      }].slice(-100)
+      if (wasUnsuitable) {
+        commentaryTitle = ms.title
+        commentaryGenre = ms.genre
+      }
+    })
+    if (commentaryTitle) get().llmCommentary(commentaryTitle, commentaryGenre, '被退稿')
   },
 
   shelveManuscript: (id: string) => {
-    const state = get()
-    const ms = state.manuscripts.get(id)
-    if (!ms || ms.status !== 'submitted') return
-    ms.status = 'shelved'
-    ms.shelvedAt = state.playTicks
-    set({ manuscripts: new Map(state.manuscripts) })
-    get().addToast({
-      id: nanoid(),
-      text: `"${ms.title}" 已搁置。作者可能会修改后重新投稿。`,
-      type: 'info',
-      createdAt: get().playTicks,
+    set(draft => {
+      const ms = draft.manuscripts.get(id)
+      if (!ms || ms.status !== 'submitted') return
+      ms.status = 'shelved'
+      ms.shelvedAt = draft.playTicks
+      draft.toasts = [...draft.toasts, {
+        id: nanoid(),
+        text: `"${ms.title}" 已搁置。作者可能会修改后重新投稿。`,
+        type: 'info' as const,
+        createdAt: draft.playTicks,
+      }].slice(-100)
     })
   },
 
   meticulousEdit: (id: string, level: 'light' | 'deep' | 'extreme') => {
-    const state = get()
-    const ms = state.manuscripts.get(id)
-    if (!ms || ms.status !== 'editing' || ms.meticulouslyEdited) return
-
     const costs: Record<string, { rp: number; quality: number; label: string }> = {
       light: { rp: 10, quality: 3, label: '轻度精校' },
       deep: { rp: 30, quality: 8, label: '深度精校' },
       extreme: { rp: 60, quality: 15, label: '极限精校' },
     }
     const option = costs[level]
-    if (!option || state.currencies.revisionPoints < option.rp) return
-
-    ms.quality = Math.min(100, ms.quality + option.quality)
-    ms.meticulouslyEdited = true
-    const author = state.authors.get(ms.authorId)
-    if (author) author.affection += 3
-    set({
-      manuscripts: new Map(state.manuscripts),
-      currencies: {
-        ...state.currencies,
-        revisionPoints: state.currencies.revisionPoints - option.rp,
-      },
-    })
-    get().addToast({
-      id: nanoid(),
-      text: `🔍 ${option.label}：《${ms.title}》品质 +${option.quality}（花费 ${option.rp} RP）`,
-      type: 'info',
-      createdAt: get().playTicks,
+    if (!option) return
+    set(draft => {
+      const ms = draft.manuscripts.get(id)
+      if (!ms || ms.status !== 'editing' || ms.meticulouslyEdited) return
+      if (draft.currencies.revisionPoints < option.rp) return
+      ms.quality = Math.min(100, ms.quality + option.quality)
+      ms.meticulouslyEdited = true
+      const author = draft.authors.get(ms.authorId)
+      if (author) author.affection += 3
+      draft.currencies.revisionPoints -= option.rp
+      draft.toasts = [...draft.toasts, {
+        id: nanoid(),
+        text: `🔍 ${option.label}：《${ms.title}》品质 +${option.quality}（花费 ${option.rp} RP）`,
+        type: 'info' as const,
+        createdAt: draft.playTicks,
+      }].slice(-100)
     })
   },
 
   confirmCover: (id: string) => {
-    const state = get()
-    const ms = state.manuscripts.get(id)
-    if (!ms || ms.status !== 'cover_select') return
-    if (state.booksPublishedThisMonth >= 10 + (state.publishingQuotaUpgrades || 0)) {
-      state.addToast({
-        id: nanoid(),
-        text: '本月出版额度已用完！下个月再来吧。',
-        type: 'info',
-        createdAt: get().playTicks,
-      })
-      return
-    }
-    ms.status = 'publishing'
-    ms.editingProgress = 0
-    set({ manuscripts: new Map(state.manuscripts) })
+    set(draft => {
+      const ms = draft.manuscripts.get(id)
+      if (!ms || ms.status !== 'cover_select') return
+      if (draft.booksPublishedThisMonth >= 10 + (draft.publishingQuotaUpgrades || 0)) {
+        draft.toasts = [...draft.toasts, {
+          id: nanoid(),
+          text: '本月出版额度已用完！下个月再来吧。',
+          type: 'info' as const,
+          createdAt: draft.playTicks,
+        }].slice(-100)
+        return
+      }
+      ms.status = 'publishing'
+      ms.editingProgress = 0
+    })
   },
 
   getSubmittedManuscripts: () => {
@@ -428,26 +405,26 @@ export const createMiscActions = (
 
   // ──── Author actions ────
   signAuthor: (id: string) => {
-    const state = get()
-    const author = state.authors.get(id)
-    if (!author || author.tier !== 'new') return
-    author.tier = 'signed'
-    author.affection += 10
-    set({ authors: new Map(state.authors) })
+    set(draft => {
+      const author = draft.authors.get(id)
+      if (!author || author.tier !== 'new') return
+      author.tier = 'signed'
+      author.affection += 10
+    })
   },
 
   terminateAuthor: (id: string) => {
-    const state = get()
-    const author = state.authors.get(id)
-    if (!author || author.tier === 'new') return
-    author.terminated = true
-    author.cooldownUntil = null
-    set({ authors: new Map(state.authors) })
-    get().addToast({
-      id: nanoid(),
-      text: `合约解除。${author.name}从永夜出版社的作者名单中划去。他的书还在书架上——但新作不会再出现在你桌上了。`,
-      type: 'info',
-      createdAt: get().playTicks,
+    set(draft => {
+      const author = draft.authors.get(id)
+      if (!author || author.tier === 'new') return
+      author.terminated = true
+      author.cooldownUntil = null
+      draft.toasts = [...draft.toasts, {
+        id: nanoid(),
+        text: `合约解除。${author.name}从永夜出版社的作者名单中划去。他的书还在书架上——但新作不会再出现在你桌上了。`,
+        type: 'info' as const,
+        createdAt: draft.playTicks,
+      }].slice(-100)
     })
   },
 
@@ -479,19 +456,14 @@ export const createMiscActions = (
   },
 
   upgradeDepartment: (id: string) => {
-    const state = get()
-    const dept = state.departments.get(id)
-    if (!dept || dept.upgradingUntil !== null) return
-    if (state.currencies.revisionPoints < dept.upgradeCostRP) return
-    if (state.currencies.prestige < dept.upgradeCostPrestige) return
-    dept.upgradingUntil = state.playTicks + dept.upgradeTicks
-    set({
-      departments: new Map(state.departments),
-      currencies: {
-        ...state.currencies,
-        revisionPoints: state.currencies.revisionPoints - dept.upgradeCostRP,
-        prestige: state.currencies.prestige - dept.upgradeCostPrestige,
-      },
+    set(draft => {
+      const dept = draft.departments.get(id)
+      if (!dept || dept.upgradingUntil !== null) return
+      if (draft.currencies.revisionPoints < dept.upgradeCostRP) return
+      if (draft.currencies.prestige < dept.upgradeCostPrestige) return
+      draft.currencies.revisionPoints -= dept.upgradeCostRP
+      draft.currencies.prestige -= dept.upgradeCostPrestige
+      dept.upgradingUntil = draft.playTicks + dept.upgradeTicks
     })
   },
 
@@ -577,67 +549,59 @@ export const createMiscActions = (
   }),
 
   reissueBook: (id) => {
-    const state = get()
-    const ms = state.manuscripts.get(id)
-    if (!ms || ms.status !== 'published') return
-    const cost = 200 + Math.floor(ms.quality * 5)
-    if (state.currencies.royalties < cost) {
-    get().addToast({ id: nanoid(), text: `再版需要 ${cost} 版税，当前不足。`, type: 'info', createdAt: get().playTicks })
-      return
-    }
-    ms.quality = Math.min(100, ms.quality + 3)
-    ms.meticulouslyEdited = true
-    ms.reissueBoostUntil = state.playTicks + 420 // 7 game-day marketing window
-    set({
-      manuscripts: new Map(state.manuscripts),
-      currencies: { ...state.currencies, royalties: state.currencies.royalties - cost },
+    set(draft => {
+      const ms = draft.manuscripts.get(id)
+      if (!ms || ms.status !== 'published') return
+      const cost = 200 + Math.floor(ms.quality * 5)
+      if (draft.currencies.royalties < cost) {
+        draft.toasts = [...draft.toasts, { id: nanoid(), text: `再版需要 ${cost} 版税，当前不足。`, type: 'info' as const, createdAt: draft.playTicks }].slice(-100)
+        return
+      }
+      ms.quality = Math.min(100, ms.quality + 3)
+      ms.meticulouslyEdited = true
+      ms.reissueBoostUntil = draft.playTicks + 420 // 7 game-day marketing window
+      draft.currencies.royalties -= cost
+      draft.toasts = [...draft.toasts, { id: nanoid(), text: `"${ms.title}" 已再版！品质 +3，进入7天营销窗口期。`, type: 'milestone' as const, createdAt: draft.playTicks }].slice(-100)
     })
-    get().addToast({ id: nanoid(), text: `"${ms.title}" 已再版！品质 +3，进入7天营销窗口期。`, type: 'milestone', createdAt: get().playTicks })
   },
 
   buyAuthorMeal: (id) => {
-    const state = get()
-    const author = state.authors.get(id)
-    if (!author || state.currencies.revisionPoints < 20) return
-    if (state.playTicks - author.lastInteractionAt < 120) return // 2 min cooldown
-    author.affection = Math.min(100, author.affection + 15)
-    author.lastInteractionAt = state.playTicks
-    set({
-      authors: new Map(state.authors),
-      currencies: { ...state.currencies, revisionPoints: state.currencies.revisionPoints - 20 },
-    })
     const meals = ['一起吃了顿深夜拉面，聊了聊下一本书的构思。', '在出版社对面的茶馆喝了杯茶，讨论了截稿日期——双方都默契地没有提具体的数字。', '去了家隐藏在小巷里的居酒屋，喝到第二杯的时候作者终于承认第三章写得不好。']
-    get().addToast({ id: nanoid(), text: `请${author.name}${meals[Math.floor(Math.random() * meals.length)]}好感 +15。`, type: 'info', createdAt: get().playTicks })
+    set(draft => {
+      const author = draft.authors.get(id)
+      if (!author || draft.currencies.revisionPoints < 20) return
+      if (draft.playTicks - author.lastInteractionAt < 120) return // 2 min cooldown
+      author.affection = Math.min(100, author.affection + 15)
+      author.lastInteractionAt = draft.playTicks
+      draft.currencies.revisionPoints -= 20
+      draft.toasts = [...draft.toasts, { id: nanoid(), text: `请${author.name}${meals[Math.floor(Math.random() * meals.length)]}好感 +15。`, type: 'info' as const, createdAt: draft.playTicks }].slice(-100)
+    })
   },
 
   sendAuthorGift: (id) => {
-    const state = get()
-    const author = state.authors.get(id)
-    if (!author || state.currencies.revisionPoints < 15) return
-    if (state.playTicks - author.lastInteractionAt < 120) return
-    author.affection = Math.min(100, author.affection + 10)
-    author.lastInteractionAt = state.playTicks
-    set({
-      authors: new Map(state.authors),
-      currencies: { ...state.currencies, revisionPoints: state.currencies.revisionPoints - 15 },
-    })
     const gifts = ['寄了一本永夜出版社的经典样书——扉页上只写了"请继续写"。', '送了一支旧羽毛笔，据说是19世纪的。附言："这支笔写过更糟的稿子。别担心。"', '把最新一期的《永夜文学报》夹在一本新书里寄了过去。报纸上有一篇匿名书评——作者看完后哭了。', '寄了一盒红茶——不是你们以为的那种红。普通的英式红茶。附卡片："休息一下。你写得太多了。"']
-    get().addToast({ id: nanoid(), text: `${author.name}${gifts[Math.floor(Math.random() * gifts.length)]}好感 +10。`, type: 'info', createdAt: get().playTicks })
+    set(draft => {
+      const author = draft.authors.get(id)
+      if (!author || draft.currencies.revisionPoints < 15) return
+      if (draft.playTicks - author.lastInteractionAt < 120) return
+      author.affection = Math.min(100, author.affection + 10)
+      author.lastInteractionAt = draft.playTicks
+      draft.currencies.revisionPoints -= 15
+      draft.toasts = [...draft.toasts, { id: nanoid(), text: `${author.name}${gifts[Math.floor(Math.random() * gifts.length)]}好感 +10。`, type: 'info' as const, createdAt: draft.playTicks }].slice(-100)
+    })
   },
 
   writeAuthorLetter: (id) => {
-    const state = get()
-    const author = state.authors.get(id)
-    if (!author || state.currencies.revisionPoints < 10) return
-    if (state.playTicks - author.lastInteractionAt < 120) return
-    author.affection = Math.min(100, author.affection + 8)
-    author.lastInteractionAt = state.playTicks
-    set({
-      authors: new Map(state.authors),
-      currencies: { ...state.currencies, revisionPoints: state.currencies.revisionPoints - 10 },
-    })
     const letters = ['写了一封手写回信，措辞认真到连标点符号都检查了三遍。', '回了封短信——只有五行字。但作者看了之后在工作室里踱步了半小时。', '在回信的末尾画了一只蝙蝠。作者回了一封邮件：只有一个问号。但ta显然被逗笑了。']
-    get().addToast({ id: nanoid(), text: `${author.name}${letters[Math.floor(Math.random() * letters.length)]}好感 +8。`, type: 'info', createdAt: get().playTicks })
+    set(draft => {
+      const author = draft.authors.get(id)
+      if (!author || draft.currencies.revisionPoints < 10) return
+      if (draft.playTicks - author.lastInteractionAt < 120) return
+      author.affection = Math.min(100, author.affection + 8)
+      author.lastInteractionAt = draft.playTicks
+      draft.currencies.revisionPoints -= 10
+      draft.toasts = [...draft.toasts, { id: nanoid(), text: `${author.name}${letters[Math.floor(Math.random() * letters.length)]}好感 +8。`, type: 'info' as const, createdAt: draft.playTicks }].slice(-100)
+    })
   },
 
   generateBookReview: async (title, genre) => {
@@ -657,18 +621,16 @@ export const createMiscActions = (
   },
 
   rushAuthorCooldown: (id) => {
-    const state = get()
-    const author = state.authors.get(id)
-    if (!author || !author.cooldownUntil || author.cooldownUntil <= 0 || state.currencies.revisionPoints < 30) return
-    if (state.playTicks - author.lastInteractionAt < 120) return
-    author.cooldownUntil = Math.max(0, Math.floor(author.cooldownUntil * 0.5))
-    author.affection = Math.max(0, author.affection - 5)
-    author.lastInteractionAt = state.playTicks
-    set({
-      authors: new Map(state.authors),
-      currencies: { ...state.currencies, revisionPoints: state.currencies.revisionPoints - 30 },
+    set(draft => {
+      const author = draft.authors.get(id)
+      if (!author || !author.cooldownUntil || author.cooldownUntil <= 0 || draft.currencies.revisionPoints < 30) return
+      if (draft.playTicks - author.lastInteractionAt < 120) return
+      author.cooldownUntil = Math.max(0, Math.floor(author.cooldownUntil * 0.5))
+      author.affection = Math.max(0, author.affection - 5)
+      author.lastInteractionAt = draft.playTicks
+      draft.currencies.revisionPoints -= 30
+      draft.toasts = [...draft.toasts, { id: nanoid(), text: `催稿成功！${author.name}的冷却时间减半。好感 -5。`, type: 'info' as const, createdAt: draft.playTicks }].slice(-100)
     })
-    get().addToast({ id: nanoid(), text: `催稿成功！${author.name}的冷却时间减半。好感 -5。`, type: 'info', createdAt: get().playTicks })
   },
 
   hirePR: () => {
