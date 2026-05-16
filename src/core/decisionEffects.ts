@@ -3,6 +3,7 @@
 // Effects are co-located with their template definitions for maintainability.
 
 import type { GameStore } from '@/store/gameStore'
+import type { Author, Manuscript } from './types'
 import { nanoid } from '../utils/id'
 
 type EffectFn = (state: GameStore, optionIndex: number) => void
@@ -18,6 +19,22 @@ function getSet(_state: GameStore) {
     useGameStore.setState({ toasts: [...s.toasts, { id: nanoid(), text, type, createdAt: s.playTicks }].slice(-100) })
   }
   return { set, addToast }
+}
+
+function updateManuscript(state: GameStore, manuscript: Manuscript, update: (draft: Manuscript) => void) {
+  const next = { ...manuscript }
+  update(next)
+  const manuscripts = new Map(state.manuscripts)
+  manuscripts.set(next.id, next)
+  return manuscripts
+}
+
+function updateAuthor(state: GameStore, author: Author, update: (draft: Author) => void) {
+  const next = { ...author }
+  update(next)
+  const authors = new Map(state.authors)
+  authors.set(next.id, next)
+  return { authors, author: next }
 }
 
 /**
@@ -60,8 +77,7 @@ export function applyLLMEffects(description: string, state: GameStore) {
     const submitted = [...state.manuscripts.values()].filter(m => m.status === 'submitted')
     if (submitted.length > 0) {
       const ms = submitted[Math.floor(Math.random() * submitted.length)]
-      ms.quality = Math.max(0, Math.min(100, ms.quality + qty))
-      set({ manuscripts: new Map(state.manuscripts) })
+      set({ manuscripts: updateManuscript(state, ms, draft => { draft.quality = Math.max(0, Math.min(100, draft.quality + qty)) }) })
       changed = true
     }
   }
@@ -78,10 +94,11 @@ export const DECISION_EFFECTS: Record<string, EffectFn> = {
       const submitted = [...state.manuscripts.values()].filter(m => m.status === 'submitted')
       const ms = submitted[Math.floor(Math.random() * submitted.length)]
       if (ms) {
-        ms.quality = Math.max(0, ms.quality - 10)
-        ms.status = 'publishing'
-        ms.editingProgress = 0
-        set({ manuscripts: new Map(state.manuscripts) })
+        set({ manuscripts: updateManuscript(state, ms, draft => {
+          draft.quality = Math.max(0, draft.quality - 10)
+          draft.status = 'publishing'
+          draft.editingProgress = 0
+        }) })
         addToast(`"${ms.title}" 跳过编辑，直接出版！品质 -10。`)
       }
     }
@@ -93,9 +110,10 @@ export const DECISION_EFFECTS: Record<string, EffectFn> = {
       const submitted = [...state.manuscripts.values()].filter(m => m.status === 'submitted')
       const ms = submitted[Math.floor(Math.random() * submitted.length)]
       if (ms) {
-        ms.quality = Math.max(0, ms.quality - 5)
-        ms.status = 'publishing'
-        set({ manuscripts: new Map(state.manuscripts) })
+        set({ manuscripts: updateManuscript(state, ms, draft => {
+          draft.quality = Math.max(0, draft.quality - 5)
+          draft.status = 'publishing'
+        }) })
         addToast(`"${ms.title}" 加急出版！品质 -5。`)
       }
     }
@@ -107,8 +125,7 @@ export const DECISION_EFFECTS: Record<string, EffectFn> = {
       const authors = [...state.authors.values()].filter(a => a.tier !== 'new')
       if (authors.length > 0) {
         const a = authors[Math.floor(Math.random() * authors.length)]
-        a.cooldownUntil = 1800
-        set({ authors: new Map(state.authors) })
+        set({ authors: updateAuthor(state, a, draft => { draft.cooldownUntil = 1800 }).authors })
       }
       set({ currencies: { ...state.currencies, prestige: state.currencies.prestige + 15 } })
       addToast('调查结束。一位作者被暂时停职。声望 +15。')
@@ -152,8 +169,7 @@ export const DECISION_EFFECTS: Record<string, EffectFn> = {
         const authors = [...state.authors.values()].filter(a => a.tier !== 'new')
         if (authors.length > 0) {
           const a = authors[Math.floor(Math.random() * authors.length)]
-          a.cooldownUntil = 1200
-          set({ authors: new Map(state.authors) })
+          set({ authors: updateAuthor(state, a, draft => { draft.cooldownUntil = 1200 }).authors })
           addToast(`${a.name} 被拒后进入冷却。`)
         }
       }
@@ -166,8 +182,7 @@ export const DECISION_EFFECTS: Record<string, EffectFn> = {
       const newcomers = [...state.authors.values()].filter(a => a.tier === 'new')
       if (newcomers.length > 0) {
         const a = newcomers[Math.floor(Math.random() * newcomers.length)]
-        a.tier = 'signed'
-        set({ authors: new Map(state.authors) })
+        set({ authors: updateAuthor(state, a, draft => { draft.tier = 'signed' }).authors })
         addToast(`${a.name} 签约成功！${Math.random() < 0.5 ? '入选新人奖！声望 +30。' : ''}`)
         if (Math.random() < 0.5) {
           set({ currencies: { ...state.currencies, prestige: state.currencies.prestige + 30 } })
@@ -182,10 +197,11 @@ export const DECISION_EFFECTS: Record<string, EffectFn> = {
       set({ currencies: { ...state.currencies, revisionPoints: Math.max(0, state.currencies.revisionPoints - 30) } })
       addToast('涨薪同意。印刷继续。')
     } else {
+      const manuscripts = new Map(state.manuscripts)
       for (const m of state.manuscripts.values()) {
-        if (m.status === 'publishing') m.editingProgress = 0
+        if (m.status === 'publishing') manuscripts.set(m.id, { ...m, editingProgress: 0 })
       }
-      set({ manuscripts: new Map(state.manuscripts) })
+      set({ manuscripts })
       addToast('拒绝涨薪。印刷进度归零。')
     }
   },
@@ -217,8 +233,11 @@ export const DECISION_EFFECTS: Record<string, EffectFn> = {
     const { set, addToast } = getSet(state)
     if (optionIndex === 0) {
       const signed = [...state.authors.values()].filter(a => a.tier !== 'new')
-      for (let i = 0; i < Math.min(3, signed.length); i++) signed[i].cooldownUntil = 1200
-      set({ authors: new Map(state.authors), currencies: { ...state.currencies, prestige: state.currencies.prestige + 50 } })
+      const authors = new Map(state.authors)
+      for (let i = 0; i < Math.min(3, signed.length); i++) {
+        authors.set(signed[i].id, { ...signed[i], cooldownUntil: 1200 })
+      }
+      set({ authors, currencies: { ...state.currencies, prestige: state.currencies.prestige + 50 } })
       addToast('回忆录出版！声望 +50。三位作者不满。')
     } else {
       set({ currencies: { ...state.currencies, prestige: state.currencies.prestige + 10 } })
@@ -241,9 +260,11 @@ export const DECISION_EFFECTS: Record<string, EffectFn> = {
     const { set, addToast } = getSet(state)
     const author = [...state.authors.values()].find(a => a.tier !== 'new' && a.tier !== 'idol')
     if (author) {
-      if (optionIndex === 0) { author.affection = Math.min(100, author.affection + 10); addToast(`${author.name}很感激你的支持。好感 +10。`) }
-      else { author.affection = Math.max(0, author.affection - 5); addToast(`${author.name}表示理解。好感 -5。`) }
-      set({ authors: new Map(state.authors) })
+      const authors = updateAuthor(state, author, draft => {
+        draft.affection = optionIndex === 0 ? Math.min(100, draft.affection + 10) : Math.max(0, draft.affection - 5)
+      }).authors
+      addToast(optionIndex === 0 ? `${author.name}很感激你的支持。好感 +10。` : `${author.name}表示理解。好感 -5。`)
+      set({ authors })
     }
   },
 
@@ -251,9 +272,16 @@ export const DECISION_EFFECTS: Record<string, EffectFn> = {
     const { set, addToast } = getSet(state)
     const author = [...state.authors.values()].find(a => a.tier !== 'new')
     if (author) {
-      if (optionIndex === 0) { author.affection = Math.min(100, author.affection + 8); addToast(`再给两周。好感 +8。`) }
-      else { author.affection = Math.max(0, author.affection - 8); author.cooldownUntil = 600; addToast(`勉强接受。好感 -8。`) }
-      set({ authors: new Map(state.authors) })
+      const authors = updateAuthor(state, author, draft => {
+        if (optionIndex === 0) {
+          draft.affection = Math.min(100, draft.affection + 8)
+        } else {
+          draft.affection = Math.max(0, draft.affection - 8)
+          draft.cooldownUntil = 600
+        }
+      }).authors
+      addToast(optionIndex === 0 ? `再给两周。好感 +8。` : `勉强接受。好感 -8。`)
+      set({ authors })
     }
   },
 
@@ -261,9 +289,11 @@ export const DECISION_EFFECTS: Record<string, EffectFn> = {
     const { set, addToast } = getSet(state)
     const author = [...state.authors.values()].find(a => a.affection >= 50)
     if (author) {
-      if (optionIndex === 0) { author.affection = Math.min(100, author.affection + 5); addToast(`帮忙看了稿子。好感 +5。`) }
-      else { author.affection = Math.max(0, author.affection - 5); addToast(`拒绝了。好感 -5。`) }
-      set({ authors: new Map(state.authors) })
+      const authors = updateAuthor(state, author, draft => {
+        draft.affection = optionIndex === 0 ? Math.min(100, draft.affection + 5) : Math.max(0, draft.affection - 5)
+      }).authors
+      addToast(optionIndex === 0 ? `帮忙看了稿子。好感 +5。` : `拒绝了。好感 -5。`)
+      set({ authors })
     }
   },
 
@@ -276,8 +306,7 @@ export const DECISION_EFFECTS: Record<string, EffectFn> = {
         set({ currencies: { ...state.currencies, prestige: state.currencies.prestige + prestige } })
         addToast(`公开支持。舆论：${prestige > 0 ? '正面' : '翻车'}。`)
       } else {
-        author.affection = Math.max(0, author.affection - 5)
-        set({ authors: new Map(state.authors) })
+        set({ authors: updateAuthor(state, author, draft => { draft.affection = Math.max(0, draft.affection - 5) }).authors })
         addToast(`保持沉默。好感 -5。`)
       }
     }
