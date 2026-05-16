@@ -3,13 +3,13 @@ import type { GameStore } from '../gameStore'
 import { createManuscript } from '@/core/factories/manuscriptFactory'
 import { TALENTS, TALENT_UNLOCK_LEVELS, type Talent } from '@/core/talents'
 import type { CountScene } from '@/core/countStory'
-import type { Department } from '@/core/types'
+import type { Department, Genre } from '@/core/types'
 
 export const createMiscActions = (
   set: (updater: ((draft: GameStore) => void | Partial<GameStore>) | Partial<GameStore>) => void,
   get: () => GameStore
 ): Partial<GameStore> => ({
-  applyTickResult: (_result) => {
+  applyTickResult: () => {
     // No-op, logic moved into tick() above
   },
   onCountSceneChoice: (choiceIndex: number) => {
@@ -539,12 +539,12 @@ export const createMiscActions = (
   toggleAutoReview: () => set(draft => { draft.autoReviewEnabled = !draft.autoReviewEnabled }),
   toggleAutoCover: () => set(draft => { draft.autoCoverEnabled = !draft.autoCoverEnabled }),
   toggleAutoReject: () => set(draft => { draft.autoRejectEnabled = !draft.autoRejectEnabled }),
-  toggleBlacklistedGenre: (genre: string) => set(draft => {
+  toggleBlacklistedGenre: (genre: Genre) => set(draft => {
     const list = draft.blacklistedGenres || []
-    if (list.includes(genre as any)) {
-      draft.blacklistedGenres = list.filter((g: any) => g !== genre)
+    if (list.includes(genre)) {
+      draft.blacklistedGenres = list.filter(g => g !== genre)
     } else {
-      draft.blacklistedGenres = [...list, genre as any]
+      draft.blacklistedGenres = [...list, genre]
     }
   }),
 
