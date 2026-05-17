@@ -39,15 +39,12 @@ export function TopBar() {
   return (
     <header
       className="border-b-2 border-[#0a0806] shrink-0 relative"
-      style={{
-        background: 'linear-gradient(180deg, #1a0e08 0%, #2a1810 60%, #1a0e08 100%)',
-        boxShadow: 'inset 0 -2px 0 rgba(0,0,0,0.4), inset 0 1px 0 rgba(184, 118, 59, 0.15)',
-      }}
+      style={{ background: '#1a0e08' }}
     >
       <div className="flex items-center justify-between px-3 md:px-4 h-8 md:h-12 relative z-10">
         <div className="flex items-center gap-2 md:gap-3">
-          <img src="/favicon.svg" alt="" className="w-5 h-5 md:w-6 md:h-6" style={{ filter: 'drop-shadow(0 0 2px rgba(245, 216, 120, 0.4))' }} />
-          <h1 className="text-xs md:text-sm font-bold tracking-tight font-mono" style={{ color: '#d4a85a', textShadow: '0 1px 0 #0a0806' }}>
+          <img src="/favicon.svg" alt="" className="w-5 h-5 md:w-6 md:h-6" />
+          <h1 className="text-xs md:text-sm font-bold tracking-tight font-mono" style={{ color: '#d4a85a', textShadow: '1px 1px 0 #0a0806' }}>
             永夜出版社
           </h1>
           <WoodPlaque title="夜间纪年">{formatDate(calendar)}</WoodPlaque>
@@ -88,12 +85,12 @@ export function TopBar() {
           {canReborn && (
             <button
               onClick={() => setShowRebirth(true)}
-              className="text-[14px] md:text-xs px-2 py-0.5 md:py-1 font-mono cursor-pointer transition-all border-2 flex items-center gap-1"
+              className="text-[14px] md:text-xs px-2 py-0.5 md:py-1 font-mono cursor-pointer transition-none border-2 flex items-center gap-1 active:translate-x-[1px] active:translate-y-[1px]"
               style={{
-                background: 'linear-gradient(180deg, #b8763b, #8a5828)',
+                background: '#b8763b',
                 color: '#fff8e8',
-                borderColor: '#5c3a1f',
-                boxShadow: '0 0 6px rgba(245, 216, 120, 0.3)',
+                borderColor: '#0a0806',
+                boxShadow: 'inset 1px 1px 0 #f5d878, inset -1px -1px 0 #5c3a1f',
               }}
             >
               <IconCoffin /> 纪元
@@ -140,12 +137,9 @@ function WoodPlaque({ children, title, accent, icon }: { children: React.ReactNo
       title={title}
       className="hidden md:inline-flex items-center gap-1 px-1.5 py-0.5 text-[11px] font-mono border-2 whitespace-nowrap"
       style={{
-        background: accent
-          ? 'linear-gradient(180deg, #3d2614, #2a1810)'
-          : 'linear-gradient(180deg, #2a1810, #1a0e08)',
+        background: accent ? '#3d2614' : '#2a1810',
         borderColor: accent ? '#b8763b' : '#5c3a1f',
         color: accent ? '#f5d878' : '#d4a85a',
-        boxShadow: 'inset 0 1px 0 rgba(184, 118, 59, 0.2)',
       }}
     >
       {icon}
@@ -162,15 +156,9 @@ function CurrencyBadge({ Icon, label, value }: { Icon: FC<PixelIconProps>; label
     <span
       className="flex items-center gap-1 px-1.5 py-0.5 text-[11px] font-mono border-2"
       title={label}
-      style={{
-        background: 'linear-gradient(180deg, #2a1810, #1a0e08)',
-        borderColor: '#5c3a1f',
-        boxShadow: 'inset 0 1px 0 rgba(184, 118, 59, 0.2)',
-      }}
+      style={{ background: '#2a1810', borderColor: '#5c3a1f' }}
     >
-      <span style={{ filter: 'drop-shadow(0 0 1px rgba(245, 216, 120, 0.4))' }}>
-        <Icon />
-      </span>
+      <Icon />
       <span className="tabular-nums font-bold" style={{ color: '#f5d878' }}>
         {formatNumber(Math.floor(value))}
       </span>
@@ -187,12 +175,7 @@ function StatueDisplay({ count }: { count: number }) {
     <span
       className="flex items-center gap-1 px-1.5 py-0.5 text-[11px] font-mono border-2"
       title={`${count} 座铜像`}
-      style={{
-        background: 'linear-gradient(180deg, #3d2614, #2a1810)',
-        borderColor: '#b8763b',
-        color: '#f5d878',
-        boxShadow: 'inset 0 1px 0 rgba(245, 216, 120, 0.3)',
-      }}
+      style={{ background: '#3d2614', borderColor: '#b8763b', color: '#f5d878' }}
     >
       <IconStatue />
       <span className="tabular-nums font-bold">{count}</span>

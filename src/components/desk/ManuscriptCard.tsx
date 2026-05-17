@@ -91,7 +91,7 @@ export function ManuscriptCard({ manuscript }: Props) {
         <div
           aria-hidden
           className="absolute -top-1.5 left-3 pointer-events-none"
-          style={{ filter: 'drop-shadow(1px 1px 0 rgba(0,0,0,0.2))' }}
+          style={{ filter: 'drop-shadow(1px 1px 0 #0a0806)' }}
         >
           <svg width="14" height="22" viewBox="0 0 20 40">
             <path d="M 10 4 Q 4 4 4 10 L 4 30 Q 4 36 10 36 Q 16 36 16 30 L 16 14 Q 16 10 12 10 Q 8 10 8 14 L 8 28"

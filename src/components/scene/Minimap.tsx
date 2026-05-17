@@ -57,21 +57,21 @@ export function Minimap() {
                 style={{
                   imageRendering: 'pixelated',
                   filter: isActive
-                    ? 'drop-shadow(1px 0 0 #f5d878) drop-shadow(-1px 0 0 #f5d878) drop-shadow(0 1px 0 #f5d878) drop-shadow(0 -1px 0 #f5d878) brightness(1.15)'
-                    : 'drop-shadow(0 1px 1px rgba(0,0,0,0.6))',
+                    ? 'drop-shadow(1px 0 0 #f5d878) drop-shadow(-1px 0 0 #f5d878) drop-shadow(0 1px 0 #f5d878) drop-shadow(0 -1px 0 #f5d878)'
+                    : 'drop-shadow(1px 1px 0 #0a0806)',
                   opacity: isActive ? 1 : 0.88,
                   transform: isActive ? 'scale(1.08)' : 'scale(1)',
                 }}
                 onMouseEnter={e => {
                   if (!isActive) {
                     (e.currentTarget as HTMLElement).style.filter =
-                      'drop-shadow(1px 0 0 #d4a85a) drop-shadow(-1px 0 0 #d4a85a) drop-shadow(0 1px 0 #d4a85a) drop-shadow(0 -1px 0 #d4a85a) brightness(1.1)'
+                      'drop-shadow(1px 0 0 #d4a85a) drop-shadow(-1px 0 0 #d4a85a) drop-shadow(0 1px 0 #d4a85a) drop-shadow(0 -1px 0 #d4a85a)'
                     ;(e.currentTarget as HTMLElement).style.opacity = '1'
                   }
                 }}
                 onMouseLeave={e => {
                   if (!isActive) {
-                    (e.currentTarget as HTMLElement).style.filter = 'drop-shadow(0 1px 1px rgba(0,0,0,0.6))'
+                    (e.currentTarget as HTMLElement).style.filter = 'drop-shadow(1px 1px 0 #0a0806)'
                     ;(e.currentTarget as HTMLElement).style.opacity = '0.88'
                   }
                 }}

@@ -94,7 +94,7 @@ function CloseBtn({ onClose, variant = 'dark' }: { onClose: () => void; variant?
 function PaperFrame({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   return (
     <div
-      className="border-2 border-border-dark shadow-[6px_6px_0_#2a1810] p-3 md:p-4 font-mono text-ink"
+      className="border-2 border-border-dark shadow-[4px_4px_0_#0a0806] p-3 md:p-4 font-mono text-ink"
       style={{ ...PAPER_STYLES.cream, maxHeight: '70vh', overflowY: 'auto' }}
     >
       <div className="flex items-center justify-between border-b border-[#c8b890] pb-2 mb-3">
@@ -110,20 +110,13 @@ function PaperFrame({ title, onClose, children }: { title: string; onClose: () =
 function InboxFrame({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   return (
     <div
-      className="border-2 shadow-[6px_6px_0_#0a0806] font-mono"
-      style={{
-        background: 'linear-gradient(180deg, #5c3a1f, #3d2614)',
-        borderColor: '#0a0806',
-        maxHeight: '72vh',
-      }}
+      className="border-2 shadow-[4px_4px_0_#0a0806] font-mono"
+      style={{ background: '#4a2f18', borderColor: '#0a0806', maxHeight: '72vh' }}
     >
       {/* 木质托盘顶部边沿（带钉子）*/}
       <div
         className="flex items-center justify-between px-3 py-2 border-b-2"
-        style={{
-          background: 'linear-gradient(180deg, #6e4a2a, #4a2f18)',
-          borderColor: '#0a0806',
-        }}
+        style={{ background: '#5c3a1f', borderColor: '#0a0806' }}
       >
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full" style={{ background: '#0a0806', boxShadow: '0 0 0 1px #b8763b' }} />
@@ -146,17 +139,13 @@ function InboxFrame({ title, onClose, children }: { title: string; onClose: () =
 function BeltFrame({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   return (
     <div
-      className="border-2 shadow-[6px_6px_0_#0a0806] font-mono"
-      style={{
-        background: 'linear-gradient(180deg, #4a3728, #2a1810)',
-        borderColor: '#0a0806',
-        maxHeight: '70vh',
-      }}
+      className="border-2 shadow-[4px_4px_0_#0a0806] font-mono"
+      style={{ background: '#3d2614', borderColor: '#0a0806', maxHeight: '70vh' }}
     >
       {/* 铁质顶梁（带螺丝钉）*/}
       <div
         className="flex items-center justify-between px-3 py-1.5 border-b-2 relative"
-        style={{ background: 'linear-gradient(180deg, #5c4a3a, #3a2a1a)', borderColor: '#0a0806' }}
+        style={{ background: '#4a3728', borderColor: '#0a0806' }}
       >
         {/* 4 个螺丝钉装饰 */}
         <div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full" style={{ background: '#0a0806' }} />
@@ -182,16 +171,10 @@ function BeltFrame({ title, onClose, children }: { title: string; onClose: () =>
 function JournalFrame({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   return (
     <div
-      className="border-2 shadow-[6px_6px_0_#2a1810] font-mono"
-      style={{
-        background: 'linear-gradient(180deg, #5c3a1f, #3d2614)',
-        borderColor: '#2a1810',
-        maxHeight: '72vh',
-        padding: 8,
-      }}
+      className="border-2 shadow-[4px_4px_0_#0a0806] font-mono"
+      style={{ background: '#4a2f18', borderColor: '#0a0806', maxHeight: '72vh', padding: 6 }}
     >
-      {/* 皮封面 inner shadow */}
-      <div className="relative" style={{ ...PAPER_STYLES.parchment, padding: '10px 14px', boxShadow: 'inset 0 0 12px rgba(0,0,0,0.3)' }}>
+      <div className="relative" style={{ ...PAPER_STYLES.parchment, padding: '10px 14px' }}>
         <div className="flex items-center justify-between border-b border-[#a89060] pb-1 mb-2">
           <h3 className="text-sm font-bold" style={{ color: '#5c3a1f', fontFamily: 'serif' }}>📖 {title}</h3>
           <CloseBtn onClose={onClose} />
@@ -212,10 +195,11 @@ function ScrollFrame({ title, onClose, children }: { title: string; onClose: () 
       <div
         className="h-2 mx-2"
         style={{
-          background: 'linear-gradient(180deg, #6e4a2a, #4a2f18)',
-          borderLeft: '2px solid #2a1810',
-          borderRight: '2px solid #2a1810',
-          boxShadow: '0 0 0 2px #2a1810, 2px 2px 0 #0a0806',
+          background: '#5c3a1f',
+          borderLeft: '2px solid #0a0806',
+          borderRight: '2px solid #0a0806',
+          borderTop: '2px solid #0a0806',
+          borderBottom: '2px solid #0a0806',
         }}
       />
       {/* 卷轴主体 */}
@@ -223,7 +207,7 @@ function ScrollFrame({ title, onClose, children }: { title: string; onClose: () 
         className="border-l-2 border-r-2 shadow-[3px_3px_0_#0a0806]"
         style={{
           ...PAPER_STYLES.parchment,
-          borderColor: '#2a1810',
+          borderColor: '#0a0806',
           maxHeight: '60vh',
           padding: '8px 14px',
         }}
@@ -240,10 +224,11 @@ function ScrollFrame({ title, onClose, children }: { title: string; onClose: () 
       <div
         className="h-2 mx-2"
         style={{
-          background: 'linear-gradient(180deg, #6e4a2a, #4a2f18)',
-          borderLeft: '2px solid #2a1810',
-          borderRight: '2px solid #2a1810',
-          boxShadow: '0 0 0 2px #2a1810, 2px 2px 0 #0a0806',
+          background: '#5c3a1f',
+          borderLeft: '2px solid #0a0806',
+          borderRight: '2px solid #0a0806',
+          borderTop: '2px solid #0a0806',
+          borderBottom: '2px solid #0a0806',
         }}
       />
     </div>
@@ -254,22 +239,13 @@ function ScrollFrame({ title, onClose, children }: { title: string; onClose: () 
 function NoticeFrame({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   return (
     <div
-      className="border-2 shadow-[6px_6px_0_#0a0806] font-mono p-2"
-      style={{
-        background: '#8b6b3e',
-        backgroundImage: 'radial-gradient(circle at 20% 30%, #a08060 0%, transparent 30%), radial-gradient(circle at 70% 60%, #6b4f2a 0%, transparent 25%), radial-gradient(circle at 40% 80%, #9a7250 0%, transparent 20%)',
-        borderColor: '#3d2614',
-        maxHeight: '70vh',
-      }}
+      className="border-2 shadow-[4px_4px_0_#0a0806] font-mono p-2"
+      style={{ background: '#8b6b3e', borderColor: '#0a0806', maxHeight: '70vh' }}
     >
       {/* 公告板顶部红色横栏 */}
       <div
-        className="flex items-center justify-between px-3 py-1 mb-2 border"
-        style={{
-          background: 'linear-gradient(180deg, #8b1f1f, #5c0f0f)',
-          borderColor: '#0a0806',
-          color: '#fce8e8',
-        }}
+        className="flex items-center justify-between px-3 py-1 mb-2 border-2"
+        style={{ background: '#8b1f1f', borderColor: '#0a0806', color: '#fce8e8' }}
       >
         <h3 className="text-sm font-bold">📌 {title}</h3>
         <CloseBtn onClose={onClose} variant="light" />
