@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useGameStore } from '@/store/gameStore'
 
 type RoomKey = 'desk' | 'shelf' | 'authors' | 'office' | 'study' | 'stats'
@@ -11,7 +12,6 @@ const ROOMS: { key: RoomKey; iconPath: string; label: string; hotkey: string }[]
   { key: 'stats',   iconPath: '/scenes/icon-stats.png',   label: '档案',   hotkey: '6' },
 ]
 
-// 文字黑色描边：4 向 + 4 对角的 text-shadow 叠加
 const TEXT_OUTLINE = [
   '1px 0 0 #0a0806',
   '-1px 0 0 #0a0806',
@@ -23,13 +23,17 @@ const TEXT_OUTLINE = [
   '-1px 1px 0 #0a0806',
 ].join(', ')
 
-/**
- * 房间速跳条。
- * 透明背景，PNG 图标 + 黑描边文字直接浮在场景上。
- */
+// 红色 1px 描边（4 向 drop-shadow）
+const RED_OUTLINE = 'drop-shadow(1px 0 0 #c84040) drop-shadow(-1px 0 0 #c84040) drop-shadow(0 1px 0 #c84040) drop-shadow(0 -1px 0 #c84040)'
+// 铜金 active 描边
+const COPPER_OUTLINE = 'drop-shadow(1px 0 0 #f5d878) drop-shadow(-1px 0 0 #f5d878) drop-shadow(0 1px 0 #f5d878) drop-shadow(0 -1px 0 #f5d878)'
+// 默认黑色硬阴影
+const DEFAULT_SHADOW = 'drop-shadow(1px 1px 0 #0a0806)'
+
 export function Minimap() {
   const activeTab = useGameStore(s => s.activeTab)
   const setActiveTab = useGameStore(s => s.setActiveTab)
+  const [hoverKey, setHoverKey] = useState<RoomKey | null>(null)
 
   return (
     <div
@@ -39,13 +43,18 @@ export function Minimap() {
       <div className="pointer-events-auto flex items-end gap-1 md:gap-2">
         {ROOMS.map(room => {
           const isActive = activeTab === room.key
+          const isHover = hoverKey === room.key
+          // 优先级：active 铜金 > hover 红色 > 默认黑影
+          const filter = isActive ? COPPER_OUTLINE : isHover ? RED_OUTLINE : DEFAULT_SHADOW
           return (
             <button
               key={room.key}
               onClick={() => setActiveTab(room.key)}
+              onMouseEnter={() => setHoverKey(room.key)}
+              onMouseLeave={() => setHoverKey(prev => (prev === room.key ? null : prev))}
               title={`${room.label}（按 ${room.hotkey}）`}
               aria-label={room.label}
-              className="group relative flex flex-col items-center justify-center w-14 md:w-16 px-1 py-1 cursor-pointer transition-all bg-transparent border-0"
+              className="relative flex flex-col items-center justify-center w-14 md:w-16 px-1 py-1 cursor-pointer bg-transparent border-0"
             >
               <img
                 src={room.iconPath}
@@ -53,33 +62,18 @@ export function Minimap() {
                 width={36}
                 height={36}
                 draggable={false}
-                className="pointer-events-none select-none transition-all duration-100"
+                className="pointer-events-none select-none"
                 style={{
                   imageRendering: 'pixelated',
-                  filter: isActive
-                    ? 'drop-shadow(1px 0 0 #f5d878) drop-shadow(-1px 0 0 #f5d878) drop-shadow(0 1px 0 #f5d878) drop-shadow(0 -1px 0 #f5d878)'
-                    : 'drop-shadow(1px 1px 0 #0a0806)',
-                  opacity: isActive ? 1 : 0.88,
-                  transform: isActive ? 'scale(1.08)' : 'scale(1)',
-                }}
-                onMouseEnter={e => {
-                  if (!isActive) {
-                    (e.currentTarget as HTMLElement).style.filter =
-                      'drop-shadow(1px 0 0 #d4a85a) drop-shadow(-1px 0 0 #d4a85a) drop-shadow(0 1px 0 #d4a85a) drop-shadow(0 -1px 0 #d4a85a)'
-                    ;(e.currentTarget as HTMLElement).style.opacity = '1'
-                  }
-                }}
-                onMouseLeave={e => {
-                  if (!isActive) {
-                    (e.currentTarget as HTMLElement).style.filter = 'drop-shadow(1px 1px 0 #0a0806)'
-                    ;(e.currentTarget as HTMLElement).style.opacity = '0.88'
-                  }
+                  filter,
+                  opacity: isActive || isHover ? 1 : 0.88,
+                  transform: isActive ? 'scale(1.08)' : isHover ? 'scale(1.05)' : 'scale(1)',
                 }}
               />
               <span
-                className="text-[10px] md:text-xs font-mono mt-1 tracking-wider leading-none font-bold"
+                className="text-[11px] md:text-xs font-mono mt-1 tracking-wider leading-none font-bold"
                 style={{
-                  color: isActive ? '#f5d878' : '#fff8e8',
+                  color: isActive ? '#f5d878' : isHover ? '#f5b8b8' : '#fff8e8',
                   textShadow: TEXT_OUTLINE,
                 }}
               >

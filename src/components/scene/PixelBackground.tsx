@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { CSSProperties } from 'react'
 
 /**
@@ -116,43 +117,40 @@ export function PixelButton({
   onClick,
   showLabel = true,
   hoverSrc,
-  outlineColor = '#f5d878',
+  outlineColor = '#c84040',  // v2.x 默认红色描边
   outlineWidth = 1,
   className = '',
 }: PixelButtonProps) {
+  const [hover, setHover] = useState(false)
   const outline = outlineColor ? makeOutlineFilter(outlineColor, outlineWidth) : ''
+
+  // 优先 hoverSrc 切图；没的话用 CSS outline 兜底
+  const currentSrc = hover && hoverSrc ? hoverSrc : src
+  const currentFilter = hover && !hoverSrc && outline ? outline : ''
 
   return (
     <button
       onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
       aria-label={label}
       className={`group absolute z-20 cursor-pointer bg-transparent border-0 p-0 ${className}`}
       style={{ ...position, minWidth: 44, minHeight: 44 }}
     >
       <img
-        src={src}
+        src={currentSrc}
         alt=""
-        className="w-full h-full pointer-events-none select-none transition-all duration-100 group-active:translate-y-[2px]"
+        className="w-full h-full pointer-events-none select-none active:translate-y-[2px]"
         style={{
           objectFit: 'contain',
           imageRendering: 'pixelated',
+          filter: currentFilter,
         }}
         draggable={false}
-        onMouseEnter={e => {
-          const el = e.currentTarget as HTMLImageElement
-          if (hoverSrc) el.src = hoverSrc
-          // 没 hover PNG 时才用 CSS 描边作为兜底
-          if (!hoverSrc && outline) el.style.filter = outline
-        }}
-        onMouseLeave={e => {
-          const el = e.currentTarget as HTMLImageElement
-          if (hoverSrc) el.src = src
-          el.style.filter = ''
-        }}
       />
       {showLabel && (
         <span
-          className="absolute left-1/2 -translate-x-1/2 -top-7 opacity-0 group-hover:opacity-100 bg-[#f5d878] text-[#1a1410] px-2 py-0.5 text-xs font-bold font-mono border-2 border-[#4a3728] whitespace-nowrap pointer-events-none transition-opacity duration-100"
+          className="absolute left-1/2 -translate-x-1/2 -top-7 opacity-0 group-hover:opacity-100 bg-[#f5d878] text-[#1a1410] px-2 py-0.5 text-xs font-bold font-mono border-2 border-[#4a3728] whitespace-nowrap pointer-events-none"
           style={{ zIndex: 100 }}
         >
           {label}
