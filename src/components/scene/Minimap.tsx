@@ -1,25 +1,19 @@
 import { useGameStore } from '@/store/gameStore'
-import { IconDesk, IconShelf, IconAuthors, IconOffice, IconStudy, IconArchive } from '@/assets/pixelIcons'
-import type { FC } from 'react'
 
 type RoomKey = 'desk' | 'shelf' | 'authors' | 'office' | 'study' | 'stats'
 
-interface PixelIconProps {
-  size?: number
-}
-
-const ROOMS: { key: RoomKey; Icon: FC<PixelIconProps>; label: string; hotkey: string }[] = [
-  { key: 'desk',    Icon: IconDesk,    label: '桌面', hotkey: '1' },
-  { key: 'shelf',   Icon: IconShelf,   label: '书架', hotkey: '2' },
-  { key: 'authors', Icon: IconAuthors, label: '作者', hotkey: '3' },
-  { key: 'office',  Icon: IconOffice,  label: '办公室', hotkey: '4' },
-  { key: 'study',   Icon: IconStudy,   label: '书房', hotkey: '5' },
-  { key: 'stats',   Icon: IconArchive, label: '档案', hotkey: '6' },
+const ROOMS: { key: RoomKey; iconPath: string; label: string; hotkey: string }[] = [
+  { key: 'desk',    iconPath: '/scenes/icon-desk.png',    label: '桌面',   hotkey: '1' },
+  { key: 'shelf',   iconPath: '/scenes/icon-shelf.png',   label: '书架',   hotkey: '2' },
+  { key: 'authors', iconPath: '/scenes/icon-authors.png', label: '作者',   hotkey: '3' },
+  { key: 'office',  iconPath: '/scenes/icon-office.png',  label: '办公室', hotkey: '4' },
+  { key: 'study',   iconPath: '/scenes/icon-study.png',   label: '书房',   hotkey: '5' },
+  { key: 'stats',   iconPath: '/scenes/icon-stats.png',   label: '档案',   hotkey: '6' },
 ]
 
 /**
- * 房间速跳条。
- * 横向平铺在场景底部的桌沿暗区上（z-50），看起来像桌沿一排刻字的木牌。
+ * 房间速跳条。横向平铺在场景底部桌沿。
+ * 使用 PNG 像素图标 + image-rendering: pixelated 保持锐利。
  */
 export function Minimap() {
   const activeTab = useGameStore(s => s.activeTab)
@@ -39,14 +33,13 @@ export function Minimap() {
       >
         {ROOMS.map(room => {
           const isActive = activeTab === room.key
-          const RoomIcon = room.Icon
           return (
             <button
               key={room.key}
               onClick={() => setActiveTab(room.key)}
               title={`${room.label}（按 ${room.hotkey}）`}
               aria-label={room.label}
-              className="relative flex flex-col items-center justify-center w-14 md:w-16 h-10 md:h-11 px-1 border-r border-[#0a0806] last:border-r-0 cursor-pointer transition-all"
+              className="relative flex flex-col items-center justify-center w-14 md:w-16 h-12 md:h-14 px-1 border-r border-[#0a0806] last:border-r-0 cursor-pointer transition-all"
               style={{
                 background: isActive
                   ? 'linear-gradient(180deg, #b8763b, #8a5828)'
@@ -56,16 +49,23 @@ export function Minimap() {
                   : 'inset 0 1px 0 rgba(184, 118, 59, 0.2)',
               }}
             >
-              <span
-                className="leading-none"
+              <img
+                src={room.iconPath}
+                alt=""
+                width={28}
+                height={28}
+                draggable={false}
+                className="pointer-events-none select-none"
                 style={{
-                  filter: isActive ? 'drop-shadow(0 0 2px rgba(245, 216, 120, 0.6))' : 'none',
+                  imageRendering: 'pixelated',
+                  filter: isActive
+                    ? 'drop-shadow(0 0 2px rgba(245, 216, 120, 0.8))'
+                    : 'none',
+                  opacity: isActive ? 1 : 0.85,
                 }}
-              >
-                <RoomIcon />
-              </span>
+              />
               <span
-                className="text-[9px] md:text-[10px] font-mono mt-0.5 tracking-wider"
+                className="text-[9px] md:text-[10px] font-mono mt-0.5 tracking-wider leading-none"
                 style={{ color: isActive ? '#fff8e8' : '#b8a48a' }}
               >
                 {room.label}

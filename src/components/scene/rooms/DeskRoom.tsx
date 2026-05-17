@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useGameStore } from '@/store/gameStore'
 import { DeskScene } from '@/assets/scenes/DeskScene'
-import { PixelBackground } from '@/components/scene/PixelBackground'
+import { PixelBackground, PixelButton } from '@/components/scene/PixelBackground'
 import { Hotspot } from '@/components/scene/Hotspot'
 import { ScenePanel } from '@/components/scene/ScenePanel'
 import { CorridorDoor } from '@/components/scene/CorridorDoor'
@@ -98,35 +98,92 @@ export function DeskRoom() {
         </div>
       )}
 
-      {/* ─── 热区层 ─── */}
-      <Hotspot
-        label={submitted.length > 0 ? `📥 投稿池 (${submitted.length} 份待审)` : '📥 投稿池 (暂无新稿)'}
-        style={{ left: '5%', top: '49%', width: '14%', height: '22%' }}
-        onClick={() => togglePanel('submissions')}
-        unseen={submitted.length > 0 && openPanel !== 'submissions'}
-      />
-      <Hotspot
-        label={inProgress.length > 0 ? `⚙️ 编辑流水线 (${inProgress.length} 件)` : '⚙️ 编辑流水线 (空闲)'}
-        style={{ left: '28%', top: '58%', width: '38%', height: '12%' }}
-        onClick={() => togglePanel('pipeline')}
-      />
-      <Hotspot
-        label="📋 出版日志"
-        style={{ left: '67%', top: '50%', width: '12%', height: '18%' }}
-        onClick={() => togglePanel('log')}
-      />
-      {catState && (
-        <Hotspot
-          label={`🐈 ${catState.name || '黑猫'} (好感 ${catState.affection})`}
-          style={{ left: '82%', top: '60%', width: '14%', height: '16%' }}
+      {/* ─── 黑猫（z-10，渲染在其他按钮下方 / 默认背后图层）─── */}
+      {catState && hasPngBg && (
+        <button
           onClick={() => togglePanel('cat')}
-        />
+          aria-label={`${catState.name || '黑猫'} (好感 ${catState.affection})`}
+          title={`${catState.name || '黑猫'} · 好感 ${catState.affection}`}
+          className="group absolute z-10 cursor-pointer bg-transparent border-0 p-0"
+          style={{ right: '2%', bottom: '4%', width: '12%', height: '32%' }}
+        >
+          <img
+            src="/scenes/desk-cat.png"
+            alt=""
+            draggable={false}
+            className="w-full h-full object-contain pointer-events-none select-none transition-all duration-150 group-hover:brightness-110"
+            style={{ imageRendering: 'pixelated' }}
+          />
+        </button>
       )}
-      <Hotspot
-        label="📬 征稿"
-        style={{ right: '2%', top: '4%', width: '11%', height: '8%' }}
-        onClick={() => togglePanel('solicit')}
-      />
+
+      {/* ─── 桌面 PNG 按钮层（z-20，覆盖在猫之上）─── */}
+      {hasPngBg ? (
+        <>
+          <PixelButton
+            src={submitted.length === 0 ? '/scenes/desk-inbox-empty.png' : '/scenes/desk-inbox.png'}
+            label={submitted.length > 0 ? `📥 投稿池 (${submitted.length} 份待审)` : '📥 投稿池 (暂无新稿)'}
+            position={{ left: '8%', bottom: '8%', width: '10%', height: '24%' }}
+            onClick={() => togglePanel('submissions')}
+          />
+          <PixelButton
+            src="/scenes/desk-typewriter.png"
+            label={inProgress.length > 0 ? `⚙️ 编辑流水线 (${inProgress.length} 件)` : '⚙️ 编辑流水线 (空闲)'}
+            position={{ left: '22%', bottom: '8%', width: '12%', height: '26%' }}
+            onClick={() => togglePanel('pipeline')}
+          />
+          <PixelButton
+            src="/scenes/desk-quill.png"
+            label="📬 征稿"
+            position={{ left: '38%', bottom: '8%', width: '10%', height: '24%' }}
+            onClick={() => togglePanel('solicit')}
+          />
+          <PixelButton
+            src="/scenes/desk-lamp.png"
+            label="📋 出版日志"
+            position={{ left: '52%', bottom: '8%', width: '10%', height: '24%' }}
+            onClick={() => togglePanel('log')}
+          />
+          <PixelButton
+            src="/scenes/desk-tea.png"
+            label="🌙 入梦写作（暂未开放）"
+            position={{ left: '66%', bottom: '8%', width: '10%', height: '24%' }}
+            onClick={() => { /* TODO v2.x: 梦境创作机制 */ }}
+          />
+        </>
+      ) : (
+        // SVG 兜底模式（无 PNG bg 时）：用旧的透明热区
+        <>
+          <Hotspot
+            label={submitted.length > 0 ? `📥 投稿池 (${submitted.length} 份待审)` : '📥 投稿池 (暂无新稿)'}
+            style={{ left: '5%', top: '49%', width: '14%', height: '22%' }}
+            onClick={() => togglePanel('submissions')}
+            unseen={submitted.length > 0 && openPanel !== 'submissions'}
+          />
+          <Hotspot
+            label={inProgress.length > 0 ? `⚙️ 编辑流水线 (${inProgress.length} 件)` : '⚙️ 编辑流水线 (空闲)'}
+            style={{ left: '28%', top: '58%', width: '38%', height: '12%' }}
+            onClick={() => togglePanel('pipeline')}
+          />
+          <Hotspot
+            label="📋 出版日志"
+            style={{ left: '67%', top: '50%', width: '12%', height: '18%' }}
+            onClick={() => togglePanel('log')}
+          />
+          {catState && (
+            <Hotspot
+              label={`🐈 ${catState.name || '黑猫'} (好感 ${catState.affection})`}
+              style={{ left: '82%', top: '60%', width: '14%', height: '16%' }}
+              onClick={() => togglePanel('cat')}
+            />
+          )}
+          <Hotspot
+            label="📬 征稿"
+            style={{ right: '2%', top: '4%', width: '11%', height: '8%' }}
+            onClick={() => togglePanel('solicit')}
+          />
+        </>
+      )}
 
       {/* 右侧走廊门 → 办公室枢纽 */}
       <CorridorDoor to="office" side="right" label="通往走廊" />
