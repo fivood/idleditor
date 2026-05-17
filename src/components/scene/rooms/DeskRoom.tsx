@@ -111,7 +111,7 @@ export function DeskRoom() {
 
       {/* ─── 弹出面板 ─── */}
       {openPanel === 'submissions' && (
-        <ScenePanel title={`📥 投稿池 · ${submitted.length} 份待审`} onClose={() => setOpenPanel(null)} position="top-12 left-4 md:top-16 md:left-16" width={460}>
+        <ScenePanel variant="inbox" title={`📥 投稿池 · ${submitted.length} 份待审`} onClose={() => setOpenPanel(null)} position="top-12 left-4 md:top-16 md:left-16" width={460}>
           {submitted.length === 0 ? (
             <p className="text-sm text-muted text-center py-6">稿件堆空了，等待新投稿……</p>
           ) : (
@@ -123,7 +123,7 @@ export function DeskRoom() {
       )}
 
       {openPanel === 'pipeline' && (
-        <ScenePanel title={`⚙️ 编辑流水线 · ${inProgress.length} 件进行中`} onClose={() => setOpenPanel(null)} position="bottom-20 left-1/2 -translate-x-1/2" width={520}>
+        <ScenePanel variant="belt" title={`编辑流水线 · ${inProgress.length} 件进行中`} onClose={() => setOpenPanel(null)} position="bottom-20 left-1/2 -translate-x-1/2" width={520}>
           {inProgress.length === 0 ? (
             <p className="text-sm text-muted text-center py-6">流水线空闲，从投稿池审稿开始</p>
           ) : (
@@ -135,13 +135,13 @@ export function DeskRoom() {
       )}
 
       {openPanel === 'log' && (
-        <ScenePanel title="📋 出版日志" onClose={() => setOpenPanel(null)} position="top-12 right-4 md:top-16 md:right-16" width={420}>
+        <ScenePanel variant="journal" title="出版日志" onClose={() => setOpenPanel(null)} position="top-12 right-4 md:top-16 md:right-16" width={420}>
           <LogPanel />
         </ScenePanel>
       )}
 
       {openPanel === 'cat' && catState && (
-        <ScenePanel title={`🐈 你的黑猫 · ${catState.name || '未命名'}`} onClose={() => setOpenPanel(null)} position="bottom-20 right-4 md:right-20" width={280}>
+        <ScenePanel variant="scroll" title={`🐈 你的黑猫 · ${catState.name || '未命名'}`} onClose={() => setOpenPanel(null)} position="bottom-20 right-4 md:right-20" width={280}>
           {!catState.name ? (
             <div>
               <p className="text-xs text-muted mb-2 leading-relaxed">这只黑猫还没有名字。给它取一个吧（最多6字）：</p>
@@ -183,7 +183,7 @@ export function DeskRoom() {
       )}
 
       {openPanel === 'solicit' && (
-        <ScenePanel title="📬 征稿渠道" onClose={() => setOpenPanel(null)} position="top-12 right-4 md:top-16 md:right-20" width={320}>
+        <ScenePanel variant="notice" title="征稿渠道 · 公告板" onClose={() => setOpenPanel(null)} position="top-12 right-4 md:top-16 md:right-20" width={320}>
           <div className="space-y-2">
             <SolicitButton
               icon="📮" label="公开征稿" cost="免费"
