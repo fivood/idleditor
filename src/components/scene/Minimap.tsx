@@ -62,7 +62,7 @@ export function Minimap() {
                   filter: isActive ? 'drop-shadow(0 0 2px rgba(245, 216, 120, 0.6))' : 'none',
                 }}
               >
-                <RoomIcon size={18} />
+                <RoomIcon />
               </span>
               <span
                 className="text-[9px] md:text-[10px] font-mono mt-0.5 tracking-wider"

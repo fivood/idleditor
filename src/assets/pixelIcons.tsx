@@ -25,7 +25,7 @@ interface IconProps {
   title?: string         // 鼠标 hover 提示
 }
 
-function Icon({ children, size = 24, className, style, title, color }: IconProps & { children: React.ReactNode }) {
+function Icon({ children, size = 16, className, style, title, color }: IconProps & { children: React.ReactNode }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

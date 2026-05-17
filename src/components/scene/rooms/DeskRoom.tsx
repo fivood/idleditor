@@ -327,7 +327,7 @@ function PipelineCard({ manuscript: ms, onSelectCover }: { manuscript: Manuscrip
   return (
     <div className="bg-[#fff8e8] border-2 border-border-dark p-2 flex gap-2 items-center">
       <div className="w-12 text-center">
-        <div className="flex justify-center">{StageIcon && <StageIcon size={20} />}</div>
+        <div className="flex justify-center">{StageIcon && <StageIcon />}</div>
         <div className="text-[10px] text-muted font-mono mt-0.5">{STAGE_LABELS[stage]}</div>
       </div>
       <div className="flex-1 min-w-0">
@@ -359,7 +359,7 @@ function SolicitButton({ Icon, label, cost, desc, disabled, cooldown, onClick }:
     >
       <div className="flex items-center justify-between gap-2">
         <span className="text-sm font-bold text-ink flex items-center gap-2">
-          <Icon size={20} />
+          <Icon />
           {label}
         </span>
         <span className="text-xs text-copper">{cost}</span>

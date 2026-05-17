@@ -58,11 +58,11 @@ export function TopBar() {
           <CurrencyBadge Icon={IconPrestige} label="声望" value={currencies.prestige} />
           <CurrencyBadge Icon={IconRoyalty} label="版税" value={currencies.royalties} />
           <StatueDisplay count={currencies.statues} />
-          <WoodPlaque title="本月出版额度" icon={<IconScroll size={11} />}>
+          <WoodPlaque title="本月出版额度" icon={<IconScroll />}>
             {booksPublishedThisMonth}/{10 + publishingQuotaUpgrades}
           </WoodPlaque>
           {currentTrend && (
-            <WoodPlaque title="当前市场风向：相关题材销量大幅提升" accent icon={<IconTrend size={11} />}>
+            <WoodPlaque title="当前市场风向：相关题材销量大幅提升" accent icon={<IconTrend />}>
               {GENRE_LABELS[currentTrend] || currentTrend}
             </WoodPlaque>
           )}
@@ -82,7 +82,7 @@ export function TopBar() {
           <WoodPlaque title="编辑名牌">{playerName}</WoodPlaque>
           {cloudSaveCode && (
             <span style={{ color: '#b8a48a' }} title={`云存档：${cloudSaveCode}`}>
-              <IconCloud size={14} />
+              <IconCloud />
             </span>
           )}
           {canReborn && (
@@ -96,7 +96,7 @@ export function TopBar() {
                 boxShadow: '0 0 6px rgba(245, 216, 120, 0.3)',
               }}
             >
-              <IconCoffin size={12} /> 纪元
+              <IconCoffin /> 纪元
             </button>
           )}
         </div>
@@ -169,7 +169,7 @@ function CurrencyBadge({ Icon, label, value }: { Icon: FC<PixelIconProps>; label
       }}
     >
       <span style={{ filter: 'drop-shadow(0 0 1px rgba(245, 216, 120, 0.4))' }}>
-        <Icon size={14} />
+        <Icon />
       </span>
       <span className="tabular-nums font-bold" style={{ color: '#f5d878' }}>
         {formatNumber(Math.floor(value))}
@@ -194,7 +194,7 @@ function StatueDisplay({ count }: { count: number }) {
         boxShadow: 'inset 0 1px 0 rgba(245, 216, 120, 0.3)',
       }}
     >
-      <IconStatue size={12} />
+      <IconStatue />
       <span className="tabular-nums font-bold">{count}</span>
     </span>
   )
