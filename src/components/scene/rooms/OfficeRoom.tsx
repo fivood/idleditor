@@ -105,7 +105,7 @@ function RoomLinkBadge({ to, icon, label }: { to: 'shelf' | 'authors' | 'study';
     <button
       onClick={() => setActiveTab(to)}
       title={label}
-      className="bg-[#140e0a]/85 backdrop-blur-sm border-2 border-border-dark px-2.5 py-1 text-sm cursor-pointer hover:bg-[#3d2614] transition-colors font-mono text-[#d4a85a] hover:text-[#f5d878]"
+      className="bg-[#1a0e08] border-2 border-[#0a0806] px-2.5 py-1 text-sm cursor-pointer hover:bg-[#3d2614] font-mono text-[#d4a85a] hover:text-[#f5d878]"
     >
       {icon} {label}
     </button>

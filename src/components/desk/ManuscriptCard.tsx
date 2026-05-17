@@ -3,6 +3,7 @@ import type { Genre, Manuscript } from '@/core/types'
 import { useGameStore } from '@/store/gameStore'
 import { PaperCard } from '@/components/shared/PaperCard'
 import { PixelProgressBar } from '@/components/shared/PixelProgressBar'
+import { PixelTextButton } from '@/components/shared/PixelTextButton'
 
 // 不同题材的稿件用不同颜色的"题材带"区分（替代原来的整张色卡）
 const GENRE_BAND_COLORS: Record<Genre, string> = {
@@ -90,7 +91,7 @@ export function ManuscriptCard({ manuscript }: Props) {
         <div
           aria-hidden
           className="absolute -top-1.5 left-3 pointer-events-none"
-          style={{ filter: 'drop-shadow(1px 1px 0 rgba(0,0,0,0.2))' }}
+          style={{ filter: 'drop-shadow(1px 1px 0 #0a0806)' }}
         >
           <svg width="14" height="22" viewBox="0 0 20 40">
             <path d="M 10 4 Q 4 4 4 10 L 4 30 Q 4 36 10 36 Q 16 36 16 30 L 16 14 Q 16 10 12 10 Q 8 10 8 14 L 8 28"
@@ -149,26 +150,19 @@ export function ManuscriptCard({ manuscript }: Props) {
       <div className="flex flex-col gap-1 flex-shrink-0 py-2 md:py-3 pr-2 md:pr-3">
         {viewed ? (
           <>
-            <button onClick={() => startReview(manuscript.id)} className="text-[14px] md:text-[16px] px-1.5 md:px-2 py-0.5 md:py-1 bg-copper text-white border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]">
-              审稿
-            </button>
-            <button onClick={() => rejectManuscript(manuscript.id)} className="text-[14px] md:text-[16px] px-1.5 md:px-2 py-0.5 md:py-1 bg-cream-dark/80 text-muted border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]">
-              退稿
-            </button>
-            <button onClick={() => shelveManuscript(manuscript.id)} className="text-[14px] md:text-[16px] px-1.5 md:px-2 py-0.5 md:py-1 bg-cream/80 text-muted border-2 border-border-dark font-mono cursor-pointer transition-all shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[1px] active:translate-y-[1px]">
-              搁置
-            </button>
+            <PixelTextButton variant="primary" size="sm" onClick={() => startReview(manuscript.id)}>审稿</PixelTextButton>
+            <PixelTextButton variant="danger" size="sm" onClick={() => rejectManuscript(manuscript.id)}>退稿</PixelTextButton>
+            <PixelTextButton variant="default" size="sm" onClick={() => shelveManuscript(manuscript.id)}>搁置</PixelTextButton>
           </>
         ) : (
-          <button
+          <PixelTextButton
+            variant="primary"
+            size="sm"
             onClick={() => !flipping && setFlipping(true)}
             disabled={flipping}
-            className={`text-[14px] md:text-[16px] px-1.5 md:px-2 py-0.5 md:py-1 border-2 border-border-dark font-mono transition-all shadow-[2px_2px_0_#3a6491] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${
-              flipping ? 'bg-cream-dark text-muted cursor-wait' : 'bg-progress text-white cursor-pointer'
-            }`}
           >
-            翻阅
-          </button>
+            {flipping ? '翻阅中' : '翻阅'}
+          </PixelTextButton>
         )}
       </div>
     </PaperCard>

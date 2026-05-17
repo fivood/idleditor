@@ -38,7 +38,8 @@ export function PaperCard({
   highlighted = false,
   onClick,
 }: PaperCardProps) {
-  const bg = variant === 'parchment' ? PAPER_STYLES.parchment : PAPER_STYLES.cream
+  // v2.x 暗主题：所有 PaperCard 默认用暗色纸张（带浅文字）
+  const bg = variant === 'parchment' ? PAPER_STYLES.darkParchment : PAPER_STYLES.dark
 
   return (
     <div className="relative" style={{ transform: tilt !== 0 ? `rotate(${tilt}deg)` : undefined }}>

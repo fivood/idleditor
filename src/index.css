@@ -1,42 +1,99 @@
 @import "tailwindcss";
 
-@theme {
-  /* ──── Neo-Skeuo Warm Palette ──── */
-  --color-cream: #f4f1ea;
-  --color-cream-dark: #e8e4dc;
-  --color-cream-darker: #d4cfc7;
-  --color-copper: #b87333;
-  --color-copper-dark: #8b5a2b;
-  --color-copper-light: #d4a574;
-  --color-progress: #4c7daf;
-  --color-progress-dark: #3a6491;
-  --color-ink: #2c1810;
-  --color-ink-light: #4a3728;
-  --color-muted: #6b5b4f;
-  --color-muted-light: #9e8e7e;
-  --color-border-dark: #4a3728;
-  --color-border-medium: #8b7355;
-  --color-border-light: #c4b5a0;
-  --color-card: #e8e4dc;
-  --color-card-raised: #f0ece4;
-  --color-card-inset: #d4cfc7;
+/* ──── 像素字体 ──── */
+/* 默认假设字体文件放在 public/fonts/。文件不存在时自动 fallback 到系统等宽字体。
+   推荐字体（开源，自行下载放入 public/fonts/）：
+   - Fusion Pixel 12px Monospaced (CJK+ASCII, https://github.com/TakWolf/fusion-pixel-font)
+   - 或 Cubic 11 (繁中, https://github.com/ACh-K/Cubic-11)
+   文件名建议：fusion-pixel-12px.woff2
+*/
+@font-face {
+  font-family: "FusionPixel";
+  src: url("/fonts/fusion-pixel-12px.woff2") format("woff2"),
+       url("/fonts/fusion-pixel-12px.ttf") format("truetype");
+  font-display: swap;
+  font-weight: normal;
+  font-style: normal;
+}
 
-  /* Fonts — Chinese-first with monospace fallback */
-  --font-sans: "Inter", system-ui, sans-serif;
-  --font-mono: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "SimHei", "Courier New", monospace;
-  --font-pixel: "Courier New", "SimHei", monospace;
+/* English-only pixel font，备选用 */
+@font-face {
+  font-family: "PressStart2P";
+  src: url("/fonts/press-start-2p.woff2") format("woff2");
+  font-display: swap;
+  font-weight: normal;
+  font-style: normal;
+}
+
+@theme {
+  /* ──── 永夜暗主题调色板 ──── */
+  /* 背景从浅奶油 → 深木色，文字从墨黑 → 浅铜/奶油 */
+  --color-bg: #1a0e08;
+  --color-bg-light: #2a1810;
+  --color-bg-lighter: #3d2614;
+  --color-bg-card: #2a1810;
+  --color-bg-card-raised: #3d2614;
+  --color-bg-card-inset: #0a0806;
+
+  /* 文字 */
+  --color-text: #ede0c8;          /* 主文本：浅奶油 */
+  --color-text-bright: #f5e8d0;   /* 强调文本 */
+  --color-text-muted: #b8a48a;    /* 次要文本 */
+  --color-text-dim: #8a7a5a;      /* 低重要性 */
+
+  /* 铜色系（高亮、链接、激活） */
+  --color-copper: #b8763b;
+  --color-copper-dark: #8a5828;
+  --color-copper-light: #d4a85a;
+  --color-copper-glow: #f5d878;
+
+  /* 兼容旧 token（逐步迁移） */
+  --color-cream: var(--color-bg-card);
+  --color-cream-dark: var(--color-bg-light);
+  --color-cream-darker: var(--color-bg);
+  --color-ink: var(--color-text);
+  --color-ink-light: var(--color-text-bright);
+  --color-muted: var(--color-text-muted);
+  --color-muted-light: var(--color-text-dim);
+  --color-border-dark: #0a0806;
+  --color-border-medium: #5c3a1f;
+  --color-border-light: #8a5828;
+  --color-card: var(--color-bg-card);
+  --color-card-raised: var(--color-bg-card-raised);
+  --color-card-inset: var(--color-bg-card-inset);
+  --color-progress: var(--color-copper);
+  --color-progress-dark: var(--color-copper-dark);
+
+  /* 状态色 */
+  --color-blood: #8b1f1f;
+  --color-blood-light: #c84040;
+  --color-moonlight: #f5e6a0;
+
+  /* ──── 字体栈 ──── */
+  /* mono：像素中文 + ASCII，fallback 到系统等宽 */
+  --font-mono: "FusionPixel", "PressStart2P", "Sarasa Mono SC", "Source Han Sans SC", "PingFang SC", "Microsoft YaHei", "SimHei", monospace;
+  --font-pixel: "FusionPixel", "PressStart2P", "SimHei", monospace;
+  --font-sans: var(--font-mono);
 }
 
 @layer base {
   body {
     margin: 0;
-    background: #c4b5a0;
-    color: var(--color-ink);
+    background: var(--color-bg);
+    color: var(--color-text);
     font-family: var(--font-mono);
-    font-size: 22px;
-    -webkit-font-smoothing: antialiased;
+    font-size: 18px;
+    line-height: 1.5;
+    -webkit-font-smoothing: none;
+    font-smooth: never;
     image-rendering: pixelated;
+    letter-spacing: 0.5px;
   }
+
+  /* 像素字体下，h1-h3 加大 */
+  h1 { font-size: 24px; font-weight: bold; }
+  h2 { font-size: 20px; font-weight: bold; }
+  h3 { font-size: 18px; font-weight: bold; }
 
   * {
     box-sizing: border-box;
@@ -51,22 +108,22 @@
     padding: 8px;
   }
 
-  /* ──── Scrollbar (retro) ──── */
+  /* ──── Scrollbar (暗色像素) ──── */
   ::-webkit-scrollbar {
     width: 12px;
     height: 12px;
   }
 
   ::-webkit-scrollbar-track {
-    background: var(--color-cream-darker);
+    background: var(--color-bg);
     border: 2px solid var(--color-border-dark);
   }
 
   ::-webkit-scrollbar-thumb {
     background: var(--color-copper);
     border: 2px solid var(--color-border-dark);
-    box-shadow: inset 2px 2px 0 var(--color-copper-light),
-                inset -2px -2px 0 var(--color-copper-dark);
+    box-shadow: inset 1px 1px 0 var(--color-copper-glow),
+                inset -1px -1px 0 var(--color-copper-dark);
   }
 
   ::-webkit-scrollbar-thumb:hover {
@@ -74,12 +131,11 @@
   }
 
   ::-webkit-scrollbar-corner {
-    background: var(--color-cream-darker);
+    background: var(--color-bg);
   }
 
-  /* Firefox */
   * {
     scrollbar-width: auto;
-    scrollbar-color: var(--color-copper) var(--color-cream-darker);
+    scrollbar-color: var(--color-copper) var(--color-bg);
   }
 }

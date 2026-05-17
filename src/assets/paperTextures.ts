@@ -84,8 +84,47 @@ export const COFFEE_STAIN_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="
   <ellipse cx="28" cy="28" rx="12" ry="10" fill="#a08060" opacity="0.1"/>
 </svg>`
 
+// ─── 暗色纸张（永夜暗主题用）───
+// 模拟"煤气灯下的浸渍稿纸"——深色基底 + 铜色斑点
+export const PAPER_DARK = svgToUri(`<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80">
+  <rect width="80" height="80" fill="#2a1810"/>
+  <g fill="#5c3a1f" opacity="0.5">
+    <circle cx="12" cy="18" r="0.5"/>
+    <circle cx="34" cy="9" r="0.4"/>
+    <circle cx="58" cy="22" r="0.5"/>
+    <circle cx="71" cy="44" r="0.4"/>
+    <circle cx="22" cy="51" r="0.5"/>
+    <circle cx="45" cy="63" r="0.4"/>
+    <circle cx="68" cy="71" r="0.5"/>
+    <circle cx="8" cy="73" r="0.4"/>
+  </g>
+  <g stroke="#3d2614" stroke-width="0.3" opacity="0.4" fill="none">
+    <path d="M 0 24 Q 20 22 40 25 T 80 24"/>
+    <path d="M 0 56 Q 30 54 50 57 T 80 55"/>
+  </g>
+</svg>`)
+
+// 暗色羊皮（适合 journal/scroll variant 内胆）
+export const PAPER_DARK_PARCHMENT = svgToUri(`<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80">
+  <rect width="80" height="80" fill="#3d2614"/>
+  <g fill="#5c3a1f" opacity="0.6">
+    <circle cx="15" cy="12" r="0.6"/>
+    <circle cx="38" cy="28" r="0.5"/>
+    <circle cx="61" cy="18" r="0.7"/>
+    <circle cx="25" cy="42" r="0.5"/>
+    <circle cx="52" cy="55" r="0.6"/>
+    <circle cx="72" cy="65" r="0.5"/>
+    <circle cx="10" cy="68" r="0.6"/>
+  </g>
+  <g stroke="#6e4a2a" stroke-width="0.4" opacity="0.3" fill="none">
+    <path d="M 0 18 Q 25 15 50 20 T 80 17"/>
+    <path d="M 0 48 Q 35 50 55 47 T 80 50"/>
+  </g>
+</svg>`)
+
 // CSS 类辅助（直接 inline 用，不需要全局样式）
 export const PAPER_STYLES = {
+  // 浅色（保留兜底，过渡用）
   cream: {
     backgroundImage: PAPER_CREAM,
     backgroundColor: '#f4ebd4',
@@ -94,6 +133,17 @@ export const PAPER_STYLES = {
   parchment: {
     backgroundImage: PAPER_PARCHMENT,
     backgroundColor: '#e8d8b0',
+    backgroundRepeat: 'repeat',
+  },
+  // 暗色（v2.x 新主题主要使用）
+  dark: {
+    backgroundImage: PAPER_DARK,
+    backgroundColor: '#2a1810',
+    backgroundRepeat: 'repeat',
+  },
+  darkParchment: {
+    backgroundImage: PAPER_DARK_PARCHMENT,
+    backgroundColor: '#3d2614',
     backgroundRepeat: 'repeat',
   },
   wood: {

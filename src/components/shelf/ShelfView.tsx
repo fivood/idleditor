@@ -324,7 +324,7 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
         <div className="p-3 md:p-4">
           <div className="border-2 border-border-dark bg-card-inset mb-3 md:mb-4 mx-auto" style={{ width: 'min(200px, 50vw)', height: 'min(280px, 70vw)' }}>
             {book.cover.src ? (
-              <img src={book.cover.src} alt="" className="w-full h-full object-cover" onError={(e) => { const el = e.currentTarget; if (el.src.endsWith('.png')) el.src = el.src.replace('.png', '.svg'); else el.style.display = 'none' }} />
+              <img src={book.cover.src} alt="" className="w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none' }} />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center gap-2" style={{ backgroundColor: greyColor + '33' }}>
                 <span className="text-[13px] md:text-xs text-muted font-mono px-2 text-center">{book.title}</span>
