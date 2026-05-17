@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useGameStore } from '@/store/gameStore'
 import { DeskScene } from '@/assets/scenes/DeskScene'
+import { PixelBackground } from '@/components/scene/PixelBackground'
 import { Hotspot } from '@/components/scene/Hotspot'
 import { ScenePanel } from '@/components/scene/ScenePanel'
 import { CorridorDoor } from '@/components/scene/CorridorDoor'
@@ -77,12 +78,25 @@ export function DeskRoom() {
   const togglePanel = (key: PanelKey) => setOpenPanel(prev => (prev === key ? null : key))
   const modalMs = coverModalId ? manuscripts.get(coverModalId) : null
 
+  // 如果存在 public/scenes/desk-bg.png 就用 PNG 像素图，否则降级到 SVG DeskScene
+  const [hasPngBg, setHasPngBg] = useState(false)
+  useEffect(() => {
+    const img = new Image()
+    img.onload = () => setHasPngBg(true)
+    img.onerror = () => setHasPngBg(false)
+    img.src = '/scenes/desk-bg.png'
+  }, [])
+
   return (
     <div className="relative w-full h-full overflow-hidden bg-[#0a0806]">
-      {/* 场景背景全屏 */}
-      <div className="absolute inset-0">
-        <DeskScene manuscriptStackSize={stackSize} showCat={!!catState} />
-      </div>
+      {/* 场景背景全屏（PNG 像素图优先，缺则用 SVG 兜底）*/}
+      {hasPngBg ? (
+        <PixelBackground src="/scenes/desk-bg.png" alt="桌面房间" />
+      ) : (
+        <div className="absolute inset-0">
+          <DeskScene manuscriptStackSize={stackSize} showCat={!!catState} />
+        </div>
+      )}
 
       {/* ─── 热区层 ─── */}
       <Hotspot
