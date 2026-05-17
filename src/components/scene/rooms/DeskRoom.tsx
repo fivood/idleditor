@@ -9,6 +9,7 @@ import { ManuscriptCard } from '@/components/desk/ManuscriptCard'
 import { CoverSelectModal } from '@/components/desk/CoverSelectModal'
 import { LogPanel } from '@/components/shared/LogPanel'
 import { PixelProgressBar } from '@/components/shared/PixelProgressBar'
+import { PixelTextButton } from '@/components/shared/PixelTextButton'
 import { IconReview, IconEdit, IconMagnifier, IconPalette, IconPrinter, IconEnvelope, IconTarget, IconBolt } from '@/assets/pixelIcons'
 import type { Manuscript } from '@/core/types'
 import type { FC } from 'react'
@@ -401,9 +402,7 @@ function PipelineCard({ manuscript: ms, onSelectCover }: { manuscript: Manuscrip
         </div>
       </div>
       {isActionable && (
-        <button onClick={onSelectCover} className="text-xs px-2 py-1 bg-copper text-white border border-border-dark font-mono cursor-pointer">
-          选封面
-        </button>
+        <PixelTextButton variant="primary" size="sm" onClick={onSelectCover}>选封面</PixelTextButton>
       )}
     </div>
   )
