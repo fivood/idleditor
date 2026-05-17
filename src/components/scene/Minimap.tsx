@@ -1,14 +1,20 @@
 import { useGameStore } from '@/store/gameStore'
+import { IconDesk, IconShelf, IconAuthors, IconOffice, IconStudy, IconArchive } from '@/assets/pixelIcons'
+import type { FC } from 'react'
 
 type RoomKey = 'desk' | 'shelf' | 'authors' | 'office' | 'study' | 'stats'
 
-const ROOMS: { key: RoomKey; icon: string; label: string; hotkey: string }[] = [
-  { key: 'desk',    icon: '✍️', label: '桌面', hotkey: '1' },
-  { key: 'shelf',   icon: '📚', label: '书架', hotkey: '2' },
-  { key: 'authors', icon: '✒️', label: '作者', hotkey: '3' },
-  { key: 'office',  icon: '🏛️', label: '办公室', hotkey: '4' },
-  { key: 'study',   icon: '📖', label: '书房', hotkey: '5' },
-  { key: 'stats',   icon: '🗄️', label: '档案', hotkey: '6' },
+interface PixelIconProps {
+  size?: number
+}
+
+const ROOMS: { key: RoomKey; Icon: FC<PixelIconProps>; label: string; hotkey: string }[] = [
+  { key: 'desk',    Icon: IconDesk,    label: '桌面', hotkey: '1' },
+  { key: 'shelf',   Icon: IconShelf,   label: '书架', hotkey: '2' },
+  { key: 'authors', Icon: IconAuthors, label: '作者', hotkey: '3' },
+  { key: 'office',  Icon: IconOffice,  label: '办公室', hotkey: '4' },
+  { key: 'study',   Icon: IconStudy,   label: '书房', hotkey: '5' },
+  { key: 'stats',   Icon: IconArchive, label: '档案', hotkey: '6' },
 ]
 
 /**
@@ -33,6 +39,7 @@ export function Minimap() {
       >
         {ROOMS.map(room => {
           const isActive = activeTab === room.key
+          const RoomIcon = room.Icon
           return (
             <button
               key={room.key}
@@ -49,10 +56,13 @@ export function Minimap() {
                   : 'inset 0 1px 0 rgba(184, 118, 59, 0.2)',
               }}
             >
-              <span className="text-lg leading-none" style={{
-                filter: isActive ? 'drop-shadow(0 0 2px rgba(245, 216, 120, 0.6))' : 'none',
-              }}>
-                {room.icon}
+              <span
+                className="leading-none"
+                style={{
+                  filter: isActive ? 'drop-shadow(0 0 2px rgba(245, 216, 120, 0.6))' : 'none',
+                }}
+              >
+                <RoomIcon size={18} />
               </span>
               <span
                 className="text-[9px] md:text-[10px] font-mono mt-0.5 tracking-wider"

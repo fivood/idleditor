@@ -34,7 +34,7 @@ export function PaperCard({
   style = {},
   variant = 'paper',
   stackBehind = 0,
-  tilt = 0,
+  tilt = 0,  // v2.0.2 默认 0，调用方不再传 tilt 形成"整齐像素风"
   highlighted = false,
   onClick,
 }: PaperCardProps) {

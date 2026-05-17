@@ -7,13 +7,21 @@ import { CorridorDoor } from '@/components/scene/CorridorDoor'
 import { ManuscriptCard } from '@/components/desk/ManuscriptCard'
 import { CoverSelectModal } from '@/components/desk/CoverSelectModal'
 import { LogPanel } from '@/components/shared/LogPanel'
+import { PixelProgressBar } from '@/components/shared/PixelProgressBar'
+import { IconReview, IconEdit, IconMagnifier, IconPalette, IconPrinter, IconEnvelope, IconTarget, IconBolt } from '@/assets/pixelIcons'
 import type { Manuscript } from '@/core/types'
+import type { FC } from 'react'
+
+interface PixelIconProps { size?: number }
 
 type PanelKey = null | 'submissions' | 'pipeline' | 'log' | 'cat' | 'solicit'
 
-const STAGE_ICONS: Record<string, string> = {
-  reviewing: '👀', editing: '✍️', proofing: '🔍',
-  cover_select: '🎨', publishing: '🖨️',
+const STAGE_PIXEL: Record<string, FC<PixelIconProps>> = {
+  reviewing: IconReview,
+  editing: IconEdit,
+  proofing: IconMagnifier,
+  cover_select: IconPalette,
+  publishing: IconPrinter,
 }
 
 const STAGE_LABELS: Record<string, string> = {
@@ -186,21 +194,21 @@ export function DeskRoom() {
         <ScenePanel variant="notice" title="征稿渠道 · 公告板" onClose={() => setOpenPanel(null)} position="top-12 right-4 md:top-16 md:right-20" width={320}>
           <div className="space-y-2">
             <SolicitButton
-              icon="📮" label="公开征稿" cost="免费"
+              Icon={IconEnvelope} label="公开征稿" cost="免费"
               desc="2-4 份随机稿件。5 分钟冷却。"
               disabled={solicitCooldown > 0}
               cooldown={solicitCooldown}
               onClick={() => { solicitFree(); setOpenPanel(null) }}
             />
             <SolicitButton
-              icon="🎯" label="定向约稿" cost="30 RP"
+              Icon={IconTarget} label="定向约稿" cost="30 RP"
               desc="2-3 份高品质稿。8 分钟冷却。"
               disabled={solicitCooldown > 0 || currencies.revisionPoints < 30}
               cooldown={solicitCooldown}
               onClick={() => { solicitTargeted(); setOpenPanel(null) }}
             />
             <SolicitButton
-              icon="⚡" label="加急征稿" cost="100 税"
+              Icon={IconBolt} label="加急征稿" cost="100 税"
               desc="1-2 份稿。无冷却。"
               disabled={currencies.royalties < 100}
               onClick={() => { solicitRush(); setOpenPanel(null) }}
@@ -315,16 +323,17 @@ function PipelineCard({ manuscript: ms, onSelectCover }: { manuscript: Manuscrip
   const stage = ms.status
   const pct = Math.min(100, Math.round(ms.editingProgress * 100))
   const isActionable = stage === 'cover_select'
+  const StageIcon = STAGE_PIXEL[stage]
   return (
     <div className="bg-[#fff8e8] border-2 border-border-dark p-2 flex gap-2 items-center">
-      <div className="w-10 text-center">
-        <div className="text-lg">{STAGE_ICONS[stage]}</div>
-        <div className="text-[10px] text-muted font-mono">{STAGE_LABELS[stage]}</div>
+      <div className="w-12 text-center">
+        <div className="flex justify-center">{StageIcon && <StageIcon size={20} />}</div>
+        <div className="text-[10px] text-muted font-mono mt-0.5">{STAGE_LABELS[stage]}</div>
       </div>
       <div className="flex-1 min-w-0">
         <div className="text-xs font-bold text-ink truncate font-mono">{ms.title}</div>
-        <div className="mt-1 h-2 bg-card-inset border border-border-dark overflow-hidden">
-          <div className="h-full bg-copper transition-all duration-150" style={{ width: `${pct}%` }} />
+        <div className="mt-1">
+          <PixelProgressBar value={pct} height={8} />
         </div>
       </div>
       {isActionable && (
@@ -336,8 +345,8 @@ function PipelineCard({ manuscript: ms, onSelectCover }: { manuscript: Manuscrip
   )
 }
 
-function SolicitButton({ icon, label, cost, desc, disabled, cooldown, onClick }: {
-  icon: string; label: string; cost: string; desc: string;
+function SolicitButton({ Icon, label, cost, desc, disabled, cooldown, onClick }: {
+  Icon: FC<PixelIconProps>; label: string; cost: string; desc: string;
   disabled?: boolean; cooldown?: number; onClick: () => void
 }) {
   return (
@@ -348,8 +357,11 @@ function SolicitButton({ icon, label, cost, desc, disabled, cooldown, onClick }:
         disabled ? 'bg-cream-dark text-muted cursor-not-allowed opacity-60' : 'bg-[#fff8e8] hover:bg-[#fff0d0] cursor-pointer'
       }`}
     >
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-bold text-ink">{icon} {label}</span>
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-sm font-bold text-ink flex items-center gap-2">
+          <Icon size={20} />
+          {label}
+        </span>
         <span className="text-xs text-copper">{cost}</span>
       </div>
       <div className="text-[11px] text-muted mt-0.5">

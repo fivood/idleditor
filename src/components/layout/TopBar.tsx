@@ -1,9 +1,16 @@
 import { useState } from 'react'
+import type { FC } from 'react'
 import { useGameStore } from '@/store/gameStore'
 import { formatNumber } from '@/utils/format'
 import { formatDate } from '@/core/calendar'
 import { xpProgressInLevel } from '@/core/leveling'
 import { GENRE_LABELS } from '@/core/types'
+import { IconRP, IconPrestige, IconRoyalty, IconStatue, IconScroll, IconTrend, IconCloud, IconCoffin } from '@/assets/pixelIcons'
+import { PixelProgressBar } from '@/components/shared/PixelProgressBar'
+
+interface PixelIconProps {
+  size?: number
+}
 
 export function TopBar() {
   const currencies = useGameStore(s => s.currencies)
@@ -47,16 +54,16 @@ export function TopBar() {
         </div>
 
         <div className="flex items-center gap-1.5 md:gap-2 text-[13px] md:text-xs font-mono">
-          <CurrencyBadge icon="✒️" label="修订" value={currencies.revisionPoints} />
-          <CurrencyBadge icon="🪶" label="声望" value={currencies.prestige} />
-          <CurrencyBadge icon="🪙" label="版税" value={currencies.royalties} />
+          <CurrencyBadge Icon={IconRP} label="修订点" value={currencies.revisionPoints} />
+          <CurrencyBadge Icon={IconPrestige} label="声望" value={currencies.prestige} />
+          <CurrencyBadge Icon={IconRoyalty} label="版税" value={currencies.royalties} />
           <StatueDisplay count={currencies.statues} />
-          <WoodPlaque title="本月出版额度">
-            📜 {booksPublishedThisMonth}/{10 + publishingQuotaUpgrades}
+          <WoodPlaque title="本月出版额度" icon={<IconScroll size={11} />}>
+            {booksPublishedThisMonth}/{10 + publishingQuotaUpgrades}
           </WoodPlaque>
           {currentTrend && (
-            <WoodPlaque title="当前市场风向：相关题材销量大幅提升" accent>
-              📈 {GENRE_LABELS[currentTrend] || currentTrend}
+            <WoodPlaque title="当前市场风向：相关题材销量大幅提升" accent icon={<IconTrend size={11} />}>
+              {GENRE_LABELS[currentTrend] || currentTrend}
             </WoodPlaque>
           )}
         </div>
@@ -64,23 +71,24 @@ export function TopBar() {
         <div className="flex items-center gap-1.5 md:gap-2">
           {(() => {
             const p = xpProgressInLevel(editorXP)
+            const pct = Math.min(100, Math.round(p.current / p.needed * 100))
             return (
               <span className="hidden md:flex items-center gap-1.5 px-2 py-0.5 border-2 border-[#5c3a1f]" style={{ background: '#0a0806' }} title={`Lv.${p.level} (${p.current}/${p.needed} XP)`}>
                 <span className="text-xs font-bold font-mono" style={{ color: '#d4a85a' }}>Lv.{p.level}</span>
-                <span className="h-1.5 w-14 md:w-16 border border-[#5c3a1f]" style={{ background: '#2a1810' }}>
-                  <span className="block h-full transition-all" style={{ width: `${Math.min(100, Math.round(p.current / p.needed * 100))}%`, background: '#b8763b' }} />
-                </span>
+                <PixelProgressBar value={pct} width={64} height={8} />
               </span>
             )
           })()}
           <WoodPlaque title="编辑名牌">{playerName}</WoodPlaque>
           {cloudSaveCode && (
-            <span className="text-[14px]" style={{ color: '#b8a48a' }} title={`云存档：${cloudSaveCode}`}>☁️</span>
+            <span style={{ color: '#b8a48a' }} title={`云存档：${cloudSaveCode}`}>
+              <IconCloud size={14} />
+            </span>
           )}
           {canReborn && (
             <button
               onClick={() => setShowRebirth(true)}
-              className="text-[14px] md:text-xs px-2 py-0.5 md:py-1 font-mono cursor-pointer transition-all border-2"
+              className="text-[14px] md:text-xs px-2 py-0.5 md:py-1 font-mono cursor-pointer transition-all border-2 flex items-center gap-1"
               style={{
                 background: 'linear-gradient(180deg, #b8763b, #8a5828)',
                 color: '#fff8e8',
@@ -88,7 +96,7 @@ export function TopBar() {
                 boxShadow: '0 0 6px rgba(245, 216, 120, 0.3)',
               }}
             >
-              ⚰️ 纪元
+              <IconCoffin size={12} /> 纪元
             </button>
           )}
         </div>
@@ -126,11 +134,11 @@ export function TopBar() {
  * 暗色木牌：所有顶栏徽章共享的视觉容器，
  * 看起来像挂在墙上的小铜框/木刻牌。
  */
-function WoodPlaque({ children, title, accent }: { children: React.ReactNode; title?: string; accent?: boolean }) {
+function WoodPlaque({ children, title, accent, icon }: { children: React.ReactNode; title?: string; accent?: boolean; icon?: React.ReactNode }) {
   return (
     <span
       title={title}
-      className="hidden md:inline-flex items-center px-1.5 py-0.5 text-[11px] font-mono border-2 whitespace-nowrap"
+      className="hidden md:inline-flex items-center gap-1 px-1.5 py-0.5 text-[11px] font-mono border-2 whitespace-nowrap"
       style={{
         background: accent
           ? 'linear-gradient(180deg, #3d2614, #2a1810)'
@@ -140,6 +148,7 @@ function WoodPlaque({ children, title, accent }: { children: React.ReactNode; ti
         boxShadow: 'inset 0 1px 0 rgba(184, 118, 59, 0.2)',
       }}
     >
+      {icon}
       {children}
     </span>
   )
@@ -148,7 +157,7 @@ function WoodPlaque({ children, title, accent }: { children: React.ReactNode; ti
 /**
  * 货币徽章：木刻 + 像素图标 + 铜色数字
  */
-function CurrencyBadge({ icon, label, value }: { icon: string; label: string; value: number }) {
+function CurrencyBadge({ Icon, label, value }: { Icon: FC<PixelIconProps>; label: string; value: number }) {
   return (
     <span
       className="flex items-center gap-1 px-1.5 py-0.5 text-[11px] font-mono border-2"
@@ -159,7 +168,9 @@ function CurrencyBadge({ icon, label, value }: { icon: string; label: string; va
         boxShadow: 'inset 0 1px 0 rgba(184, 118, 59, 0.2)',
       }}
     >
-      <span className="text-[13px]" style={{ filter: 'drop-shadow(0 0 1px rgba(245, 216, 120, 0.4))' }}>{icon}</span>
+      <span style={{ filter: 'drop-shadow(0 0 1px rgba(245, 216, 120, 0.4))' }}>
+        <Icon size={14} />
+      </span>
       <span className="tabular-nums font-bold" style={{ color: '#f5d878' }}>
         {formatNumber(Math.floor(value))}
       </span>
@@ -183,7 +194,7 @@ function StatueDisplay({ count }: { count: number }) {
         boxShadow: 'inset 0 1px 0 rgba(245, 216, 120, 0.3)',
       }}
     >
-      <span>🏆</span>
+      <IconStatue size={12} />
       <span className="tabular-nums font-bold">{count}</span>
     </span>
   )
