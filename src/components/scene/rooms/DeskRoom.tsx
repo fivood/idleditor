@@ -106,12 +106,16 @@ export function DeskRoom() {
         <>
           <PixelButton
             src="/scenes/desk-quill.png"
+            hoverSrc="/scenes/desk-quill-hover.png"
+            outlineColor={null}
             label="📬 征稿"
             position={{ left: '4%', bottom: '6%', width: '12%', height: '28%' }}
             onClick={() => togglePanel('solicit')}
           />
           <PixelButton
             src={submitted.length === 0 ? '/scenes/desk-inbox-empty.png' : '/scenes/desk-inbox.png'}
+            hoverSrc={submitted.length === 0 ? '/scenes/desk-inbox-empty-hover.png' : '/scenes/desk-inbox-hover.png'}
+            outlineColor={null}
             label={submitted.length > 0 ? `📥 投稿池 (${submitted.length} 份待审)` : '📥 投稿池 (暂无新稿)'}
             position={{ left: '17%', bottom: '6%', width: '12%', height: '28%' }}
             onClick={() => togglePanel('submissions')}
@@ -119,12 +123,16 @@ export function DeskRoom() {
           {/* 打字机：视觉中心，最大 */}
           <PixelButton
             src="/scenes/desk-typewriter.png"
+            hoverSrc="/scenes/desk-typewriter-hover.png"
+            outlineColor={null}
             label={inProgress.length > 0 ? `⚙️ 编辑流水线 (${inProgress.length} 件)` : '⚙️ 编辑流水线 (空闲)'}
             position={{ left: '37%', bottom: '4%', width: '22%', height: '46%' }}
             onClick={() => togglePanel('pipeline')}
           />
           <PixelButton
             src="/scenes/desk-tea.png"
+            hoverSrc="/scenes/desk-tea-hover.png"
+            outlineColor={null}
             label="🌙 入梦写作（暂未开放）"
             position={{ left: '62%', bottom: '6%', width: '9%', height: '22%' }}
             onClick={() => { /* TODO v2.x: 梦境创作机制 */ }}
@@ -132,14 +140,17 @@ export function DeskRoom() {
           {catState && (
             <PixelButton
               src="/scenes/desk-cat.png"
+              hoverSrc="/scenes/desk-cat-hover.png"
+              outlineColor={null}
               label={`🐈 ${catState.name || '黑猫'} (好感 ${catState.affection})`}
               position={{ left: '72%', bottom: '4%', width: '14%', height: '34%' }}
               onClick={() => togglePanel('cat')}
-              outlineColor={null}  /* 猫不要描边，保留黑色剪影感 */
             />
           )}
           <PixelButton
             src="/scenes/desk-lamp.png"
+            hoverSrc="/scenes/desk-lamp-hover.png"
+            outlineColor={null}
             label="📋 出版日志"
             position={{ left: '87%', bottom: '6%', width: '11%', height: '30%' }}
             onClick={() => togglePanel('log')}

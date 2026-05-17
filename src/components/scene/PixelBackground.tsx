@@ -141,8 +141,8 @@ export function PixelButton({
         onMouseEnter={e => {
           const el = e.currentTarget as HTMLImageElement
           if (hoverSrc) el.src = hoverSrc
-          if (outline) el.style.filter = outline
-          el.style.filter = (el.style.filter ? el.style.filter + ' ' : '') + 'brightness(1.1)'
+          // 没 hover PNG 时才用 CSS 描边作为兜底
+          if (!hoverSrc && outline) el.style.filter = outline
         }}
         onMouseLeave={e => {
           const el = e.currentTarget as HTMLImageElement
