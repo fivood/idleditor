@@ -69,19 +69,44 @@ export function PixelBackground({
  *   onClick={() => navigate('shelf')}
  * />
  *
- * 默认行为：
- * - 鼠标 hover 时整张图发铜色光晕
+ * 默认 hover 效果：
+ * - 1px 像素描边（drop-shadow 四向叠加，铜色 #f5d878）
+ * - 整体提亮 110%
  * - 按下时下沉 2px
- * - 移动端有按压反馈
+ *
+ * 想要更复杂的 hover 效果（多色描边/动画/换图）：
+ * - 传 hoverSrc 切换到另一张 PNG
+ * - 或自定义 outlineColor / outlineWidth
  */
 interface PixelButtonProps {
   src: string
   label: string
   position: Pick<CSSProperties, 'left' | 'top' | 'right' | 'bottom' | 'width' | 'height'>
   onClick: () => void
-  /** hover 时是否显示标签 tooltip（默认 true）*/
+  /** hover 时是否显示文字标签 tooltip（默认 true）*/
   showLabel?: boolean
+  /** hover 时切换成的另一张 PNG（可选，与 outline 二选一）*/
+  hoverSrc?: string
+  /** 描边颜色，默认 #f5d878（铜色光晕）。设 null 关闭描边 */
+  outlineColor?: string | null
+  /** 描边像素宽度，默认 1（建议 1-2，过大会模糊）*/
+  outlineWidth?: number
   className?: string
+}
+
+/**
+ * 生成 N 像素描边的 drop-shadow filter 字符串。
+ * 4 向叠加（上下左右），width=2 时 8 向（加四个对角）。
+ */
+function makeOutlineFilter(color: string, width: number): string {
+  const offsets: [number, number][] =
+    width >= 2
+      ? [
+          [width, 0], [-width, 0], [0, width], [0, -width],
+          [width, width], [width, -width], [-width, width], [-width, -width],
+        ]
+      : [[1, 0], [-1, 0], [0, 1], [0, -1]]
+  return offsets.map(([x, y]) => `drop-shadow(${x}px ${y}px 0 ${color})`).join(' ')
 }
 
 export function PixelButton({
@@ -90,8 +115,13 @@ export function PixelButton({
   position,
   onClick,
   showLabel = true,
+  hoverSrc,
+  outlineColor = '#f5d878',
+  outlineWidth = 1,
   className = '',
 }: PixelButtonProps) {
+  const outline = outlineColor ? makeOutlineFilter(outlineColor, outlineWidth) : ''
+
   return (
     <button
       onClick={onClick}
@@ -102,19 +132,22 @@ export function PixelButton({
       <img
         src={src}
         alt=""
-        className="w-full h-full pointer-events-none select-none transition-all duration-150 group-hover:brightness-125 group-active:translate-y-[2px]"
+        className="w-full h-full pointer-events-none select-none transition-all duration-100 group-active:translate-y-[2px]"
         style={{
           objectFit: 'contain',
           imageRendering: 'pixelated',
-          filter: 'drop-shadow(0 0 0 transparent)',
         }}
         draggable={false}
         onMouseEnter={e => {
-          (e.currentTarget as HTMLElement).style.filter =
-            'drop-shadow(0 0 4px rgba(245, 216, 120, 0.8))'
+          const el = e.currentTarget as HTMLImageElement
+          if (hoverSrc) el.src = hoverSrc
+          if (outline) el.style.filter = outline
+          el.style.filter = (el.style.filter ? el.style.filter + ' ' : '') + 'brightness(1.1)'
         }}
         onMouseLeave={e => {
-          (e.currentTarget as HTMLElement).style.filter = 'drop-shadow(0 0 0 transparent)'
+          const el = e.currentTarget as HTMLImageElement
+          if (hoverSrc) el.src = src
+          el.style.filter = ''
         }}
       />
       {showLabel && (
