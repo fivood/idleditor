@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import type { Genre, Manuscript } from '@/core/types'
 import { useGameStore } from '@/store/gameStore'
 import { PaperCard } from '@/components/shared/PaperCard'
+import { PixelProgressBar } from '@/components/shared/PixelProgressBar'
 
 // 不同题材的稿件用不同颜色的"题材带"区分（替代原来的整张色卡）
 const GENRE_BAND_COLORS: Record<Genre, string> = {
@@ -13,14 +14,14 @@ const GENRE_BAND_COLORS: Record<Genre, string> = {
   'light-novel':    '#ec4899',  // 粉
 }
 
-// 基于 ID 稳定地生成微小旋转 + 是否有咖啡渍 + 是否有回形针
-function deterministicNoise(id: string): { tilt: number; hasStain: boolean; hasClip: boolean } {
+// 基于 ID 稳定地生成是否有咖啡渍 + 是否有回形针
+// v2.0.2: 移除旋转，改为像素风整齐对齐
+function deterministicNoise(id: string): { hasStain: boolean; hasClip: boolean } {
   let h = 0
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0
-  const tilt = ((h % 7) - 3) * 0.3  // -0.9 ~ +0.9 度
   const hasStain = (h & 0x10) !== 0  // ~50%
   const hasClip = (h & 0x20) === 0   // ~50%
-  return { tilt, hasStain, hasClip }
+  return { hasStain, hasClip }
 }
 
 interface Props {
@@ -72,7 +73,6 @@ export function ManuscriptCard({ manuscript }: Props) {
 
   return (
     <PaperCard
-      tilt={noise.tilt}
       highlighted={flipping}
       className={`flex gap-2 md:gap-3 items-start overflow-hidden ${
         isSignedAuthor ? 'border-l-4 border-l-copper' : ''
@@ -129,15 +129,7 @@ export function ManuscriptCard({ manuscript }: Props) {
 
         {flipping ? (
           <div className="mt-2">
-            <div className="h-2 bg-card-inset border-2 border-border-dark overflow-hidden">
-              <div
-                className="h-full bg-progress transition-all duration-75"
-                style={{
-                  width: `${flipProgress}%`,
-                  backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(0,0,0,0.15) 4px, rgba(0,0,0,0.15) 8px)',
-                }}
-              />
-            </div>
+            <PixelProgressBar value={flipProgress} height={8} />
             <p className="text-[12px] text-progress font-mono mt-1">翻阅中... {flipProgress}%</p>
           </div>
         ) : viewed && manuscript.synopsis ? (

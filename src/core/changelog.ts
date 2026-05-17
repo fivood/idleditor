@@ -7,6 +7,17 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: 'v2.0.1',
+    date: '2026-05-17',
+    title: '引擎解耦 · 决策按钮修复',
+    items: [
+      '引擎独立为纯函数层：7 个 tick phase 从 src/core/tick/ 提取至 src/engine/tick/。每个 phase 接收克隆后的 world，返回 {world, result}，不再直接依赖 Zustand/Immer。runTick(world, { rng }) 提供统一入口和确定性 RNG。',
+      'Phase 模板：src/engine/tick/_template.ts 供新机制参考——拷贝、实现、在 TICK_PHASES 注册三步入库。工厂新增 createManuscriptWithWorld / createManuscriptForAuthorWithWorld 纯函数包装。',
+      'Store 集成：extractWorldFromState() → runTick() → applyWorldToDraft() 完整回路，开发模式 Map 数量断言防数据静默丢失，phase 级错误边界带 toast 提示。',
+      '决策按钮修复：personal-favor、genre-change、deadline-conflict 等决策 effect 不再直接修改 Immer 冻结的作者/稿件对象，改为 clone 后写回 Map，解决点击按钮无响应问题。',
+    ],
+  },
+  {
     version: 'v2.0',
     date: '2026-05-16',
     title: '空间化导航 · 永夜出版社变成一栋建筑',

@@ -95,6 +95,33 @@ export function DeskScene({ manuscriptStackSize = 2, showCat = false }: DeskScen
         <rect x="0" y="168" width="320" height="2" fill="#3d2614" />
       </g>
 
+      {/* ─── 空收件托盘（无稿件时显示，提示这里能放稿）─── */}
+      {manuscriptStackSize === 0 && (
+        <g data-object="empty-inbox">
+          {/* 托盘阴影 */}
+          <rect x="20" y="138" width="48" height="2" fill="#1a0e08" opacity="0.4" />
+          {/* 托盘底部（深木色） */}
+          <rect x="18" y="130" width="50" height="10" fill="#3d2614" />
+          {/* 托盘前壁 */}
+          <rect x="18" y="138" width="50" height="2" fill="#2a1810" />
+          {/* 托盘左/右侧壁（透视） */}
+          <rect x="16" y="128" width="2" height="12" fill="#2a1810" />
+          <rect x="68" y="128" width="2" height="12" fill="#2a1810" />
+          {/* 托盘后壁（带"待审"标签） */}
+          <rect x="20" y="124" width="46" height="8" fill="#5c3a1f" />
+          <rect x="20" y="122" width="46" height="2" fill="#6e4a2a" />
+          {/* 标签牌（铜色） */}
+          <rect x="32" y="125" width="22" height="6" fill="#b8763b" />
+          <text x="43" y="130" textAnchor="middle" fontSize="4" fill="#0a0806" fontFamily="serif" fontWeight="bold">待审</text>
+          {/* 内部阴影提示是空的 */}
+          <rect x="22" y="132" width="42" height="6" fill="#0a0806" opacity="0.3" />
+          {/* 一根孤零零的鹅毛笔斜倚在托盘里 */}
+          <rect x="38" y="133" width="1" height="4" fill="#d4c8b0" opacity="0.5" />
+          <rect x="39" y="129" width="1" height="4" fill="#f0e8d8" opacity="0.5" />
+          <rect x="40" y="125" width="1" height="4" fill="#f0e8d8" opacity="0.5" />
+        </g>
+      )}
+
       {/* ─── 稿件堆（左，按数量分层显示）─── */}
       {manuscriptStackSize > 0 && (
         <g data-object="manuscripts">

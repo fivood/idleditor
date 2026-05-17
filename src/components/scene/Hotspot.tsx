@@ -26,8 +26,15 @@ export function Hotspot({ label, style, onClick, unseen, children }: HotspotProp
     <button
       onClick={onClick}
       aria-label={label}
-      className="group absolute z-20 cursor-pointer bg-transparent border-2 border-transparent hover:border-dashed hover:border-[#f5d878] hover:bg-[#f5d87815] active:bg-[#f5d87830] transition-all duration-150"
-      style={{ ...style, minWidth: 44, minHeight: 44 }}
+      className="group absolute z-20 cursor-pointer bg-transparent focus:outline-none hover:bg-[#f5d87815] active:bg-[#f5d87830] transition-all duration-150"
+      style={{
+        ...style,
+        minWidth: 44,
+        minHeight: 44,
+        outline: '2px solid transparent',
+      }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.outline = '2px dashed #f5d878'; (e.currentTarget as HTMLElement).style.outlineOffset = '-2px' }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.outline = '2px solid transparent'; (e.currentTarget as HTMLElement).style.outlineOffset = '0px' }}
     >
       {/* hover 标签 */}
       <span
