@@ -109,6 +109,7 @@ export interface Manuscript {
   rejectionReason: string
   meticulouslyEdited: boolean
   shelvedAt: number | null
+  shelvedResubmitAt: number | null
   reissueBoostUntil: number | null
   editorNote: string
   customNote: string

@@ -52,6 +52,7 @@ function makeManuscript(authorId = 'author-1'): Manuscript {
     rejectionReason: '',
     meticulouslyEdited: false,
     shelvedAt: null,
+    shelvedResubmitAt: null,
     reissueBoostUntil: null,
     editorNote: '',
     customNote: '',
