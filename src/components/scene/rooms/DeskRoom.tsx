@@ -98,58 +98,50 @@ export function DeskRoom() {
         </div>
       )}
 
-      {/* ─── 黑猫（z-10，渲染在其他按钮下方 / 默认背后图层）─── */}
-      {catState && hasPngBg && (
-        <button
-          onClick={() => togglePanel('cat')}
-          aria-label={`${catState.name || '黑猫'} (好感 ${catState.affection})`}
-          title={`${catState.name || '黑猫'} · 好感 ${catState.affection}`}
-          className="group absolute z-10 cursor-pointer bg-transparent border-0 p-0"
-          style={{ right: '2%', bottom: '4%', width: '12%', height: '32%' }}
-        >
-          <img
-            src="/scenes/desk-cat.png"
-            alt=""
-            draggable={false}
-            className="w-full h-full object-contain pointer-events-none select-none transition-all duration-150 group-hover:brightness-110"
-            style={{ imageRendering: 'pixelated' }}
-          />
-        </button>
-      )}
-
-      {/* ─── 桌面 PNG 按钮层（z-20，覆盖在猫之上）─── */}
+      {/* ─── 桌面 PNG 按钮层 ─── */}
+      {/* 从左到右：征稿 / 投稿池 / 流水线 / 出版日志 / 梦境写作 / 猫
+          每个约 14% 宽，间距均匀分布在地毯前景 */}
       {hasPngBg ? (
         <>
           <PixelButton
+            src="/scenes/desk-quill.png"
+            label="📬 征稿"
+            position={{ left: '6%', bottom: '6%', width: '12%', height: '28%' }}
+            onClick={() => togglePanel('solicit')}
+          />
+          <PixelButton
             src={submitted.length === 0 ? '/scenes/desk-inbox-empty.png' : '/scenes/desk-inbox.png'}
             label={submitted.length > 0 ? `📥 投稿池 (${submitted.length} 份待审)` : '📥 投稿池 (暂无新稿)'}
-            position={{ left: '8%', bottom: '8%', width: '10%', height: '24%' }}
+            position={{ left: '20%', bottom: '6%', width: '12%', height: '28%' }}
             onClick={() => togglePanel('submissions')}
           />
           <PixelButton
             src="/scenes/desk-typewriter.png"
             label={inProgress.length > 0 ? `⚙️ 编辑流水线 (${inProgress.length} 件)` : '⚙️ 编辑流水线 (空闲)'}
-            position={{ left: '22%', bottom: '8%', width: '12%', height: '26%' }}
+            position={{ left: '34%', bottom: '6%', width: '14%', height: '32%' }}
             onClick={() => togglePanel('pipeline')}
-          />
-          <PixelButton
-            src="/scenes/desk-quill.png"
-            label="📬 征稿"
-            position={{ left: '38%', bottom: '8%', width: '10%', height: '24%' }}
-            onClick={() => togglePanel('solicit')}
           />
           <PixelButton
             src="/scenes/desk-lamp.png"
             label="📋 出版日志"
-            position={{ left: '52%', bottom: '8%', width: '10%', height: '24%' }}
+            position={{ left: '50%', bottom: '6%', width: '14%', height: '32%' }}
             onClick={() => togglePanel('log')}
           />
           <PixelButton
             src="/scenes/desk-tea.png"
             label="🌙 入梦写作（暂未开放）"
-            position={{ left: '66%', bottom: '8%', width: '10%', height: '24%' }}
+            position={{ left: '66%', bottom: '6%', width: '12%', height: '28%' }}
             onClick={() => { /* TODO v2.x: 梦境创作机制 */ }}
           />
+          {catState && (
+            <PixelButton
+              src="/scenes/desk-cat.png"
+              label={`🐈 ${catState.name || '黑猫'} (好感 ${catState.affection})`}
+              position={{ left: '80%', bottom: '4%', width: '16%', height: '36%' }}
+              onClick={() => togglePanel('cat')}
+              outlineColor={null}  /* 猫不要描边，保留黑色剪影感 */
+            />
+          )}
         </>
       ) : (
         // SVG 兜底模式（无 PNG bg 时）：用旧的透明热区

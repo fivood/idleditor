@@ -11,9 +11,21 @@ const ROOMS: { key: RoomKey; iconPath: string; label: string; hotkey: string }[]
   { key: 'stats',   iconPath: '/scenes/icon-stats.png',   label: '档案',   hotkey: '6' },
 ]
 
+// 文字黑色描边：4 向 + 4 对角的 text-shadow 叠加
+const TEXT_OUTLINE = [
+  '1px 0 0 #0a0806',
+  '-1px 0 0 #0a0806',
+  '0 1px 0 #0a0806',
+  '0 -1px 0 #0a0806',
+  '1px 1px 0 #0a0806',
+  '-1px -1px 0 #0a0806',
+  '1px -1px 0 #0a0806',
+  '-1px 1px 0 #0a0806',
+].join(', ')
+
 /**
- * 房间速跳条。横向平铺在场景底部桌沿。
- * 使用 PNG 像素图标 + image-rendering: pixelated 保持锐利。
+ * 房间速跳条。
+ * 透明背景，PNG 图标 + 黑描边文字直接浮在场景上。
  */
 export function Minimap() {
   const activeTab = useGameStore(s => s.activeTab)
@@ -22,15 +34,9 @@ export function Minimap() {
   return (
     <div
       className="absolute bottom-0 left-0 right-0 z-50 flex items-end justify-center pointer-events-none"
-      style={{ paddingBottom: 4 }}
+      style={{ paddingBottom: 6 }}
     >
-      <div
-        className="pointer-events-auto flex items-stretch gap-0 border-2 border-[#0a0806]"
-        style={{
-          background: 'linear-gradient(180deg, #2a1810, #1a0e08)',
-          boxShadow: '0 -1px 0 rgba(184, 118, 59, 0.15) inset, 2px 2px 0 rgba(0,0,0,0.4)',
-        }}
-      >
+      <div className="pointer-events-auto flex items-end gap-1 md:gap-2">
         {ROOMS.map(room => {
           const isActive = activeTab === room.key
           return (
@@ -39,34 +45,43 @@ export function Minimap() {
               onClick={() => setActiveTab(room.key)}
               title={`${room.label}（按 ${room.hotkey}）`}
               aria-label={room.label}
-              className="relative flex flex-col items-center justify-center w-14 md:w-16 h-12 md:h-14 px-1 border-r border-[#0a0806] last:border-r-0 cursor-pointer transition-all"
-              style={{
-                background: isActive
-                  ? 'linear-gradient(180deg, #b8763b, #8a5828)'
-                  : 'linear-gradient(180deg, #3d2614, #2a1810)',
-                boxShadow: isActive
-                  ? 'inset 0 0 0 1px #f5d878, 0 0 8px rgba(245, 216, 120, 0.4)'
-                  : 'inset 0 1px 0 rgba(184, 118, 59, 0.2)',
-              }}
+              className="group relative flex flex-col items-center justify-center w-14 md:w-16 px-1 py-1 cursor-pointer transition-all bg-transparent border-0"
             >
               <img
                 src={room.iconPath}
                 alt=""
-                width={28}
-                height={28}
+                width={36}
+                height={36}
                 draggable={false}
-                className="pointer-events-none select-none"
+                className="pointer-events-none select-none transition-all duration-100"
                 style={{
                   imageRendering: 'pixelated',
                   filter: isActive
-                    ? 'drop-shadow(0 0 2px rgba(245, 216, 120, 0.8))'
-                    : 'none',
-                  opacity: isActive ? 1 : 0.85,
+                    ? 'drop-shadow(1px 0 0 #f5d878) drop-shadow(-1px 0 0 #f5d878) drop-shadow(0 1px 0 #f5d878) drop-shadow(0 -1px 0 #f5d878) brightness(1.15)'
+                    : 'drop-shadow(0 1px 1px rgba(0,0,0,0.6))',
+                  opacity: isActive ? 1 : 0.88,
+                  transform: isActive ? 'scale(1.08)' : 'scale(1)',
+                }}
+                onMouseEnter={e => {
+                  if (!isActive) {
+                    (e.currentTarget as HTMLElement).style.filter =
+                      'drop-shadow(1px 0 0 #d4a85a) drop-shadow(-1px 0 0 #d4a85a) drop-shadow(0 1px 0 #d4a85a) drop-shadow(0 -1px 0 #d4a85a) brightness(1.1)'
+                    ;(e.currentTarget as HTMLElement).style.opacity = '1'
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (!isActive) {
+                    (e.currentTarget as HTMLElement).style.filter = 'drop-shadow(0 1px 1px rgba(0,0,0,0.6))'
+                    ;(e.currentTarget as HTMLElement).style.opacity = '0.88'
+                  }
                 }}
               />
               <span
-                className="text-[9px] md:text-[10px] font-mono mt-0.5 tracking-wider leading-none"
-                style={{ color: isActive ? '#fff8e8' : '#b8a48a' }}
+                className="text-[10px] md:text-xs font-mono mt-1 tracking-wider leading-none font-bold"
+                style={{
+                  color: isActive ? '#f5d878' : '#fff8e8',
+                  textShadow: TEXT_OUTLINE,
+                }}
               >
                 {room.label}
               </span>
