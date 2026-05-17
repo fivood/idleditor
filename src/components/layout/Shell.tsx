@@ -1,10 +1,10 @@
 import { TopBar } from './TopBar'
 import { DeskRoom } from '@/components/scene/rooms/DeskRoom'
 import { OfficeRoom } from '@/components/scene/rooms/OfficeRoom'
-import { ShelfView } from '@/components/shelf/ShelfView'
-import { AuthorView } from '@/components/author/AuthorView'
-import { StudyView } from '@/components/study/StudyView'
-import { StatsView } from '@/components/stats/StatsView'
+import { ShelfRoom } from '@/components/scene/rooms/ShelfRoom'
+import { AuthorsRoom } from '@/components/scene/rooms/AuthorsRoom'
+import { StudyRoom } from '@/components/scene/rooms/StudyRoom'
+import { ArchiveRoom } from '@/components/scene/rooms/ArchiveRoom'
 import { WelcomeView } from './WelcomeView'
 import { OfflineReportModal } from './OfflineReportModal'
 import { DecisionModal } from './DecisionModal'
@@ -18,10 +18,9 @@ import { useOfflineProgress } from '@/hooks/useOfflineProgress'
 import { useRoomNav } from '@/hooks/useRoomNav'
 import { useEffect } from 'react'
 
-// 哪些 Tab 已经升级为"房间"（沉浸式场景视图）。
-// 其他 Tab 在桌面端使用旧的卡片视图（在 Minimap 跳转后包裹在简易容器里），
-// 在移动端使用底部 Tab 栏切换。
-const SCENE_ROOMS = new Set(['desk', 'office'])
+// v2.1: 全部 6 个 Tab 都升级为场景房间。
+// 桌面端隐藏底部 Tab，使用 Minimap + 走廊门 + 1-6 键导航。
+const SCENE_ROOMS = new Set(['desk', 'office', 'shelf', 'authors', 'study', 'stats'])
 
 export function Shell() {
   const isInitialized = useGameStore(s => s.isInitialized)
@@ -71,14 +70,13 @@ export function Shell() {
       <div className="w-full h-full flex flex-col bg-cream md:border-2 md:border-border-dark md:shadow-[6px_6px_0_#4a3728] overflow-hidden relative">
         <TopBar />
         <main className="flex-1 overflow-hidden flex flex-col min-h-0 relative">
-          {/* 场景化房间 */}
+          {/* 6 个场景化房间 */}
           <div hidden={activeTab !== 'desk'} className="flex-1 min-h-0"><DeskRoom /></div>
           <div hidden={activeTab !== 'office'} className="flex-1 min-h-0"><OfficeRoom /></div>
-          {/* 未场景化的 Tab（沿用旧布局，外层加 cream 背景以与场景房间区分）*/}
-          <div hidden={activeTab !== 'shelf'} className="flex-1 min-h-0 bg-cream"><ShelfView /></div>
-          <div hidden={activeTab !== 'authors'} className="flex-1 min-h-0 bg-cream"><AuthorView /></div>
-          <div hidden={activeTab !== 'study'} className="flex-1 min-h-0 bg-cream"><StudyView /></div>
-          <div hidden={activeTab !== 'stats'} className="flex-1 min-h-0 bg-cream"><StatsView /></div>
+          <div hidden={activeTab !== 'shelf'} className="flex-1 min-h-0"><ShelfRoom /></div>
+          <div hidden={activeTab !== 'authors'} className="flex-1 min-h-0"><AuthorsRoom /></div>
+          <div hidden={activeTab !== 'study'} className="flex-1 min-h-0"><StudyRoom /></div>
+          <div hidden={activeTab !== 'stats'} className="flex-1 min-h-0"><ArchiveRoom /></div>
 
           {/* 桌面端：场景房间内显示 minimap 浮在左下角；非场景房间不显示（用底部 Tab） */}
           {isInSceneRoom && (

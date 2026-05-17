@@ -81,9 +81,10 @@ export function OfficeRoom() {
       {/* TODO v2.1: 拆成独立的 DepartmentsPanel / TearoomPanel / SettingsPanel */}
       {(openPanel === 'departments' || openPanel === 'tearoom' || openPanel === 'settings') && (
         <ScenePanel
+          variant={openPanel === 'departments' ? 'inbox' : openPanel === 'tearoom' ? 'notice' : 'journal'}
           title={
-            openPanel === 'departments' ? '🏢 部门管理' :
-            openPanel === 'tearoom' ? '🍷 版税消费' : '⚙️ 设置'
+            openPanel === 'departments' ? '部门管理' :
+            openPanel === 'tearoom' ? '版税消费 · 公告板' : '出版社设置 · 主管手册'
           }
           onClose={() => setOpenPanel(null)}
           position="top-12 left-1/2 -translate-x-1/2"

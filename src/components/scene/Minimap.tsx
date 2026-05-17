@@ -1,47 +1,79 @@
 import { useGameStore } from '@/store/gameStore'
+import { IconDesk, IconShelf, IconAuthors, IconOffice, IconStudy, IconArchive } from '@/assets/pixelIcons'
+import type { FC } from 'react'
 
 type RoomKey = 'desk' | 'shelf' | 'authors' | 'office' | 'study' | 'stats'
 
-const ROOMS: { key: RoomKey; icon: string; label: string; hotkey: string }[] = [
-  { key: 'desk',    icon: '✍️', label: '桌面', hotkey: '1' },
-  { key: 'shelf',   icon: '📚', label: '书架', hotkey: '2' },
-  { key: 'authors', icon: '✒️', label: '作者', hotkey: '3' },
-  { key: 'office',  icon: '🏛️', label: '办公室', hotkey: '4' },
-  { key: 'study',   icon: '📖', label: '书房', hotkey: '5' },
-  { key: 'stats',   icon: '🗄️', label: '档案', hotkey: '6' },
+interface PixelIconProps {
+  size?: number
+}
+
+const ROOMS: { key: RoomKey; Icon: FC<PixelIconProps>; label: string; hotkey: string }[] = [
+  { key: 'desk',    Icon: IconDesk,    label: '桌面', hotkey: '1' },
+  { key: 'shelf',   Icon: IconShelf,   label: '书架', hotkey: '2' },
+  { key: 'authors', Icon: IconAuthors, label: '作者', hotkey: '3' },
+  { key: 'office',  Icon: IconOffice,  label: '办公室', hotkey: '4' },
+  { key: 'study',   Icon: IconStudy,   label: '书房', hotkey: '5' },
+  { key: 'stats',   Icon: IconArchive, label: '档案', hotkey: '6' },
 ]
 
 /**
- * 6 房间速跳 minimap，桌面端永久浮在左下角。
- * 当前房间高亮，hover 显示房间名 + 快捷键。
+ * 房间速跳条。
+ * 横向平铺在场景底部的桌沿暗区上（z-50），看起来像桌沿一排刻字的木牌。
  */
 export function Minimap() {
   const activeTab = useGameStore(s => s.activeTab)
   const setActiveTab = useGameStore(s => s.setActiveTab)
 
   return (
-    <div className="absolute bottom-3 left-3 z-50 bg-[#140e0a]/85 backdrop-blur-sm border-2 border-border-dark p-1.5 shadow-[2px_2px_0_#0a0806]">
-      <div className="grid grid-cols-3 gap-0.5">
+    <div
+      className="absolute bottom-0 left-0 right-0 z-50 flex items-end justify-center pointer-events-none"
+      style={{ paddingBottom: 4 }}
+    >
+      <div
+        className="pointer-events-auto flex items-stretch gap-0 border-2 border-[#0a0806]"
+        style={{
+          background: 'linear-gradient(180deg, #2a1810, #1a0e08)',
+          boxShadow: '0 -1px 0 rgba(184, 118, 59, 0.15) inset, 2px 2px 0 rgba(0,0,0,0.4)',
+        }}
+      >
         {ROOMS.map(room => {
           const isActive = activeTab === room.key
+          const RoomIcon = room.Icon
           return (
             <button
               key={room.key}
               onClick={() => setActiveTab(room.key)}
-              title={`${room.label}（${room.hotkey}）`}
+              title={`${room.label}（按 ${room.hotkey}）`}
               aria-label={room.label}
-              className={`w-8 h-8 flex items-center justify-center text-base border transition-all cursor-pointer ${
-                isActive
-                  ? 'bg-copper border-[#f5d878] text-white scale-105'
-                  : 'bg-[#3d2614] border-[#5c3a1f] hover:bg-[#5c3a1f]'
-              }`}
+              className="relative flex flex-col items-center justify-center w-14 md:w-16 h-10 md:h-11 px-1 border-r border-[#0a0806] last:border-r-0 cursor-pointer transition-all"
+              style={{
+                background: isActive
+                  ? 'linear-gradient(180deg, #b8763b, #8a5828)'
+                  : 'linear-gradient(180deg, #3d2614, #2a1810)',
+                boxShadow: isActive
+                  ? 'inset 0 0 0 1px #f5d878, 0 0 8px rgba(245, 216, 120, 0.4)'
+                  : 'inset 0 1px 0 rgba(184, 118, 59, 0.2)',
+              }}
             >
-              {room.icon}
+              <span
+                className="leading-none"
+                style={{
+                  filter: isActive ? 'drop-shadow(0 0 2px rgba(245, 216, 120, 0.6))' : 'none',
+                }}
+              >
+                <RoomIcon />
+              </span>
+              <span
+                className="text-[9px] md:text-[10px] font-mono mt-0.5 tracking-wider"
+                style={{ color: isActive ? '#fff8e8' : '#b8a48a' }}
+              >
+                {room.label}
+              </span>
             </button>
           )
         })}
       </div>
-      <div className="text-center mt-1 text-[9px] text-[#b8a48a] font-mono">永夜出版社</div>
     </div>
   )
 }

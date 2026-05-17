@@ -1,9 +1,16 @@
 import { useState } from 'react'
+import type { FC } from 'react'
 import { useGameStore } from '@/store/gameStore'
 import { formatNumber } from '@/utils/format'
 import { formatDate } from '@/core/calendar'
 import { xpProgressInLevel } from '@/core/leveling'
 import { GENRE_LABELS } from '@/core/types'
+import { IconRP, IconPrestige, IconRoyalty, IconStatue, IconScroll, IconTrend, IconCloud, IconCoffin } from '@/assets/pixelIcons'
+import { PixelProgressBar } from '@/components/shared/PixelProgressBar'
+
+interface PixelIconProps {
+  size?: number
+}
 
 export function TopBar() {
   const currencies = useGameStore(s => s.currencies)
@@ -30,68 +37,77 @@ export function TopBar() {
   const canReborn = totalBestsellers >= 1
 
   return (
-    <header className="border-b-2 border-border-dark bg-cream-dark shrink-0">
-      <div className="flex items-center justify-between px-3 md:px-4 h-8 md:h-12">
+    <header
+      className="border-b-2 border-[#0a0806] shrink-0 relative"
+      style={{
+        background: 'linear-gradient(180deg, #1a0e08 0%, #2a1810 60%, #1a0e08 100%)',
+        boxShadow: 'inset 0 -2px 0 rgba(0,0,0,0.4), inset 0 1px 0 rgba(184, 118, 59, 0.15)',
+      }}
+    >
+      <div className="flex items-center justify-between px-3 md:px-4 h-8 md:h-12 relative z-10">
         <div className="flex items-center gap-2 md:gap-3">
-          <img src="/favicon.svg" alt="" className="w-5 h-5 md:w-6 md:h-6" />
-          <h1 className="text-xs md:text-sm font-bold text-ink tracking-tight font-mono">
+          <img src="/favicon.svg" alt="" className="w-5 h-5 md:w-6 md:h-6" style={{ filter: 'drop-shadow(0 0 2px rgba(245, 216, 120, 0.4))' }} />
+          <h1 className="text-xs md:text-sm font-bold tracking-tight font-mono" style={{ color: '#d4a85a', textShadow: '0 1px 0 #0a0806' }}>
             永夜出版社
           </h1>
-          <span className="hidden md:inline text-[16px] text-muted font-mono border border-border-medium px-1.5 py-0.5 bg-cream">
-            {formatDate(calendar)}
-          </span>
+          <WoodPlaque title="夜间纪年">{formatDate(calendar)}</WoodPlaque>
         </div>
 
-        <div className="flex items-center gap-2 md:gap-4 text-[13px] md:text-xs font-mono">
-          <CurrencyBadge label="RP" value={currencies.revisionPoints} />
-          <CurrencyBadge label="声" value={currencies.prestige} />
-          <CurrencyBadge label="税" value={currencies.royalties} />
+        <div className="flex items-center gap-1.5 md:gap-2 text-[13px] md:text-xs font-mono">
+          <CurrencyBadge Icon={IconRP} label="修订点" value={currencies.revisionPoints} />
+          <CurrencyBadge Icon={IconPrestige} label="声望" value={currencies.prestige} />
+          <CurrencyBadge Icon={IconRoyalty} label="版税" value={currencies.royalties} />
           <StatueDisplay count={currencies.statues} />
-          <span className="text-[14px] md:text-xs text-muted font-mono" title="本月出版额度">
+          <WoodPlaque title="本月出版额度" icon={<IconScroll />}>
             {booksPublishedThisMonth}/{10 + publishingQuotaUpgrades}
-          </span>
+          </WoodPlaque>
           {currentTrend && (
-            <span className="hidden md:inline text-[13px] text-ink font-bold bg-amber-100 border border-amber-300 px-1.5 py-0.5 ml-2" title="当前市场风向：相关题材销量大幅提升">
-              📈 {GENRE_LABELS[currentTrend] || currentTrend}
-            </span>
+            <WoodPlaque title="当前市场风向：相关题材销量大幅提升" accent icon={<IconTrend />}>
+              {GENRE_LABELS[currentTrend] || currentTrend}
+            </WoodPlaque>
           )}
         </div>
 
-        <div className="flex items-center gap-1.5 md:gap-3">
+        <div className="flex items-center gap-1.5 md:gap-2">
           {(() => {
             const p = xpProgressInLevel(editorXP)
+            const pct = Math.min(100, Math.round(p.current / p.needed * 100))
             return (
-              <span className="hidden md:flex items-center gap-1" title={`Lv.${p.level} (${p.current}/${p.needed} XP)`}>
-                <span className="text-[14px] md:text-xs text-progress font-bold font-mono">Lv.{p.level}</span>
-                <span className="h-2 w-16 md:w-20 bg-card-inset border border-border-dark overflow-hidden">
-                  <span className="block h-full bg-progress transition-all" style={{ width: `${Math.min(100, Math.round(p.current / p.needed * 100))}%` }} />
-                </span>
+              <span className="hidden md:flex items-center gap-1.5 px-2 py-0.5 border-2 border-[#5c3a1f]" style={{ background: '#0a0806' }} title={`Lv.${p.level} (${p.current}/${p.needed} XP)`}>
+                <span className="text-xs font-bold font-mono" style={{ color: '#d4a85a' }}>Lv.{p.level}</span>
+                <PixelProgressBar value={pct} width={64} height={8} />
               </span>
             )
           })()}
-          <span className="hidden md:inline text-[16px] text-muted font-mono">{playerName}</span>
+          <WoodPlaque title="编辑名牌">{playerName}</WoodPlaque>
           {cloudSaveCode && (
-            <span className="text-[16px] text-muted font-mono" title={`云存档：${cloudSaveCode}`}>
-              ☁️
+            <span style={{ color: '#b8a48a' }} title={`云存档：${cloudSaveCode}`}>
+              <IconCloud />
             </span>
           )}
           {canReborn && (
             <button
               onClick={() => setShowRebirth(true)}
-              className="text-[15px] md:text-[16px] px-1.5 md:px-2 py-0.5 md:py-1 bg-copper-dark text-white border-2 border-border-dark font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
+              className="text-[14px] md:text-xs px-2 py-0.5 md:py-1 font-mono cursor-pointer transition-all border-2 flex items-center gap-1"
+              style={{
+                background: 'linear-gradient(180deg, #b8763b, #8a5828)',
+                color: '#fff8e8',
+                borderColor: '#5c3a1f',
+                boxShadow: '0 0 6px rgba(245, 216, 120, 0.3)',
+              }}
             >
-              纪元
+              <IconCoffin /> 纪元
             </button>
           )}
         </div>
       </div>
 
       {/* Mobile date bar */}
-      <div className="md:hidden flex items-center justify-between px-3 pb-1.5">
-        <span className="text-[15px] text-muted font-mono border border-border-medium px-1 bg-cream">
+      <div className="md:hidden flex items-center justify-between px-3 pb-1.5 relative z-10">
+        <span className="text-[15px] font-mono border border-[#5c3a1f] px-1.5" style={{ background: '#0a0806', color: '#d4a85a' }}>
           {formatDate(calendar)}
         </span>
-        <span className="text-[15px] text-muted font-mono">{playerName}</span>
+        <span className="text-[15px] font-mono" style={{ color: '#b8a48a' }}>{playerName}</span>
       </div>
 
       {showRebirth && (
@@ -114,21 +130,72 @@ export function TopBar() {
   )
 }
 
-function CurrencyBadge({ label, value }: { label: string; value: number }) {
+/**
+ * 暗色木牌：所有顶栏徽章共享的视觉容器，
+ * 看起来像挂在墙上的小铜框/木刻牌。
+ */
+function WoodPlaque({ children, title, accent, icon }: { children: React.ReactNode; title?: string; accent?: boolean; icon?: React.ReactNode }) {
   return (
-    <span className="flex items-center gap-0.5 md:gap-1 text-ink-light">
-      <span className="text-[15px] md:text-[16px] text-muted">{label}</span>
-      <span className="tabular-nums text-copper font-bold">{formatNumber(Math.floor(value))}</span>
+    <span
+      title={title}
+      className="hidden md:inline-flex items-center gap-1 px-1.5 py-0.5 text-[11px] font-mono border-2 whitespace-nowrap"
+      style={{
+        background: accent
+          ? 'linear-gradient(180deg, #3d2614, #2a1810)'
+          : 'linear-gradient(180deg, #2a1810, #1a0e08)',
+        borderColor: accent ? '#b8763b' : '#5c3a1f',
+        color: accent ? '#f5d878' : '#d4a85a',
+        boxShadow: 'inset 0 1px 0 rgba(184, 118, 59, 0.2)',
+      }}
+    >
+      {icon}
+      {children}
     </span>
   )
 }
 
+/**
+ * 货币徽章：木刻 + 像素图标 + 铜色数字
+ */
+function CurrencyBadge({ Icon, label, value }: { Icon: FC<PixelIconProps>; label: string; value: number }) {
+  return (
+    <span
+      className="flex items-center gap-1 px-1.5 py-0.5 text-[11px] font-mono border-2"
+      title={label}
+      style={{
+        background: 'linear-gradient(180deg, #2a1810, #1a0e08)',
+        borderColor: '#5c3a1f',
+        boxShadow: 'inset 0 1px 0 rgba(184, 118, 59, 0.2)',
+      }}
+    >
+      <span style={{ filter: 'drop-shadow(0 0 1px rgba(245, 216, 120, 0.4))' }}>
+        <Icon />
+      </span>
+      <span className="tabular-nums font-bold" style={{ color: '#f5d878' }}>
+        {formatNumber(Math.floor(value))}
+      </span>
+    </span>
+  )
+}
+
+/**
+ * 铜像展示：金色雕刻牌
+ */
 function StatueDisplay({ count }: { count: number }) {
   if (count === 0) return null
   return (
-    <span className="flex items-center gap-0.5 md:gap-1 text-copper" title={`${count} 座铜像`}>
-      <span>🗽</span>
-      <span className="tabular-nums font-bold text-[16px] md:text-xs">{count}</span>
+    <span
+      className="flex items-center gap-1 px-1.5 py-0.5 text-[11px] font-mono border-2"
+      title={`${count} 座铜像`}
+      style={{
+        background: 'linear-gradient(180deg, #3d2614, #2a1810)',
+        borderColor: '#b8763b',
+        color: '#f5d878',
+        boxShadow: 'inset 0 1px 0 rgba(245, 216, 120, 0.3)',
+      }}
+    >
+      <IconStatue />
+      <span className="tabular-nums font-bold">{count}</span>
     </span>
   )
 }

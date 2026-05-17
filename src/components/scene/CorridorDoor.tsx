@@ -20,7 +20,7 @@ export function CorridorDoor({ to, side = 'right', label }: CorridorDoorProps) {
     <button
       onClick={() => setActiveTab(to)}
       aria-label={label}
-      className={`absolute top-1/2 -translate-y-1/2 z-30 w-12 md:w-16 h-32 md:h-40 cursor-pointer border-y-2 border-${isRight ? 'l' : 'r'}-2 border-[#b8763b] flex items-center justify-center font-mono text-[10px] md:text-xs text-[#b8a48a] hover:text-[#f5d878] transition-colors ${
+      className={`absolute top-1/2 -translate-y-1/2 z-30 w-10 md:w-14 h-28 md:h-36 cursor-pointer border-y-2 border-${isRight ? 'l' : 'r'}-2 border-[#b8763b] flex items-center justify-center font-mono text-[10px] md:text-xs text-[#b8a48a] hover:text-[#f5d878] transition-colors ${
         isRight ? 'right-0' : 'left-0'
       }`}
       style={{
