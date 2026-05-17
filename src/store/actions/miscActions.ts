@@ -1,4 +1,5 @@
 import { nanoid } from '@/utils/id'
+import { rangeInt } from '@/utils/random'
 import type { GameStore } from '../gameStore'
 import { createManuscript } from '@/core/factories/manuscriptFactory'
 import { TALENTS, TALENT_UNLOCK_LEVELS, type Talent } from '@/core/talents'
@@ -344,6 +345,7 @@ export const createMiscActions = (
       if (!ms || ms.status !== 'submitted') return
       ms.status = 'shelved'
       ms.shelvedAt = draft.playTicks
+      ms.shelvedResubmitAt = draft.playTicks + rangeInt(300, 600)
       draft.toasts = [...draft.toasts, {
         id: nanoid(),
         text: `"${ms.title}" 已搁置。作者可能会修改后重新投稿。`,

@@ -1,5 +1,5 @@
 import { getDeptEfficiency, getDeptLevel } from '../helpers'
-import { rangeInt, pick } from '@/utils/random'
+import { pick } from '@/utils/random'
 import { nanoid } from '@/utils/id'
 import { DEPARTMENT_COST_MULTIPLIER, AUTO_REVIEW_DEPT_LEVEL, AUTO_COVER_PRESTIGE, AUTO_REJECT_PRESTIGE, MILESTONES } from '../constants'
 import { GENRES, type Genre } from '../types'
@@ -120,13 +120,16 @@ export function processAutomationPhase({ world, result, ct }: TickContext) {
   }
 
   // 11. Shelved manuscript resubmission
+  // Use the pre-determined resubmit tick set when the manuscript was shelved.
+  // Fallback: if shelvedResubmitAt is missing (old saves), use 450 ticks from shelvedAt.
   for (const m of world.manuscripts.values()) {
-    if (m.status !== 'shelved' || !m.shelvedAt) continue
-    const shelvedDuration = world.playTicks - m.shelvedAt
-    if (shelvedDuration >= 300 + rangeInt(0, 300)) {
+    if (m.status !== 'shelved') continue
+    const resubmitTick = m.shelvedResubmitAt ?? (m.shelvedAt ?? 0) + 450
+    if (world.playTicks >= resubmitTick) {
       m.status = 'submitted'
       m.quality = Math.min(100, m.quality + 3)
       m.shelvedAt = null
+      m.shelvedResubmitAt = null
       const notes = SHELVED_RESUBMISSION_NOTES
       if (!m.synopsis.includes('（作者修改')) {
         m.synopsis += ' ' + pick(notes)
