@@ -125,24 +125,24 @@ export function DeskRoom() {
           <PixelButton
             src="/scenes/desk-tea.png"
             label="🌙 入梦写作（暂未开放）"
-            position={{ left: '61%', bottom: '6%', width: '12%', height: '28%' }}
+            position={{ left: '62%', bottom: '6%', width: '9%', height: '22%' }}
             onClick={() => { /* TODO v2.x: 梦境创作机制 */ }}
-          />
-          <PixelButton
-            src="/scenes/desk-lamp.png"
-            label="📋 出版日志"
-            position={{ left: '73%', bottom: '6%', width: '12%', height: '30%' }}
-            onClick={() => togglePanel('log')}
           />
           {catState && (
             <PixelButton
               src="/scenes/desk-cat.png"
               label={`🐈 ${catState.name || '黑猫'} (好感 ${catState.affection})`}
-              position={{ left: '85%', bottom: '4%', width: '14%', height: '34%' }}
+              position={{ left: '72%', bottom: '4%', width: '14%', height: '34%' }}
               onClick={() => togglePanel('cat')}
               outlineColor={null}  /* 猫不要描边，保留黑色剪影感 */
             />
           )}
+          <PixelButton
+            src="/scenes/desk-lamp.png"
+            label="📋 出版日志"
+            position={{ left: '87%', bottom: '6%', width: '11%', height: '30%' }}
+            onClick={() => togglePanel('log')}
+          />
         </>
       ) : (
         // SVG 兜底模式（无 PNG bg 时）：用旧的透明热区
