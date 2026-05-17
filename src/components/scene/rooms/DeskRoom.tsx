@@ -113,7 +113,7 @@ export function DeskRoom() {
       {openPanel === 'submissions' && (
         <ScenePanel variant="inbox" title={`📥 投稿池 · ${submitted.length} 份待审`} onClose={() => setOpenPanel(null)} position="top-12 left-4 md:top-16 md:left-16" width={460}>
           {submitted.length === 0 ? (
-            <p className="text-sm text-muted text-center py-6">稿件堆空了，等待新投稿……</p>
+            <EmptyInboxIllustration />
           ) : (
             <div className="space-y-2">
               {submitted.map(m => <ManuscriptCard key={m.id} manuscript={m} />)}
@@ -125,7 +125,7 @@ export function DeskRoom() {
       {openPanel === 'pipeline' && (
         <ScenePanel variant="belt" title={`编辑流水线 · ${inProgress.length} 件进行中`} onClose={() => setOpenPanel(null)} position="bottom-20 left-1/2 -translate-x-1/2" width={520}>
           {inProgress.length === 0 ? (
-            <p className="text-sm text-muted text-center py-6">流水线空闲，从投稿池审稿开始</p>
+            <EmptyPipelineIllustration />
           ) : (
             <div className="space-y-2">
               {inProgress.map(m => <PipelineCard key={m.id} manuscript={m} onSelectCover={() => setCoverModalId(m.id)} />)}
@@ -223,6 +223,93 @@ export function DeskRoom() {
 }
 
 // ─── 内嵌组件 ───
+
+/**
+ * 空投稿池插画：一个空的"待审"木质托盘，里面只有一根孤零零的羽毛笔和一片落灰。
+ * 比"稿件堆空了"的文字更有氛围。
+ */
+function EmptyInboxIllustration() {
+  const lines = [
+    '稿件堆空了。',
+    '编辑部三号窗户的灰尘开始在阳光下跳舞——你不喜欢这个比喻，因为这里没有阳光。',
+    '考虑去公告板贴张征稿启事？',
+  ]
+  const quip = lines[Math.floor(Math.random() * lines.length)]
+  return (
+    <div className="flex flex-col items-center py-6 text-center">
+      <svg viewBox="0 0 120 80" width="160" height="106" shapeRendering="crispEdges" style={{ imageRendering: 'pixelated' }}>
+        {/* 木质托盘阴影 */}
+        <rect x="10" y="62" width="100" height="3" fill="#1a0e08" opacity="0.4" />
+        {/* 托盘底部 */}
+        <rect x="6" y="42" width="108" height="22" fill="#3d2614" />
+        {/* 托盘前壁 */}
+        <rect x="6" y="60" width="108" height="4" fill="#2a1810" />
+        {/* 侧壁 */}
+        <rect x="4" y="38" width="2" height="26" fill="#2a1810" />
+        <rect x="114" y="38" width="2" height="26" fill="#2a1810" />
+        {/* 托盘后壁 */}
+        <rect x="6" y="32" width="108" height="14" fill="#5c3a1f" />
+        <rect x="6" y="30" width="108" height="2" fill="#6e4a2a" />
+        {/* "待审" 铜牌 */}
+        <rect x="48" y="34" width="24" height="8" fill="#b8763b" />
+        <rect x="48" y="34" width="24" height="1" fill="#d49a5b" />
+        <text x="60" y="40" textAnchor="middle" fontSize="5" fill="#0a0806" fontFamily="serif" fontWeight="bold">待审</text>
+        {/* 灰尘 */}
+        <circle cx="28" cy="52" r="0.6" fill="#8a7a5a" opacity="0.4" />
+        <circle cx="44" cy="56" r="0.5" fill="#8a7a5a" opacity="0.4" />
+        <circle cx="72" cy="52" r="0.7" fill="#8a7a5a" opacity="0.5" />
+        <circle cx="88" cy="55" r="0.4" fill="#8a7a5a" opacity="0.3" />
+        {/* 一根孤零零的羽毛笔 */}
+        <g transform="rotate(-12 70 50)">
+          <rect x="68" y="40" width="1.5" height="14" fill="#d4c8b0" opacity="0.7" />
+          <rect x="66" y="36" width="2" height="5" fill="#f0e8d8" opacity="0.7" />
+          <rect x="65" y="32" width="2" height="4" fill="#f0e8d8" opacity="0.7" />
+          <rect x="66" y="40" width="3" height="0.5" fill="#a89072" opacity="0.5" />
+          <rect x="66" y="42" width="3" height="0.5" fill="#a89072" opacity="0.5" />
+        </g>
+      </svg>
+      <p className="text-[12px] text-[#5a4a38] mt-3 italic max-w-[300px] leading-relaxed">{quip}</p>
+    </div>
+  )
+}
+
+/**
+ * 空流水线插画：传送带静止不动，齿轮蒙着灰。
+ */
+function EmptyPipelineIllustration() {
+  return (
+    <div className="flex flex-col items-center py-4 text-center">
+      <svg viewBox="0 0 160 60" width="220" height="83" shapeRendering="crispEdges" style={{ imageRendering: 'pixelated' }}>
+        {/* 传送带主体 */}
+        <rect x="10" y="26" width="140" height="14" fill="#2a1810" />
+        <rect x="10" y="26" width="140" height="2" fill="#5c4a3a" />
+        <rect x="10" y="38" width="140" height="2" fill="#1a0e08" />
+        {/* 滚轮（左右） */}
+        <circle cx="14" cy="33" r="8" fill="#5c3a1f" stroke="#0a0806" strokeWidth="1" />
+        <circle cx="14" cy="33" r="2" fill="#0a0806" />
+        <circle cx="146" cy="33" r="8" fill="#5c3a1f" stroke="#0a0806" strokeWidth="1" />
+        <circle cx="146" cy="33" r="2" fill="#0a0806" />
+        {/* 齿轮（上方驱动） */}
+        <g transform="translate(80 14)">
+          <circle r="8" fill="#3d2614" stroke="#0a0806" strokeWidth="1" />
+          <circle r="3" fill="#0a0806" />
+          {[0, 60, 120, 180, 240, 300].map(a => (
+            <rect key={a} x="-1" y="-10" width="2" height="3" fill="#5c3a1f" transform={`rotate(${a})`} />
+          ))}
+        </g>
+        {/* 灰尘斑点 */}
+        <circle cx="40" cy="33" r="0.6" fill="#8a7a5a" opacity="0.5" />
+        <circle cx="68" cy="32" r="0.5" fill="#8a7a5a" opacity="0.4" />
+        <circle cx="98" cy="34" r="0.6" fill="#8a7a5a" opacity="0.5" />
+        <circle cx="124" cy="33" r="0.4" fill="#8a7a5a" opacity="0.4" />
+        {/* "暂停"指示灯 */}
+        <circle cx="14" cy="50" r="2" fill="#5c0f0f" />
+        <text x="80" y="58" textAnchor="middle" fontSize="5" fill="#5c4a3a" fontFamily="serif" fontStyle="italic">— 待机中 —</text>
+      </svg>
+      <p className="text-[12px] text-[#b8a48a] mt-3 italic">流水线齿轮停了。从投稿池捞一份稿件审起来。</p>
+    </div>
+  )
+}
 
 function PipelineCard({ manuscript: ms, onSelectCover }: { manuscript: Manuscript; onSelectCover: () => void }) {
   const stage = ms.status
