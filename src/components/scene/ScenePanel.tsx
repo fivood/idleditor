@@ -90,16 +90,16 @@ function CloseBtn({ onClose, variant = 'dark' }: { onClose: () => void; variant?
   )
 }
 
-// ── 1. 通用纸张面板 ──
+// ── 1. 通用纸张面板（暗色）──
 function PaperFrame({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   return (
     <div
-      className="border-2 border-border-dark shadow-[4px_4px_0_#0a0806] p-3 md:p-4 font-mono text-ink"
-      style={{ ...PAPER_STYLES.cream, maxHeight: '70vh', overflowY: 'auto' }}
+      className="border-2 shadow-[4px_4px_0_#0a0806] p-3 md:p-4 font-mono"
+      style={{ ...PAPER_STYLES.dark, borderColor: '#0a0806', color: '#ede0c8', maxHeight: '70vh', overflowY: 'auto' }}
     >
-      <div className="flex items-center justify-between border-b border-[#c8b890] pb-2 mb-3">
-        <h3 className="text-sm font-bold text-[#4a3728]">{title}</h3>
-        <CloseBtn onClose={onClose} />
+      <div className="flex items-center justify-between border-b border-[#5c3a1f] pb-2 mb-3">
+        <h3 className="text-base font-bold" style={{ color: '#f5d878' }}>{title}</h3>
+        <CloseBtn onClose={onClose} variant="light" />
       </div>
       {children}
     </div>
@@ -127,8 +127,8 @@ function InboxFrame({ title, onClose, children }: { title: string; onClose: () =
           <CloseBtn onClose={onClose} variant="light" />
         </div>
       </div>
-      {/* 内部稿件区（带做旧底色）*/}
-      <div className="p-3 overflow-y-auto" style={{ ...PAPER_STYLES.cream, maxHeight: 'calc(72vh - 48px)' }}>
+      {/* 内部稿件区（暗色木板内胆）*/}
+      <div className="p-3 overflow-y-auto" style={{ ...PAPER_STYLES.dark, color: '#ede0c8', maxHeight: 'calc(72vh - 48px)' }}>
         {children}
       </div>
     </div>
@@ -174,10 +174,10 @@ function JournalFrame({ title, onClose, children }: { title: string; onClose: ()
       className="border-2 shadow-[4px_4px_0_#0a0806] font-mono"
       style={{ background: '#4a2f18', borderColor: '#0a0806', maxHeight: '72vh', padding: 6 }}
     >
-      <div className="relative" style={{ ...PAPER_STYLES.parchment, padding: '10px 14px' }}>
-        <div className="flex items-center justify-between border-b border-[#a89060] pb-1 mb-2">
-          <h3 className="text-sm font-bold" style={{ color: '#5c3a1f', fontFamily: 'serif' }}>📖 {title}</h3>
-          <CloseBtn onClose={onClose} />
+      <div className="relative" style={{ ...PAPER_STYLES.darkParchment, color: '#ede0c8', padding: '10px 14px' }}>
+        <div className="flex items-center justify-between border-b border-[#5c3a1f] pb-1 mb-2">
+          <h3 className="text-base font-bold" style={{ color: '#f5d878' }}>📖 {title}</h3>
+          <CloseBtn onClose={onClose} variant="light" />
         </div>
         <div className="overflow-y-auto" style={{ maxHeight: 'calc(72vh - 80px)' }}>
           {children}
@@ -206,15 +206,16 @@ function ScrollFrame({ title, onClose, children }: { title: string; onClose: () 
       <div
         className="border-l-2 border-r-2 shadow-[3px_3px_0_#0a0806]"
         style={{
-          ...PAPER_STYLES.parchment,
+          ...PAPER_STYLES.darkParchment,
           borderColor: '#0a0806',
+          color: '#ede0c8',
           maxHeight: '60vh',
           padding: '8px 14px',
         }}
       >
-        <div className="flex items-center justify-between border-b border-[#a89060] pb-1.5 mb-2">
-          <h3 className="text-sm font-bold" style={{ color: '#5c3a1f', fontFamily: 'serif' }}>{title}</h3>
-          <CloseBtn onClose={onClose} />
+        <div className="flex items-center justify-between border-b border-[#5c3a1f] pb-1.5 mb-2">
+          <h3 className="text-base font-bold" style={{ color: '#f5d878' }}>{title}</h3>
+          <CloseBtn onClose={onClose} variant="light" />
         </div>
         <div className="overflow-y-auto" style={{ maxHeight: 'calc(60vh - 60px)' }}>
           {children}
