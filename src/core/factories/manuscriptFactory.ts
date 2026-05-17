@@ -43,12 +43,12 @@ export function generateTitle(genre: string, world: GameWorldState): string {
 }
 
 // ──── Cover generation ────
+// v2.1+: 所有封面都是 SVG（像素风格统一）。PNG 封面已弃用。
 export function generateCover(title: string, genre: string, coversManifest: Record<string, string> | null): Manuscript['cover'] {
   const baseTitle = getBaseTitle(title)
   const slug = titleToSlug(baseTitle)
   const entry = coversManifest?.[slug]
-  // Use manifest if available, otherwise try direct .png path
-  const localSrc = entry ? `/covers/${entry.replace('.svg', '.png')}` : `/covers/${slug}.png`
+  const localSrc = entry ? `/covers/${entry}` : `/covers/${slug}.svg`
   return {
     type: 'generated',
     src: localSrc,

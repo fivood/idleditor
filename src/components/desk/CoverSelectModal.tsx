@@ -39,7 +39,7 @@ export function CoverSelectModal({ manuscript, onConfirm, onReject, onCancel }: 
             <div className="shrink-0 mx-auto sm:mx-0" style={{ width: 'min(200px, 50vw)', aspectRatio: '5/7' }}>
               <div className="w-full h-full border-2 border-border-dark bg-card-inset overflow-hidden">
                 {displayCover ? (
-                  <img src={displayCover} alt="" className="w-full h-full object-cover" onError={(e) => { const el = e.currentTarget; if (el.src.endsWith('.png')) el.src = el.src.replace('.png', '.svg'); else el.style.display = 'none' }} />
+                  <img src={displayCover} alt="" className="w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none' }} />
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center gap-2">
                     <img src={icon} alt="" className="w-10 h-10 md:w-12 md:h-12 opacity-50" />
