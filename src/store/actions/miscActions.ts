@@ -549,6 +549,44 @@ export const createMiscActions = (
   toggleAutoCover: () => set(draft => { draft.autoCoverEnabled = !draft.autoCoverEnabled }),
   toggleAutoReject: () => set(draft => { draft.autoRejectEnabled = !draft.autoRejectEnabled }),
   toggleAcceptMortalSubmissions: () => set(draft => { draft.acceptMortalSubmissions = !draft.acceptMortalSubmissions }),
+
+  // v2.2.3 梦境创作
+  startDream: (title: string, genre: import('@/core/types').Genre, inspirationCost: number): boolean => {
+    const state = get()
+    if (state.activeDream) return false  // 已有梦境进行中
+    if (state.currencies.inspiration < inspirationCost) return false
+    if (inspirationCost < 5) return false  // 最少 5 灵感
+    const { createDream } = require('@/core/dream/dreamFactory')
+    set(draft => {
+      const dream = createDream(draft as never, { title, genre, inspiration: inspirationCost })
+      draft.currencies.inspiration -= inspirationCost
+      draft.activeDream = dream
+    })
+    get().addToast({
+      id: nanoid(),
+      text: `🌙 你闭上眼睛——${title.trim() || '一个标题尚未浮现的作品'}开始在梦境中成形。约需 ${Math.round((inspirationCost * 180) / 60)} 分钟挂机推进。`,
+      type: 'milestone',
+      createdAt: get().playTicks,
+    })
+    return true
+  },
+
+  cancelDream: () => {
+    set(draft => {
+      if (draft.activeDream) {
+        // 退还一半灵感
+        const refund = Math.floor(draft.activeDream.inspirationSpent / 2)
+        draft.currencies.inspiration += refund
+        draft.activeDream = null
+      }
+    })
+    get().addToast({
+      id: nanoid(),
+      text: `🌅 梦被打断。你睁开眼睛，刚才写的字一个都记不住了。退还一半灵感作为安慰。`,
+      type: 'info',
+      createdAt: get().playTicks,
+    })
+  },
   toggleBlacklistedGenre: (genre: Genre) => set(draft => {
     const list = draft.blacklistedGenres || []
     if (list.includes(genre)) {

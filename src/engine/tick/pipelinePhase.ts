@@ -1,5 +1,6 @@
 import { getDeptEfficiency } from '@/core/helpers'
 import { reviewTicks, rpPerReview, editingTicks, rpPerEdit, proofingTicks, rpPerProof, publishingTicks, rpPerPublish } from '@/core/formulas'
+import { gainInspiration } from '@/core/dream/inspiration'
 import { generateToast } from '@/core/humor/generator'
 import { generatePublishNote, generateLevelUpToast } from '@/core/data/editorNotes'
 import { xpForPublish, getLevelFromXP } from '@/core/leveling'
@@ -31,6 +32,8 @@ export function processPipelinePhase(world: GameWorldState, { ct, effSpeedBonus,
         m.status = 'editing'
         m.editingProgress = 0
         world.currencies.revisionPoints += rpPerReview(effSpeedBonus + effRpBonus)
+        // v2.2.3: 审稿完成 +1 灵感
+        gainInspiration(world, 1)
         result.toasts.push(ct(generateToast('reviewComplete', {
           title: m.title,
           genre: m.genre,
@@ -96,6 +99,8 @@ export function processPipelinePhase(world: GameWorldState, { ct, effSpeedBonus,
       m.editorNote = generatePublishNote(m)
     }
     world.totalPublished++
+    // v2.2.3: 出版成功 +2 灵感
+    gainInspiration(world, 2)
     world.currencies.revisionPoints += rpPerPublish(m.quality, 0, world.booksPublishedThisMonth)
     const pubPrestige = m.isUnsuitable ? -10 : 10
     world.currencies.prestige += pubPrestige * (epochSocialite ? 1.5 : 1)

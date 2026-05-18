@@ -86,6 +86,9 @@ function applyWorldToDraft(draft: GameWorldState, world: GameWorldState) {
   draft.currentTrend = world.currentTrend
   draft.blacklistedGenres = world.blacklistedGenres
   draft.acceptMortalSubmissions = world.acceptMortalSubmissions
+  draft.activeDream = world.activeDream
+  draft.inspirationDailyGained = world.inspirationDailyGained
+  draft.inspirationDailyResetAt = world.inspirationDailyResetAt
 
   if (import.meta.env.DEV) {
     if (draft.manuscripts.size !== world.manuscripts.size || draft.authors.size !== world.authors.size || draft.departments.size !== world.departments.size) {
@@ -140,6 +143,9 @@ function extractWorldFromState(state: GameStore): GameWorldState {
     currentTrend: state.currentTrend,
     blacklistedGenres: structuredClone(state.blacklistedGenres),
     acceptMortalSubmissions: state.acceptMortalSubmissions,
+    activeDream: structuredClone(state.activeDream),
+    inspirationDailyGained: state.inspirationDailyGained ?? 0,
+    inspirationDailyResetAt: state.inspirationDailyResetAt ?? 0,
   }
 }
 
@@ -305,6 +311,9 @@ export interface GameStore extends GameWorldState {
   toggleAutoReject: () => void
   toggleBlacklistedGenre: (genre: Genre) => void
   toggleAcceptMortalSubmissions: () => void
+  // v2.2.3 梦境创作
+  startDream: (title: string, genre: import('@/core/types').Genre, inspirationCost: number) => boolean
+  cancelDream: () => void
   reissueBook: (id: string) => void
   buyAuthorMeal: (id: string) => void
   sendAuthorGift: (id: string) => void
@@ -435,6 +444,14 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
           set({
             ...createInitialWorld(),
             ...saved,
+            // v2.2.3 兼容：旧存档 currencies 没有 inspiration 字段
+            currencies: {
+              revisionPoints: saved.currencies?.revisionPoints ?? 0,
+              prestige: saved.currencies?.prestige ?? 0,
+              royalties: saved.currencies?.royalties ?? 0,
+              statues: saved.currencies?.statues ?? 0,
+              inspiration: (saved.currencies as any)?.inspiration ?? 0,
+            },
             permanentBonuses: {
               ...createInitialWorld().permanentBonuses,
               ...saved.permanentBonuses,
@@ -617,6 +634,7 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
         prestige: 0,
         royalties: 500,
         statues: newStatues,
+        inspiration: 0,
       },
       toasts: [{
         id: nanoid(),
@@ -771,7 +789,13 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
         booksPublishedThisMonth: data.booksPublishedThisMonth ?? 0,
         editorXP: data.editorXP ?? 0,
         editorLevel: data.editorLevel ?? 1,
-        currencies: data.currencies ?? { revisionPoints: 0, prestige: 0, royalties: 0, statues: 0 },
+        currencies: {
+          revisionPoints: data.currencies?.revisionPoints ?? 0,
+          prestige: data.currencies?.prestige ?? 0,
+          royalties: data.currencies?.royalties ?? 0,
+          statues: data.currencies?.statues ?? 0,
+          inspiration: (data.currencies as any)?.inspiration ?? 0,  // v2.2.3 兼容
+        },
         permanentBonuses: {
           manuscriptQualityBonus: data.permanentBonuses?.manuscriptQualityBonus ?? 0,
           editingSpeedBonus: data.permanentBonuses?.editingSpeedBonus ?? 0,

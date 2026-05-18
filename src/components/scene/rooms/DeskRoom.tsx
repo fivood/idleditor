@@ -7,6 +7,7 @@ import { ScenePanel } from '@/components/scene/ScenePanel'
 import { CorridorDoor } from '@/components/scene/CorridorDoor'
 import { ManuscriptCard } from '@/components/desk/ManuscriptCard'
 import { CoverSelectModal } from '@/components/desk/CoverSelectModal'
+import { DreamPanel } from '@/components/desk/DreamPanel'
 import { LogPanel } from '@/components/shared/LogPanel'
 import { PixelProgressBar } from '@/components/shared/PixelProgressBar'
 import { PixelTextButton } from '@/components/shared/PixelTextButton'
@@ -16,7 +17,7 @@ import type { FC } from 'react'
 
 interface PixelIconProps { size?: number }
 
-type PanelKey = null | 'submissions' | 'pipeline' | 'log' | 'cat' | 'solicit'
+type PanelKey = null | 'submissions' | 'pipeline' | 'log' | 'cat' | 'solicit' | 'dream'
 
 const STAGE_PIXEL: Record<string, FC<PixelIconProps>> = {
   reviewing: IconReview,
@@ -133,9 +134,9 @@ export function DeskRoom() {
             src="/scenes/desk-tea.png"
             hoverSrc="/scenes/desk-tea-hover.png"
             outlineColor={null}
-            label="🌙 入梦写作（暂未开放）"
+            label="🌙 梦境创作（白班睡梦写作）"
             position={{ left: '62%', bottom: '6%', width: '9%', height: '22%' }}
-            onClick={() => { /* TODO v2.x: 梦境创作机制 */ }}
+            onClick={() => togglePanel('dream')}
           />
           {catState && (
             <PixelButton
@@ -290,6 +291,12 @@ export function DeskRoom() {
               onClick={() => { solicitRush(); setOpenPanel(null) }}
             />
           </div>
+        </ScenePanel>
+      )}
+
+      {openPanel === 'dream' && (
+        <ScenePanel variant="scroll" title="🌙 梦境创作" onClose={() => setOpenPanel(null)} position="top-12 left-1/2 -translate-x-1/2" width={420}>
+          <DreamPanel onClose={() => setOpenPanel(null)} />
         </ScenePanel>
       )}
 

@@ -24,6 +24,13 @@ export function ShelfView() {
   const [filterGenre, setFilterGenre] = useState<string | null>(null)
   const [showGenreLabels, setShowGenreLabels] = useState(true)
   const [storeTab, setStoreTab] = useState<boolean>(true)
+  // v2.2.3: 我的创作分区
+  const [section, setSection] = useState<'signed' | 'mine'>('signed')
+
+  // 拆分签约作家书 vs 玩家自创书
+  const signedBooks = useMemo(() => books.filter(b => !b.isPlayerCreated), [books])
+  const playerBooks = useMemo(() => books.filter(b => b.isPlayerCreated), [books])
+  const activeBooks = section === 'mine' ? playerBooks : signedBooks
 
   // Books stocked in any store
   const stockedIds = useMemo(() => {
@@ -33,13 +40,13 @@ export function ShelfView() {
   }, [bookstores])
 
   const sorted = useMemo(() => {
-    let list = [...books]
+    let list = [...activeBooks]
     if (filterGenre) list = list.filter(b => b.genre === filterGenre)
     if (sortBy === 'sales') list.sort((a, b) => b.salesCount - a.salesCount)
     else if (sortBy === 'quality') list.sort((a, b) => b.quality - a.quality)
     else list.sort((a, b) => (b.publishTime || 0) - (a.publishTime || 0))
     return list
-  }, [books, sortBy, filterGenre])
+  }, [activeBooks, sortBy, filterGenre])
 
   const containerRef = useRef<HTMLDivElement>(null)
   const [booksPerRow, setBooksPerRow] = useState(10)
@@ -88,7 +95,28 @@ export function ShelfView() {
       {/* Header */}
       <div className="flex items-center justify-between px-3 md:px-4 py-2 md:py-3 shrink-0">
         <div className="flex items-center gap-2">
-          <h2 className="text-xs md:text-sm font-bold text-ink font-mono">{sorted.length} 本书</h2>
+          {/* 分区切换 */}
+          <button
+            onClick={() => setSection('signed')}
+            className="text-[13px] md:text-xs px-2 py-0.5 border-2 border-border-dark font-mono cursor-pointer"
+            style={{
+              background: section === 'signed' ? '#b8763b' : '#1a0e08',
+              color: section === 'signed' ? '#fff8e8' : '#d4a85a',
+            }}
+          >
+            签约 {signedBooks.length}
+          </button>
+          <button
+            onClick={() => setSection('mine')}
+            className="text-[13px] md:text-xs px-2 py-0.5 border-2 border-border-dark font-mono cursor-pointer"
+            style={{
+              background: section === 'mine' ? '#b8763b' : '#1a0e08',
+              color: section === 'mine' ? '#fff8e8' : '#d4a85a',
+            }}
+            title="梦境创作产出的作品"
+          >
+            🌙 我的 {playerBooks.length}
+          </button>
           <button onClick={() => setStoreTab(!storeTab)} className={`text-[14px] md:text-xs px-2 py-0.5 border-2 border-border-dark font-mono cursor-pointer transition-all ${storeTab ? 'bg-copper text-white' : 'bg-cream text-muted'}`}>
             🏪 {bookstores.length}
           </button>
