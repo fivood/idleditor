@@ -1,4 +1,5 @@
 import type { Author, CatState, Department, DreamProject, EditorTrait, GameEvent, Genre, Manuscript, PermanentBonuses, TickResult } from './types'
+import type { AwardWinner } from './awards'
 import { BOSS_START_YEARS } from './constants'
 import { createCalendar } from './calendar'
 import type { GameCalendar } from './calendar'
@@ -28,6 +29,11 @@ export interface GameWorldState {
   inspirationDailyResetAt: number // 上次重置（按 calendar.totalDays）
   // v2.3: 已广播过的解锁 id，防止 toast 重复推送
   announcedUnlocks?: Set<string>
+  // v2.4: 永夜文学奖
+  /** 已颁奖的最后一个游戏年份（首次进入时设为当前 calendar.year，之后每年推进时颁前一年的奖） */
+  lastAwardYear?: number
+  /** 历届获奖名录，按时间顺序追加 */
+  awardHistory?: AwardWinner[]
   permanentBonuses: PermanentBonuses
   trait: EditorTrait | null
   playerName: string
@@ -81,6 +87,8 @@ export function createInitialWorld(): GameWorldState {
     inspirationDailyGained: 0,
     inspirationDailyResetAt: 0,
     announcedUnlocks: new Set(),
+    lastAwardYear: 0,
+    awardHistory: [],
     permanentBonuses: {
       manuscriptQualityBonus: 0,
       editingSpeedBonus: 0,

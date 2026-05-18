@@ -90,6 +90,8 @@ function applyWorldToDraft(draft: GameWorldState, world: GameWorldState) {
   draft.activeDream = world.activeDream
   draft.inspirationDailyGained = world.inspirationDailyGained
   draft.inspirationDailyResetAt = world.inspirationDailyResetAt
+  draft.lastAwardYear = world.lastAwardYear
+  draft.awardHistory = world.awardHistory
 
   if (import.meta.env.DEV) {
     if (draft.manuscripts.size !== world.manuscripts.size || draft.authors.size !== world.authors.size || draft.departments.size !== world.departments.size) {
@@ -147,6 +149,8 @@ function extractWorldFromState(state: GameStore): GameWorldState {
     activeDream: structuredClone(state.activeDream),
     inspirationDailyGained: state.inspirationDailyGained ?? 0,
     inspirationDailyResetAt: state.inspirationDailyResetAt ?? 0,
+    lastAwardYear: state.lastAwardYear ?? 0,
+    awardHistory: structuredClone(state.awardHistory ?? []),
   }
 }
 
@@ -611,6 +615,8 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
         blacklistedGenres: state.blacklistedGenres,
         acceptMortalSubmissions: state.acceptMortalSubmissions,
         archivedLogsByYear: state.archivedLogsByYear,
+        lastAwardYear: state.lastAwardYear,
+        awardHistory: state.awardHistory,
       }).catch(() => {})
     }
   },
@@ -653,6 +659,9 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
       prActive: state.prActive,
       readingRoomRenovated: state.readingRoomRenovated,
       selectedTalents: state.selectedTalents,
+      // v2.4: 文学奖名录跨纪元保留（永久荣誉）；lastAwardYear 重置随新纪元日历
+      awardHistory: state.awardHistory ?? [],
+      lastAwardYear: 0,
     })
 
     // Check for count scene

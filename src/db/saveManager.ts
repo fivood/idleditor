@@ -37,6 +37,8 @@ export interface GameSaveData {
   blacklistedGenres: import('@/core/types').Genre[]
   acceptMortalSubmissions: boolean
   archivedLogsByYear?: Record<number, import('@/core/types').ToastMessage[]>
+  lastAwardYear?: number
+  awardHistory?: import('@/core/awards').AwardWinner[]
 }
 
 export async function saveGameToDb(data: GameSaveData): Promise<void> {
@@ -73,6 +75,8 @@ export async function saveGameToDb(data: GameSaveData): Promise<void> {
     blacklistedGenres: data.blacklistedGenres,
     acceptMortalSubmissions: data.acceptMortalSubmissions,
     archivedLogsByYear: data.archivedLogsByYear,
+    lastAwardYear: data.lastAwardYear,
+    awardHistory: data.awardHistory,
     updatedAt: Date.now(),
   }
   await db.saves.put(save)
@@ -114,6 +118,8 @@ export async function loadGameFromDb(): Promise<GameSaveData | null> {
     blacklistedGenres: (save as any).blacklistedGenres ?? [],
     acceptMortalSubmissions: (save as any).acceptMortalSubmissions ?? false,
     archivedLogsByYear: (save as any).archivedLogsByYear ?? {},
+    lastAwardYear: (save as any).lastAwardYear ?? 0,
+    awardHistory: (save as any).awardHistory ?? [],
   }
 }
 

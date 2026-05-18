@@ -13,6 +13,7 @@ import { processAuthorPhase } from './tick/authorPhase'
 import { processAutomationPhase } from './tick/automationPhase'
 import { processDreamPhase } from './tick/dreamPhase'
 import { processUnlockPhase } from './tick/unlockPhase'
+import { processAwardsPhase } from './tick/awardsPhase'
 import type { RunTickOptions, TickContext, TickPhase } from './types'
 
 const TICK_PHASES: Array<{ name: string; run: TickPhase }> = [
@@ -25,6 +26,7 @@ const TICK_PHASES: Array<{ name: string; run: TickPhase }> = [
   { name: 'automation', run: processAutomationPhase },
   { name: 'dream', run: processDreamPhase },
   { name: 'unlock', run: processUnlockPhase },
+  { name: 'awards', run: processAwardsPhase },  // v2.4: 年度文学奖（跨年时触发）
 ]
 
 function createTickResult(): TickResult {
