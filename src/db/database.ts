@@ -51,6 +51,20 @@ export interface SavedGame {
   acceptMortalSubmissions?: boolean
   // v2.3.1+ 出版日志档案（按游戏年份归档的滚出日志）
   archivedLogsByYear?: Record<number, Array<{ id: string; text: string; type: string; createdAt: number }>>
+  // v2.4+ 永夜文学奖
+  lastAwardYear?: number
+  awardHistory?: Array<{
+    year: number
+    category: string
+    bookId: string
+    bookTitle: string
+    bookGenre: string
+    authorId: string
+    authorName: string
+    quality: number
+    salesCount: number
+    citation: string
+  }>
   updatedAt: number
 }
 

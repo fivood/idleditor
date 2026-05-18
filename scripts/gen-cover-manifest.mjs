@@ -1,178 +1,141 @@
-import { writeFileSync, mkdirSync, existsSync } from 'fs'
+// 一次性脚本：从 src/core/titlePools.ts 解析所有书名 → 生成
+// public/covers/manifest.json + public/covers/README.md（书目对照表）。
+//
+// titlePools.ts 是唯一真相源；任何时候增删书名都先改它，再跑：
+//
+//   node scripts/gen-cover-manifest.mjs
+//
+// 脚本会扫描 public/covers 现有的 PNG，存在 `{title}.png` 即映射到该文件，
+// 否则统一使用 `占位封面.png`。
+
+import { readFileSync, readdirSync, writeFileSync, existsSync, mkdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
+const rootDir = join(__dirname, '..')
+const coversDir = join(rootDir, 'public', 'covers')
+const titlePoolsPath = join(rootDir, 'src', 'core', 'titlePools.ts')
 
-const SCI_FI_TITLES = [
-  '最后的时空旅行者', '量子茶渍', '火星，很遗憾', '有知觉的脚注',
-  '此处重力可选', '明日简史', '代码深处的回声', '银河系通勤指南',
-  '四体', '零体', '流浪火星', '沙堆',
-  '神经躺平者', '银河系迷路指南', '基础', '太阳泛起了涟漪',
-  '安德的加班', '海不理俺', '环形废墟2.0', '光子罢工日',
-  '永生者的宇宙学', '光年是错的', '最后的外卖骑手', '戴森球招标书',
-  '时空管理局拒签记录', '无限循环与有限耐心',
-  '勉强还行新世界', '华氏452', '发条柚子', '仿生人会发朋友圈吗',
-  '银河系搭车客生存手册', '时间足够你摸鱼', '与拉玛相看两厌',
-  '童年的终结（青少年版）', '神们自己也不确定', '永恒的终结·续',
-  '火星三部曲·第四部', '你一生的故事（简写本）',
-  '火星编年史（微信精选）', '基地（物业公司）', '雪崩（区块链版）',
-  '与罗摩相会（线上会议）', '黑暗的左手（握手版）', '海伯利安（经济舱）',
-  '安德的影子（已离职）', '神的九十亿个名字（多写了一篇）',
-]
+const PLACEHOLDER = '占位封面.png'
 
-const MYSTERY_TITLES = [
-  '饼干盒疑案', '委员会谋杀案', '牧师又干了', '游园会杀人事件',
-  '图书馆里的狗奇案', '七楼走廊的脚步声', '不在场证明太完美了',
-  '祸尔摩斯探案集', '东方慢车误点案', '差点无人伤亡', '白夜走',
-  '嫌疑人X的加班', '淡淡的恶意', '电梯里的第十三个人', '最后一页被撕了',
-  '出版社杀人事件', '死者生前发了一条朋友圈', '不在场证明有1080页',
-  '密室里的自动回复', '凶手是AI', '温泉旅馆与消失的拖鞋',
-  '红发会的中国分社', '斑驳的铜像', '巴斯克维尔的哈士奇',
-  '养活一只知更鸟', '尼罗河上的惨案（邮轮版）', '无人生还·修订版',
-  'ABC谋杀案·重启', '帷幕之后还有一页', '啤酒谋杀案',
-  '格林家杀人事件·物业版', '占星术杀人魔法（已破解）',
-  '长眠不醒（失眠版）', '马耳他之鹰（网购版）', '消失的爱人（朋友圈版）',
-  '龙纹身的女孩（纹身贴）', '漫长的告别（微信版）', '大眠（咖啡因版）',
-]
-
-const SUSPENSE_TITLES = [
-  '知道太少的人', '截稿日', '沉默的来电者', '地板下面',
-  '错误的钥匙', '开往无处的末班车', '第十二个目击者', '不能说的姓名',
-  '沉默的烤全羊', '龙纹身的项目经理', '消失的快递', '达芬奇验证码',
-  '天黑之后千万别看邮箱', '房东突然说下个月涨房租', '那个谁死了',
-  '地下室传来打字声', '监控拍到的是昨天', '第十二通电话没有来电显示',
-  '被锁在稿子里的编辑', '合同第七条附款（小字）',
-  '实习生沉默的方式', '别相信任何人（包括作者）', '独居的一年·邻居版',
-  '第22条军规', '蝇王·蜂后篇', '罪与改',
-  '蝴蝶梦（甲方改稿版）', '玫瑰的名字（物管）', '鬼店（连锁加盟）',
-  '闪灵（物业报修）', '肖申克的救赎（合规培训）',
-]
-
-const SOCIAL_TITLES = [
-  '关于排队：一项田野调查', '寒暄的社会学', '我们为什么道歉',
-  'M&S咖啡馆的人类学考察', '天气与民族性格', '下午茶的仪式分析',
-  '键盘咖啡与加班', '散了又聚之众', '思考：算了不想了', '挺正常的',
-  '人类流水账', '外卖迟到五分钟的阶层分析', '朋友圈点赞的政治经济学',
-  '如何假装自己读过这本书', '社恐的哲学辩护', '精致穷的谱系学',
-  '当代青年用省略号的方式研究', '表情包使用的代际差异',
-  '偏见与更偏见', '存在与摆烂', '局内人', '瓦尔登湖景房',
-  '战争与还行', '了不起的盖茨比（平装）', '年轻人与泳池',
-  '太阳照常迟到', '包法利夫人（双语注解版）',
-  '人的疆域', '寂静的春天（市区版）', '弗兰肯斯坦（HR版）',
-  '野性的呼唤（都市篇）', '动物庄园（股份制改革）', '美丽新世界（996版）',
-  '格列佛游记（短视频版）', '堂吉诃德（互联网从业者）', '神曲（弹幕版）',
-  '资本论（漫画解说版）', '第二性（终于出版）', '百年孤独（家谱附录版）',
-  '霍乱时期的爱情（疫苗版）', '枯枝败叶（堆肥指南）', '族长的秋天（退休生活）',
-  '傲慢与偏见与更偏见', '白鲸（删减至中篇）',
-]
-
-const HYBRID_TITLES = [
-  'AI刑警', '时间犯罪调查科', '心理时间机器', '算法谋杀案',
-  '赛博推理', '平行宇宙证词', '仿生人会梦见996吗', '雪滑',
-  '量子纠缠情感咨询所', '蒸汽朋克考据学', '克苏鲁的HR手册',
-  '穿越成编辑后的我被迫出版自己的小说', '基因编码的暗恋',
-  '太空站灵异事件簿', '区块链时间旅行保险公司',
-  '巴别图书馆的安保系统',
-  '城堡（物业版）', '变形计（甲虫视角）', '绿楼梦',
-  '四国演义', '东游记（高铁篇）', '聊斋志异（已科学解释）',
-  '鲁滨逊隔离记', '洛丽塔（争议版）', '尤利西斯（注音版）',
-  '千年热闹', '云图（散装版）', '少年派的奇幻漂流（事后访谈）',
-  '午夜之子（正午出生）', '玫瑰的名字（香水专柜）',
-  '风之影（电子书版）', '达芬奇密码（重置密码）',
-  '百年孤独（马尔克斯看了沉默）', '霍乱时期的爱情（健康码绿色）',
-  '寂静的春天（市区版）', '弗兰肯斯坦（HR版）',
-]
-
-const LIGHT_NOVEL_TITLES = [
-  '转生异世界但是便利店店员', '在异世界开出版社是否搞错了什么',
-  '魔王兼职当编辑', '我的勇者客户端出了BUG',
-  '异世界转生之我成了魔王的责编', '把现代管理学带入剑与魔法的世界',
-  '转生后发现自己成了书本里的反派编辑', '异世界图书馆的闭馆时间',
-  '勇者退休后在出版社再就业', '精灵族文字翻译入门（全三卷）',
-  '被召唤到异世界但只想好好审稿', '魔导书编辑部的日常',
-  '穿越成恶役编辑但主角团太能写了', '异世界编辑部的茶水间战争',
-  '奇幻设定集里没有的编辑守则', '转生王子放弃了王位选择了出版业',
-  '社畜OL转生异世界继续社畜', '异世界来的投稿全是真事',
-  '我的能力是让所有稿件准时截稿', '异世界出版社的黑心劳动法',
-  '在异世界推广轻小说文化的我', '魔法学校编辑部的禁忌之书',
-  '转生成为责任编辑后把异世界搞成了出版社帝国',
-  '龙族公主的恋爱小说被退稿了', '人鱼编辑与陆地作者的远距离审稿',
-  '异世界相亲对象是同行编辑', '魔王的甜宠编辑日常',
-  '转生异世界之我被九个作者同时催稿', '精灵王子的初恋是出版社实习生',
-  '异能学园的编辑社', '放学后投稿部的秘密',
-  '超能力者普通科·编辑部的日常', '学园祭的截稿倒计时',
-  '校刊编辑部的非日常事件簿', '关于我在侍奉部写稿子这件事',
-  '出版社超自然对策室', '樱丘高校文艺部血战',
-]
-
-const TITLE_POOLS = {
-  'sci-fi': SCI_FI_TITLES,
-  mystery: MYSTERY_TITLES,
-  suspense: SUSPENSE_TITLES,
-  'social-science': SOCIAL_TITLES,
-  hybrid: HYBRID_TITLES,
-  'light-novel': LIGHT_NOVEL_TITLES,
+const POOL_TO_GENRE = {
+  SCI_FI_TITLES: 'sci-fi',
+  MYSTERY_TITLES: 'mystery',
+  SUSPENSE_TITLES: 'suspense',
+  SOCIAL_TITLES: 'social-science',
+  HYBRID_TITLES: 'hybrid',
+  LIGHT_NOVEL_TITLES: 'light-novel',
+}
+const GENRE_LABEL = {
+  'sci-fi': '科幻',
+  mystery: '推理',
+  suspense: '悬疑',
+  'social-science': '社科',
+  hybrid: '混合',
+  'light-novel': '轻小说',
 }
 
 function titleToSlug(title) {
   return title
     .replace(/[：:]/g, '-')
-    .replace(/[？?！!。，,、（）()【】\[\]《》""]/g, '')
+    .replace(/[？?！!。，,、（）()【】\[\]《》""·]/g, '')
     .replace(/\s+/g, '-')
     .replace(/\/+/g, '-')
     .trim()
 }
 
-/** @type {Array<{ title: string, genre: string, filename: string, slug: string }>} */
+// ── 解析 titlePools.ts ──
+const src = readFileSync(titlePoolsPath, 'utf-8')
+const pools = {}
+for (const arrName of Object.keys(POOL_TO_GENRE)) {
+  const re = new RegExp('export const ' + arrName + '\\s*=\\s*\\[([\\s\\S]*?)\\]', 'm')
+  const m = src.match(re)
+  if (!m) { console.error('miss array', arrName); process.exit(1) }
+  pools[arrName] = [...m[1].matchAll(/'([^']+)'/g)].map(x => x[1])
+}
+
+// ── 扫描已有 PNG ──
+if (!existsSync(coversDir)) mkdirSync(coversDir, { recursive: true })
+const presentPngs = new Set(readdirSync(coversDir).filter(f => f.endsWith('.png')))
+
+// ── 组装 manifest ──
 const manifest = []
-
-// v2.3.2: 切回 PNG 像素封面。已上传的书用各自 PNG，其余统一映射 占位封面.png。
-const PLACEHOLDER = '占位封面.png'
-const coversDir = join(__dirname, '..', 'public', 'covers')
-const presentPngs = existsSync(coversDir)
-  ? new Set((await import('fs')).readdirSync(coversDir).filter(f => f.endsWith('.png')))
-  : new Set()
-
-for (const [genre, titles] of Object.entries(TITLE_POOLS)) {
+const seen = new Set()
+const dupes = []
+for (const [arrName, titles] of Object.entries(pools)) {
   for (const title of titles) {
-    const slug = titleToSlug(title)
-    const ownPng = `${title}.png`  // 用原标题（含括号等）查 PNG，与 generateCover 的 slug 解耦
+    if (seen.has(title)) {
+      dupes.push({ title, genre: POOL_TO_GENRE[arrName] })
+      continue
+    }
+    seen.add(title)
+    const ownPng = title + '.png'
     const filename = presentPngs.has(ownPng) ? ownPng : PLACEHOLDER
     manifest.push({
       title,
-      genre,
-      slug,
+      genre: POOL_TO_GENRE[arrName],
+      slug: titleToSlug(title),
       filename,
     })
   }
 }
 
-const outDir = join(__dirname, '..', 'public', 'covers')
-if (!existsSync(outDir)) {
-  mkdirSync(outDir, { recursive: true })
+if (dupes.length > 0) {
+  console.warn('⚠ 跨池重复（已自动去重，保留首次出现的池）：')
+  for (const d of dupes) console.warn('  -', d.title, '(in', GENRE_LABEL[d.genre] + ')')
 }
 
-const outPath = join(outDir, 'manifest.json')
-writeFileSync(outPath, JSON.stringify(manifest, null, 2), 'utf-8')
+// 检查 PNG 是否都被某个标题引用
+const used = new Set(manifest.map(e => e.filename))
+const orphanPngs = [...presentPngs].filter(f => f !== PLACEHOLDER && !used.has(f))
+if (orphanPngs.length > 0) {
+  console.warn('⚠ 孤儿 PNG（文件存在但 titlePools 里没有对应书名）：')
+  for (const f of orphanPngs) console.warn('  -', f)
+}
 
-// Also write a human-readable table as markdown
-const genreLabel = { 'sci-fi': '科幻', mystery: '推理', suspense: '悬疑', 'social-science': '社科', hybrid: '混合' }
-const mdLines = [
-  '# 封面图片对照表',
+writeFileSync(join(coversDir, 'manifest.json'), JSON.stringify(manifest, null, 2), 'utf-8')
+
+// ── 生成书目对照表 README.md ──
+const total = manifest.length
+const withPng = manifest.filter(e => e.filename !== PLACEHOLDER).length
+const lines = [
+  '# 永夜出版社 · 书目对照表',
   '',
-  '将生成的封面图片放入 `public/covers/` 目录，文件名见下表。',
+  `共 **${total}** 本 · 已绘制封面 **${withPng}** / **${total}**（${Math.round(withPng / total * 100)}%）`,
   '',
-  '| 编号 | 书名 | 类型 | 文件名 | 已生成 |',
-  '|------|------|------|--------|--------|',
+  '> 修改 `src/core/titlePools.ts` → 跑 `node scripts/gen-cover-manifest.mjs` 自动同步本表。',
+  '> 将新封面 PNG（40×56 像素艺术）放到本目录，文件名与"书名"列完全一致即可被识别。',
+  '',
 ]
-manifest.forEach((entry, i) => {
-  mdLines.push(`| ${i + 1} | ${entry.title} | ${genreLabel[entry.genre] ?? entry.genre} | \`${entry.filename}\` | ☐ |`)
-})
 
-writeFileSync(join(outDir, 'README.md'), mdLines.join('\n'), 'utf-8')
+// 按 genre 分组
+const byGenre = {}
+for (const e of manifest) {
+  if (!byGenre[e.genre]) byGenre[e.genre] = []
+  byGenre[e.genre].push(e)
+}
 
-console.log(`Generated ${manifest.length} cover entries → ${outPath}`)
-console.log(`README → ${join(outDir, 'README.md')}`)
-console.log(`\nTotal: ${manifest.length} unique titles across ${Object.keys(TITLE_POOLS).length} genres`)
-console.log(`Next: generate a ${manifest[0].filename.slice(-3)} image for each entry and place in public/covers/`)
+for (const [genre, label] of Object.entries(GENRE_LABEL)) {
+  const list = byGenre[genre] ?? []
+  const done = list.filter(e => e.filename !== PLACEHOLDER).length
+  lines.push(`## ${label}（${done} / ${list.length}）`)
+  lines.push('')
+  lines.push('| # | 书名 | 封面状态 |')
+  lines.push('|---|------|----------|')
+  list.forEach((e, i) => {
+    const status = e.filename === PLACEHOLDER ? '☐ 待绘' : `✓ \`${e.filename}\``
+    lines.push(`| ${i + 1} | ${e.title} | ${status} |`)
+  })
+  lines.push('')
+}
+
+writeFileSync(join(coversDir, 'README.md'), lines.join('\n'), 'utf-8')
+
+console.log(`\n✓ manifest.json — ${total} 个标题`)
+console.log(`✓ README.md   — 已绘制 ${withPng}/${total}`)
+for (const [genre, label] of Object.entries(GENRE_LABEL)) {
+  const list = byGenre[genre] ?? []
+  const done = list.filter(e => e.filename !== PLACEHOLDER).length
+  console.log(`  ${label}: ${done}/${list.length}`)
+}
