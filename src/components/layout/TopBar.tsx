@@ -5,7 +5,7 @@ import { formatNumber } from '@/utils/format'
 import { formatDate } from '@/core/calendar'
 import { xpProgressInLevel } from '@/core/leveling'
 import { GENRE_LABELS } from '@/core/types'
-import { IconRP, IconPrestige, IconRoyalty, IconStatue, IconScroll, IconTrend, IconCloud, IconCoffin } from '@/assets/pixelIcons'
+import { IconRP, IconPrestige, IconRoyalty, IconStatue, IconScroll, IconTrend, IconCloud, IconCoffin, IconMoon } from '@/assets/pixelIcons'
 import { PixelProgressBar } from '@/components/shared/PixelProgressBar'
 
 interface PixelIconProps {
@@ -54,6 +54,9 @@ export function TopBar() {
           <CurrencyBadge Icon={IconRP} label="修订点" value={currencies.revisionPoints} />
           <CurrencyBadge Icon={IconPrestige} label="声望" value={currencies.prestige} />
           <CurrencyBadge Icon={IconRoyalty} label="版税" value={currencies.royalties} />
+          {currencies.inspiration > 0 && (
+            <CurrencyBadge Icon={IconMoon} label="梦境灵感（审稿/出版获取）" value={currencies.inspiration} />
+          )}
           <StatueDisplay count={currencies.statues} />
           <WoodPlaque title="本月出版额度" icon={<IconScroll />}>
             {booksPublishedThisMonth}/{10 + publishingQuotaUpgrades}

@@ -122,6 +122,19 @@ export interface Manuscript {
   reissueBoostUntil: number | null
   editorNote: string
   customNote: string
+  // v2.2.3: 玩家自创作（梦境写作产物）
+  isPlayerCreated?: boolean
+}
+
+// 梦境创作项目（玩家进入梦境正在写的一本书）
+export interface DreamProject {
+  id: string
+  title: string
+  genre: Genre
+  inspirationSpent: number   // 启动时投入的灵感数（决定品质和字数）
+  progressTicks: number      // 已推进 tick
+  totalTicks: number         // 总需 tick（一般 1800-5400）
+  startedAt: number          // playTicks 时间戳
 }
 
 export interface BookCover {
@@ -181,6 +194,9 @@ export interface CurrencyState {
   prestige: number
   royalties: number
   statues: number
+  // v2.2.3: 梦境创作的核心资源
+  // 审稿/出版获取，投入梦境项目消耗
+  inspiration: number
 }
 
 export interface PermanentBonuses {

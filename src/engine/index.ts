@@ -11,6 +11,7 @@ import { processPipelinePhase } from './tick/pipelinePhase'
 import { processEconomyPhase } from './tick/economyPhase'
 import { processAuthorPhase } from './tick/authorPhase'
 import { processAutomationPhase } from './tick/automationPhase'
+import { processDreamPhase } from './tick/dreamPhase'
 import type { RunTickOptions, TickContext, TickPhase } from './types'
 
 const TICK_PHASES: Array<{ name: string; run: TickPhase }> = [
@@ -21,6 +22,7 @@ const TICK_PHASES: Array<{ name: string; run: TickPhase }> = [
   { name: 'economy', run: processEconomyPhase },
   { name: 'author', run: processAuthorPhase },
   { name: 'automation', run: processAutomationPhase },
+  { name: 'dream', run: processDreamPhase },
 ]
 
 function createTickResult(): TickResult {

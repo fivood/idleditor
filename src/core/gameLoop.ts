@@ -1,4 +1,4 @@
-import type { Author, CatState, Department, EditorTrait, GameEvent, Genre, Manuscript, PermanentBonuses, TickResult } from './types'
+import type { Author, CatState, Department, DreamProject, EditorTrait, GameEvent, Genre, Manuscript, PermanentBonuses, TickResult } from './types'
 import { BOSS_START_YEARS } from './constants'
 import { createCalendar } from './calendar'
 import type { GameCalendar } from './calendar'
@@ -21,7 +21,11 @@ export interface GameWorldState {
   totalPublished: number
   totalBestsellers: number
   totalRejections: number
-  currencies: { revisionPoints: number; prestige: number; royalties: number; statues: number }
+  currencies: { revisionPoints: number; prestige: number; royalties: number; statues: number; inspiration: number }
+  // v2.2.3: 梦境创作
+  activeDream: DreamProject | null
+  inspirationDailyGained: number  // 今日已获取的灵感（用于上限检测）
+  inspirationDailyResetAt: number // 上次重置（按 calendar.totalDays）
   permanentBonuses: PermanentBonuses
   trait: EditorTrait | null
   playerName: string
@@ -70,7 +74,10 @@ export function createInitialWorld(): GameWorldState {
     totalPublished: 0,
     totalBestsellers: 0,
     totalRejections: 0,
-    currencies: { revisionPoints: 0, prestige: 0, royalties: 0, statues: 0 },
+    currencies: { revisionPoints: 0, prestige: 0, royalties: 0, statues: 0, inspiration: 0 },
+    activeDream: null,
+    inspirationDailyGained: 0,
+    inspirationDailyResetAt: 0,
     permanentBonuses: {
       manuscriptQualityBonus: 0,
       editingSpeedBonus: 0,

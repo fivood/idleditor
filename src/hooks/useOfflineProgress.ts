@@ -27,7 +27,7 @@ export function useOfflineProgress() {
       totalPublished: saved.totalPublished,
       totalBestsellers: saved.totalBestsellers,
       totalRejections: saved.totalRejections,
-      currencies: { ...saved.currencies },
+      currencies: { ...saved.currencies, inspiration: (saved.currencies as any).inspiration ?? 0 },
       permanentBonuses: { ...saved.permanentBonuses, countRelation: saved.permanentBonuses?.countRelation ?? 0, countGender: saved.permanentBonuses?.countGender ?? 'male', epochPath: (saved.permanentBonuses as any)?.epochPath ?? null },
       trait: null,
       playerName: saved.playerName ?? '',
@@ -63,6 +63,9 @@ export function useOfflineProgress() {
       trendTimer: 300,
       blacklistedGenres: [],
       acceptMortalSubmissions: saved.acceptMortalSubmissions ?? false,
+      activeDream: null,
+      inspirationDailyGained: 0,
+      inspirationDailyResetAt: 0,
     }
 
     for (const [id, ms] of saved.manuscripts) world.manuscripts.set(id, ms)
