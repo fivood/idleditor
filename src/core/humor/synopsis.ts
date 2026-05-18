@@ -1,21 +1,23 @@
-import { pick, rangeInt } from '../../utils/random'
 import type { Genre } from '../types'
 
-// ──── LLM-generated synopsis pool (loaded at runtime) ────
+// ──── LLM-generated synopsis pool (loaded at runtime, kept for compatibility) ────
+// v2.2.1: 模板生成已停用，pool 加载仍保留以避免 gameStore.ts 导入报错
+/* eslint-disable @typescript-eslint/no-unused-vars */
 let synopsisPool: Record<string, string[]> | null = null
 
 export async function loadSynopsisPool() {
   try {
     const res = await fetch('/synopses/pool.json')
     if (res.ok) synopsisPool = await res.json()
-  } catch { /* pool not available, use templates */ }
+  } catch { /* pool not available */ }
 }
 
-function sampleFromPool(genre: Genre): string | null {
-  const pool = synopsisPool?.[genre]
+function _sampleFromPool(_genre: Genre): string | null {
+  const pool = synopsisPool?.[_genre]
   if (!pool || pool.length === 0) return null
   return pool[Math.floor(Math.random() * pool.length)]
 }
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
 // ──── Curated synopses for parody classics ────
 const CURATED_SYNOPSES: Record<string, string> = {
@@ -254,6 +256,9 @@ const CURATED_SYNOPSES: Record<string, string> = {
   '夜行邮差与日间收件人': '夜行邮政的邮递员和日间收件人之间从未见面的往来。邮递员每天凌晨把信件塞进门缝，收件人每天早上读。他们通了七年的信，从未见过面，从未听过对方的声音——但他们比任何见过面的人更了解彼此。',
   '吸血鬼编辑部的人类实习生': '一个人类在永夜出版社做暑期实习的记录。第一天他被要求签署知情者契约。第二天他发现茶水间的"咖啡机"标注是血浆温热柜。第三天他习惯了。第四天他开始把夜班同事称为"那群不用睡觉的家伙"。实习结束时他交了这份日记，编辑说："值得出版。"',
 }
+
+// v2.2.1: 模板系统已停用，改为固定简介模式。以下代码保留供未来参考。
+/* eslint-disable */
 
 // ──── Expanded Slots ────
 
@@ -604,6 +609,7 @@ const GENRE_TEMPLATES: Record<Genre, string[]> = {
   hybrid: HYBRID_TEMPLATES,
   'light-novel': LIGHT_NOVEL_TEMPLATES,
 }
+/* eslint-enable */
 
 export function generateSynopsis(genre: Genre, title?: string): string {
   // 固定模板模式：每本书都有对应的 CURATED_SYNOPSES 条目。
