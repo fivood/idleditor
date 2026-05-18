@@ -1,5 +1,6 @@
 import type { Author, Manuscript, Genre } from '../types'
 import { GENRE_ICONS, GENRES } from '../types'
+import { isGenreUnlocked } from '../progression'
 import { GENRE_COVER_COLORS } from '../constants'
 import { TITLE_SUBTITLES } from '../data/editorNotes'
 import { PERSONA_GENRE_BIAS } from '../data/personaData'
@@ -74,18 +75,19 @@ function getDeptEfficiency(world: GameWorldState, type: string): number {
 // ──── Manuscript creation (from pool / random author) ────
 export function createManuscript(world: GameWorldState, qualityBonus = 0): Manuscript {
   const traitQBonus = world.trait ? EDITOR_TRAIT_BONUSES[world.trait].qualityBonus : 0
-  // Calculate weights for genres
+  // v2.3: 仅从已解锁的题材中抽取（前期玩家只接 light-novel + hybrid）
+  const allowedGenres = (GENRES as Genre[]).filter(g => isGenreUnlocked(world, g))
   const genreWeights = new Map<Genre, number>()
   let totalWeight = 0
-  for (const g of GENRES as Genre[]) {
+  for (const g of allowedGenres) {
     let weight = 10
-    if (g === world.currentTrend) weight += 15 // +150% for trend
-    if (world.preferredGenres.includes(g)) weight += 10 // +100% for preference
+    if (g === world.currentTrend) weight += 15
+    if (world.preferredGenres.includes(g)) weight += 10
     genreWeights.set(g, weight)
     totalWeight += weight
   }
   let roll = Math.random() * totalWeight
-  let genre: Genre = GENRES[0] as Genre
+  let genre: Genre = allowedGenres[0] ?? 'light-novel'
   for (const [g, w] of genreWeights.entries()) {
     roll -= w
     if (roll <= 0) {

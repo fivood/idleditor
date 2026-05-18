@@ -1,11 +1,14 @@
-// ──── Calendar / Time System ────
-// 1 tick = 1 real second
+// ──── Calendar / Time System (v2.3 重新平衡) ────
+// 1 tick = 1 real second（按钮响应不延迟）
 // 1 game day = 60 ticks (1 real minute)
-// 1 game month = 30 days
-// 1 game year = 12 months = 360 days = 360 min = 6 real hours
+// 1 game month = 60 days（v2.3 之前 30，现在 ×2 让单月体感更"绵长"）
+// 1 game year = 12 months = 720 days = 720 real min = 12 real hours
+//
+// 配合月出版上限从 10 → 5，每月有 1 real hour 玩 5 本书，
+// 鼓励精雕细琢而非流水线式批量出版。
 
 export const TICKS_PER_DAY = 60
-export const DAYS_PER_MONTH = 30
+export const DAYS_PER_MONTH = 60
 export const MONTHS_PER_YEAR = 12
 
 export const MONTH_NAMES = [
