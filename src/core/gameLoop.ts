@@ -26,6 +26,8 @@ export interface GameWorldState {
   activeDream: DreamProject | null
   inspirationDailyGained: number  // 今日已获取的灵感（用于上限检测）
   inspirationDailyResetAt: number // 上次重置（按 calendar.totalDays）
+  // v2.3: 已广播过的解锁 id，防止 toast 重复推送
+  announcedUnlocks?: Set<string>
   permanentBonuses: PermanentBonuses
   trait: EditorTrait | null
   playerName: string
@@ -78,6 +80,7 @@ export function createInitialWorld(): GameWorldState {
     activeDream: null,
     inspirationDailyGained: 0,
     inspirationDailyResetAt: 0,
+    announcedUnlocks: new Set(),
     permanentBonuses: {
       manuscriptQualityBonus: 0,
       editingSpeedBonus: 0,

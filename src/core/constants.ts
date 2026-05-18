@@ -18,23 +18,24 @@ export const MANUSCRIPT_WORDCOUNT_MIN = 30_000
 export const MANUSCRIPT_WORDCOUNT_MAX = 150_000
 export const MANUSCRIPT_WORDS_PER_TICK = 500 // editing speed per tick
 
-// ──── Editing stages ────
-export const REVIEW_TICKS_BASE = 10
-export const EDITING_TICKS_BASE = 30
-export const PROOFING_TICKS_BASE = 15
-export const PUBLISHING_TICKS_BASE = 8
+// ──── Editing stages (v2.3 拉长 ×1.5 配合数值重平衡)────
+export const REVIEW_TICKS_BASE = 15      // 之前 10
+export const EDITING_TICKS_BASE = 45     // 之前 30
+export const PROOFING_TICKS_BASE = 22    // 之前 15
+export const PUBLISHING_TICKS_BASE = 12  // 之前 8
 
-// ──── Currency rewards ────
-export const RP_PER_REVIEW = 5
-export const RP_PER_EDIT = 3
-export const RP_PER_PROOF = 2
-export const RP_BASE_PER_PUBLISH = 50
-export const ROYALTY_BASE_RATE = 0.25 // per tick per book
-export const PRESTIGE_PER_PUBLISH = 10
-export const PRESTIGE_PER_BESTSELLER = 50
+// ──── Currency rewards (v2.3 单本价值翻倍，月上限同步收紧)────
+export const RP_PER_REVIEW = 8           // 之前 5
+export const RP_PER_EDIT = 5             // 之前 3
+export const RP_PER_PROOF = 4            // 之前 2
+export const RP_BASE_PER_PUBLISH = 100   // 之前 50
+export const ROYALTY_BASE_RATE = 0.4     // 之前 0.25
+export const PRESTIGE_PER_PUBLISH = 15   // 之前 10
+export const PRESTIGE_PER_BESTSELLER = 80  // 之前 50
 
 // ──── Bestseller threshold ────
-export const BESTSELLER_SALES = 30_000
+// v2.3: 月出版量降低，畅销门槛同步降一点（10K 销量更现实）
+export const BESTSELLER_SALES = 20_000   // 之前 30_000
 
 // ──── Author ────
 export const AUTHOR_BASE_TALENT = 30
@@ -60,9 +61,9 @@ export const GENRE_PREFERENCE_SALES_BONUS = 0.1
 
 // ──── Author persona names ── (see data/authorNames.ts)
 
-// ──── Department ────
-export const DEPARTMENT_BASE_COST_RP = 50
-export const DEPARTMENT_COST_MULTIPLIER = 1.5
+// ──── Department (v2.3 雇佣门槛上升，体现"组建编辑部"的分量)────
+export const DEPARTMENT_BASE_COST_RP = 120   // 之前 50
+export const DEPARTMENT_COST_MULTIPLIER = 1.8 // 之前 1.5（升级愈贵）
 export const DEPARTMENT_BASE_EFFICIENCY: Record<DepartmentType, number> = {
   editing: 0.5,
   design: 0.3,
@@ -99,7 +100,8 @@ export const BOSS_START_YEARS = 15
 export const AUTO_REVIEW_DEPT_LEVEL = 3   // editing dept level >=3 unlocks auto-review
 export const AUTO_COVER_PRESTIGE = 100     // prestige >=100 unlocks auto-cover (placeholder)
 export const AUTO_REJECT_PRESTIGE = 200    // prestige >=200 + level 5 editing unlocks auto-reject unsuitable
-export const PUBLISHING_QUOTA_PER_MONTH = 10
+// v2.3: 月上限 10 → 5。配合 60 天/月时间拉长，每月 1 real hour 仅能出 5 本。
+export const PUBLISHING_QUOTA_PER_MONTH = 5
 
 // ──── Author affection ────
 export const AFFECTION_PER_PUBLISH = 5

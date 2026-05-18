@@ -442,13 +442,28 @@ export const createMiscActions = (
     const state = get()
     const exists = [...state.departments.values()].some(d => d.type === type)
     if (exists) return
-    const cost = 50
+    // v2.3: 检查部门解锁状态（编辑部不限，其他需达成里程碑）
+    if (type !== 'editing') {
+      const { isSystemUnlocked, getSystemGate } = require('@/core/progression')
+      const systemId = `dept:${type}`
+      if (!isSystemUnlocked(state as never, systemId)) {
+        const gate = getSystemGate(systemId)
+        get().addToast({
+          id: nanoid(),
+          text: `🔒 ${gate?.description ?? '该部门尚未解锁'}`,
+          type: 'info',
+          createdAt: get().playTicks,
+        })
+        return
+      }
+    }
+    const cost = 120  // v2.3: 50 → 120（与 constants 同步）
     if (state.currencies.revisionPoints < cost) return
     const dept: Department = {
       id: nanoid(),
       type,
       level: 1,
-      upgradeCostRP: 75,
+      upgradeCostRP: Math.round(cost * 1.5),  // v2.3 升级基价随之提升
       upgradeCostPrestige: 0,
       upgradeTicks: 600,
       upgradingUntil: null,
@@ -553,9 +568,20 @@ export const createMiscActions = (
   // v2.2.3 梦境创作
   startDream: (title: string, genre: import('@/core/types').Genre, inspirationCost: number): boolean => {
     const state = get()
-    if (state.activeDream) return false  // 已有梦境进行中
+    if (state.activeDream) return false
     if (state.currencies.inspiration < inspirationCost) return false
-    if (inspirationCost < 5) return false  // 最少 5 灵感
+    if (inspirationCost < 5) return false
+    // v2.3: 梦境创作需 editorLevel >= 3 解锁
+    const { isSystemUnlocked } = require('@/core/progression')
+    if (!isSystemUnlocked(state as never, 'system:dream')) {
+      get().addToast({
+        id: nanoid(),
+        text: '🔒 梦境创作尚未解锁——你需要达到编辑等级 3 才能掌握"梦中写作"的吸血鬼技艺。',
+        type: 'info',
+        createdAt: get().playTicks,
+      })
+      return false
+    }
     const { createDream } = require('@/core/dream/dreamFactory')
     set(draft => {
       const dream = createDream(draft as never, { title, genre, inspiration: inspirationCost })
