@@ -6,8 +6,8 @@ import type { Author } from '@/core/types'
 function makeAuthor(): Author {
   return Object.freeze({
     id: 'author-1',
-    name: 'Kim・Hiatus（金・休刊）',
-    persona: 'korean-webnovel-queen',
+    name: 'Mira·Halfmoon（米拉·半月）',
+    persona: 'vampire-young-rebel',
     genre: 'light-novel',
     tier: 'signed',
     talent: 50,
