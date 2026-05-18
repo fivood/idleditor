@@ -19,7 +19,12 @@ export function processSpawnPhase(world: GameWorldState, { ct }: TickContext, re
       result.newManuscripts.push(created.manuscript)
     }
     const spawnRateBonus = world.permanentBonuses.spawnRateBonus
-    world.spawnTimer = Math.round((120 + rangeInt(-10, 30)) / (1 + spawnRateBonus))
+    // v2.2.2: 活跃作者少于 5 个时，自然投稿间隔减半（强制带来新人）
+    const activeAuthorCount = [...world.authors.values()].filter(a =>
+      !a.poached && !a.terminated && a.booksWritten < a.maxBooks
+    ).length
+    const lowAuthorBoost = activeAuthorCount < 5 ? 0.5 : 1
+    world.spawnTimer = Math.round((120 + rangeInt(-10, 30)) * lowAuthorBoost / (1 + spawnRateBonus))
   }
 
   const normalSubmitted = submitted.filter(m => {
