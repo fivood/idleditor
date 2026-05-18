@@ -93,7 +93,7 @@ export function processPipelinePhase({ world, result, ct, effSpeedBonus, effRpBo
         m.editorNote = generatePublishNote(m)
       }
       world.totalPublished++
-      world.currencies.revisionPoints += rpPerPublish(m.quality, 0, world.booksPublishedThisMonth)
+      world.currencies.revisionPoints += rpPerPublish(m.quality, effRpBonus, world.booksPublishedThisMonth)
       const pubPrestige = m.isUnsuitable ? -10 : 10
       world.currencies.prestige += pubPrestige * (epochSocialite ? 1.5 : 1)
       world.booksPublishedThisMonth++
