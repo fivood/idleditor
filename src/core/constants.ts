@@ -134,12 +134,14 @@ export const EDITOR_TRAIT_BONUSES: Record<EditorTrait, { rpBonus: number; qualit
 
 // ──── Genre colours for placeholder covers ────
 export const GENRE_COVER_COLORS: Record<Genre, string> = {
-  'sci-fi': '#1a1a2e',
-  mystery: '#2d2d1a',
-  suspense: '#1a1a1a',
-  'social-science': '#2e1a1a',
-  hybrid: '#1a2e2d',
-  'light-novel': '#2a1a3e',
+  'sci-fi':         '#1a1a2e',  // 深蓝紫——星空
+  mystery:          '#2d2d1a',  // 暗黄褐——旧纸
+  suspense:         '#1a1a1a',  // 近黑
+  'social-science': '#2e1a1a',  // 暗红棕
+  literary:         '#3a1f2a',  // v2.5 葡萄酒红——凡人经典
+  hybrid:           '#1a2e2d',  // 深青——混血
+  fantasy:          '#1f1a3a',  // v2.5 紫罗兰——古传说
+  'light-novel':    '#2a1a3e',  // 紫色——少年
 }
 
 // ──── Author persona signature phrases ── (see data/authorPhrases.ts)

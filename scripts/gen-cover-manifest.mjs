@@ -24,16 +24,20 @@ const POOL_TO_GENRE = {
   MYSTERY_TITLES: 'mystery',
   SUSPENSE_TITLES: 'suspense',
   SOCIAL_TITLES: 'social-science',
+  LITERARY_TITLES: 'literary',
   HYBRID_TITLES: 'hybrid',
+  FANTASY_TITLES: 'fantasy',
   LIGHT_NOVEL_TITLES: 'light-novel',
 }
 const GENRE_LABEL = {
-  'sci-fi': '科幻',
-  mystery: '推理',
-  suspense: '悬疑',
-  'social-science': '社科',
-  hybrid: '混合',
-  'light-novel': '轻小说',
+  'sci-fi':         '日光幻想 / 科幻',
+  mystery:          '凡间悬案 / 推理',
+  suspense:         '银器恐怖 / 悬疑',
+  'social-science': '真实研究 / 社科',
+  literary:         '凡间名著 / 经典改编',
+  hybrid:           '跨种合著 / 跨界融合',
+  fantasy:          '远古纪事 / 奇幻史诗',
+  'light-novel':    '少年血宫 / 轻小说',
 }
 
 function titleToSlug(title) {

@@ -159,6 +159,39 @@ export const AUTHOR_PERSONA_NAMES: Record<AuthorPersona, string[]> = {
     'Clerk Vellmoor·Subsection·4（薇尔莫尔文员·第四款）',
     'Notary Cintherex（辛西雷克斯公证人）',
   ],
+  // v2.5 新种族
+  'ghost-gothic-poet': [
+    'Aurelian·Pale（奥雷利安·苍）',
+    'Lady Mireille·Veil（米蕾儿夫人·薄纱）',
+    'Sebastien·d\'Ombre（塞巴斯蒂安·影氏）',
+    'Cordelia·Hollowmoor（柯黛莉亚·空原）',
+    'Lord Theron·Stillwhisper（赛伦勋爵·寂语）',
+    'Iphigene·Pearlmist（伊菲珍娜·珠雾）',
+  ],
+  'mummy-chronicle-scholar': [
+    'Senebkhau·the·Last·Scribe（最后的书记官·赛奈卡乌）',
+    'Iretmes·of·the·Sand·Library（沙之图书馆·伊瑞特梅斯）',
+    'Hatshepsutet·Twelvedynasty（哈采普苏特特·十二王朝）',
+    'Khaemwaset·the·Re-rolled（重展者·哈姆瓦塞特）',
+    'Nebnetjer·Inkjar（墨壶·涅布奈彻）',
+    'Tjuti·of·Forgotten·Capital（遗忘之都·图提）',
+  ],
+  'noir-pulp-novelist': [
+    'Sam·Drysdale（萨姆·德赖斯戴尔）',
+    'Veronica·Black（薇罗妮卡·布莱克）',
+    'Marlowe·Renfield（马洛·伦菲尔德）',
+    'Ada·"Cinder"·Hayes（艾达·"灰烬"·海耶斯）',
+    'Earl·Joe·Sundown（厄尔·乔·日落）',
+    'Lydia·Pulp（莉迪亚·廉价小说）',
+    'Joe·Kid·Twiceshot（乔小子·两枪）',
+  ],
+  'ancient-dragon-epic': [
+    'Ouronymar·the·First-Hatched（始孵者·欧罗尼玛）',
+    'Verothraxal·of·Ten·Mountains（十山之主·维罗萨克萨）',
+    'Saemris·Iron-Bound·Tongue（铁言者·萨厄米丝）',
+    'Hexitharos·the·Library-Burner（焚书者·赫西萨罗斯）',
+    'Drahnem·Last-Eclipse（末日蚀·德拉涅姆）',
+  ],
 }
 
 // ──── 兜底笔名（所有真名都用完时）────

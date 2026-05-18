@@ -33,10 +33,13 @@ export interface UnlockGate {
 const GENRE_GATES: Record<Genre, UnlockGate | null> = {
   'light-novel':    null,  // 默认解锁
   'hybrid':         null,  // 默认解锁
-  'mystery':        { id: 'genre:mystery',        requirement: { publishedBooks: 3 },  description: '出版 3 本后解锁「凡间悬案」', unlockToast: '🗝️ 新题材解锁：凡间悬案（人类视角的离奇事件——对夜行读者就像异域奇谈）' },
-  'suspense':       { id: 'genre:suspense',       requirement: { publishedBooks: 7 },  description: '出版 7 本后解锁「银器恐怖」', unlockToast: '🗝️ 新题材解锁：银器恐怖（涉及银/十字/阳光禁忌的惊悚故事）' },
-  'social-science': { id: 'genre:social-science', requirement: { publishedBooks: 12 }, description: '出版 12 本后解锁「真实研究」', unlockToast: '🗝️ 新题材解锁：真实研究（关于夜行社群的严肃纪实——能涨声望但门槛高）' },
-  'sci-fi':         { id: 'genre:sci-fi',         requirement: { publishedBooks: 18 }, description: '出版 18 本后解锁「日光幻想」', unlockToast: '🗝️ 新题材解锁：日光幻想（吸血鬼对阳光世界的奇想推演——读者基数最大）' },
+  'mystery':        { id: 'genre:mystery',        requirement: { publishedBooks: 3 },  description: '出版 3 本后解锁「凡间悬案」',  unlockToast: '🗝️ 新题材解锁：凡间悬案（人类视角的离奇事件——对夜行读者就像异域奇谈）' },
+  'suspense':       { id: 'genre:suspense',       requirement: { publishedBooks: 7 },  description: '出版 7 本后解锁「银器恐怖」',  unlockToast: '🗝️ 新题材解锁：银器恐怖（涉及银/十字/阳光禁忌的惊悚故事）' },
+  // v2.5: 新增 literary / fantasy 两道关卡，跟原节奏交错
+  'fantasy':        { id: 'genre:fantasy',        requirement: { publishedBooks: 10 }, description: '出版 10 本后解锁「远古纪事」', unlockToast: '🗝️ 新题材解锁：远古纪事（永夜大陆古传说与大型奇幻史诗——巨著门槛、口碑长青）' },
+  'social-science': { id: 'genre:social-science', requirement: { publishedBooks: 14 }, description: '出版 14 本后解锁「真实研究」', unlockToast: '🗝️ 新题材解锁：真实研究（关于夜行社群的严肃纪实——能涨声望但门槛高）' },
+  'literary':       { id: 'genre:literary',       requirement: { publishedBooks: 18 }, description: '出版 18 本后解锁「凡间名著」', unlockToast: '🗝️ 新题材解锁：凡间名著（凡人经典被永夜视角重写——评论家爱看，市场偏冷）' },
+  'sci-fi':         { id: 'genre:sci-fi',         requirement: { publishedBooks: 22 }, description: '出版 22 本后解锁「日光幻想」', unlockToast: '🗝️ 新题材解锁：日光幻想（吸血鬼对阳光世界的奇想推演——读者基数最大）' },
 }
 
 export function isGenreUnlocked(world: GameWorldState, genre: Genre): boolean {
@@ -94,7 +97,7 @@ function meetsRequirement(world: GameWorldState, req: UnlockGate['requirement'])
 
 // ──── 已解锁的题材列表（供 spawnPhase / DreamPanel 等使用）────
 export function getUnlockedGenres(world: GameWorldState): Genre[] {
-  const all: Genre[] = ['light-novel', 'hybrid', 'mystery', 'suspense', 'social-science', 'sci-fi']
+  const all: Genre[] = ['light-novel', 'hybrid', 'mystery', 'suspense', 'fantasy', 'social-science', 'literary', 'sci-fi']
   return all.filter(g => isGenreUnlocked(world, g))
 }
 
