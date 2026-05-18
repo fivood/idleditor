@@ -25,8 +25,11 @@ export function CoverSelectModal({ manuscript, onConfirm, onReject, onCancel }: 
   const [noteSubmitted, setNoteSubmitted] = useState(!!manuscript.editorNote)
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="bg-cream border-2 border-border-dark w-full max-w-[640px] max-h-[90vh] overflow-y-auto shadow-[6px_6px_0_#4a3728]">
+    // z-[100] 高于 Minimap z-50，避免 modal 底部按钮被桌沿菜单遮挡
+    // 容器加 pb-20 给 Minimap 让出空间，让 modal 内容滚动时也不会卡在菜单后面
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 pb-20 md:pb-24 overflow-y-auto">
+      <div className="border-2 w-full max-w-[640px] max-h-[88vh] overflow-y-auto shadow-[4px_4px_0_#0a0806] my-auto"
+        style={{ background: '#2a1810', borderColor: '#0a0806', color: '#ede0c8' }}>
         <div className="p-4 md:p-5 border-b-2 border-border-dark">
           <h2 className="text-sm md:text-base font-bold text-ink font-mono">查看封面</h2>
           <p className="text-[13px] md:text-xs text-muted mt-0.5 font-mono">《{manuscript.title}》· {manuscript.genre}</p>

@@ -122,7 +122,7 @@ export function AuthorView() {
       )}
 
       {confirmTerminate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4 pb-20 md:pb-24 overflow-y-auto">
           <div className="bg-cream border-2 border-border-dark w-full max-w-[320px] shadow-[6px_6px_0_#4a3728]">
             <div className="p-4">
               <p className="text-sm font-bold text-ink mb-2 font-mono">解除与{confirmTerminate.name}的合约</p>
@@ -179,7 +179,7 @@ function AuthorDetailModal({ author, manuscripts, onClose, onBuyMeal, onSendGift
   const onCooldown = author.cooldownUntil !== null && author.cooldownUntil > 0
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4 pb-20 md:pb-24 overflow-y-auto">
       <div className="bg-cream border-2 border-border-dark w-full max-w-[420px] max-h-[85vh] overflow-y-auto shadow-[6px_6px_0_#4a3728]">
         <div className="flex items-center justify-between p-3 md:p-4 border-b-2 border-border-dark">
           <div>
