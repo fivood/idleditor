@@ -153,6 +153,8 @@ export interface Author {
   lastActiveAt: number
   booksWritten: number
   maxBooks: number
+  // v2.2.2: 封笔时一次性广播 toast 的标记
+  retirementAnnounced?: boolean
 }
 
 export interface Bookstore {

@@ -2,19 +2,8 @@
 import { useGameStore } from '@/store/gameStore'
 import type { Manuscript } from '@/core/types'
 import { GENRE_LABELS } from '@/core/types'
+import { PixelCover } from '@/components/shared/PixelCover'
 
-// Light grayscale spine palette
-const SPINE_GRAYS = ['#e8e8e4', '#e0e0dc', '#dcdcd8', '#d6d6d2', '#d0d0cc', '#ccccca', '#c6c6c4', '#c0c0be']
-
-function spineGrayForBook(book: Manuscript): string {
-  // Hash-based stable assignment
-  let h = 0
-  for (let i = 0; i < book.id.length; i++) h = ((h << 5) - h) + book.id.charCodeAt(i)
-  // Age factor: older books get slightly darker/warmer tone
-  const age = (book.publishTime || 0) > 0 ? 1 : 0
-  const idx = (Math.abs(h) + age * 2) % SPINE_GRAYS.length
-  return SPINE_GRAYS[idx]
-}
 
 export function ShelfView() {
   const manuscripts = useGameStore(s => s.manuscripts)
@@ -307,7 +296,6 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
   const generateEditorNote = useGameStore(s => s.generateEditorNote)
   const llmCallsRemaining = useGameStore(s => s.llmCallsRemaining)
   const authors = useGameStore(s => s.authors)
-  const greyColor = spineGrayForBook(book)
   const authorName = authors.get(book.authorId)?.name || '某作者'
 
   const [peerReview, setPeerReview] = useState<{ text: string; poolSize: number } | null>(null)
@@ -322,14 +310,8 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
           <button onClick={onClose} className="text-xs md:text-xs px-2 py-1 border-2 border-border-dark text-muted font-mono cursor-pointer bg-cream">X</button>
         </div>
         <div className="p-3 md:p-4">
-          <div className="border-2 border-border-dark bg-card-inset mb-3 md:mb-4 mx-auto" style={{ width: 'min(200px, 50vw)', height: 'min(280px, 70vw)' }}>
-            {book.cover.src ? (
-              <img src={book.cover.src} alt="" className="w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none' }} />
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center gap-2" style={{ backgroundColor: greyColor + '33' }}>
-                <span className="text-[13px] md:text-xs text-muted font-mono px-2 text-center">{book.title}</span>
-              </div>
-            )}
+          <div className="mb-3 md:mb-4 mx-auto" style={{ width: 'min(200px, 50vw)' }}>
+            <PixelCover manuscript={book} size="lg" />
           </div>
           <div className="bg-card-inset border-2 border-border-dark p-2 md:p-3 mb-3 md:mb-4">
             <div className="grid grid-cols-2 gap-1.5 text-[13px] md:text-xs font-mono">

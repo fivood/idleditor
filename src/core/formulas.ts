@@ -59,9 +59,32 @@ export function rollAuthorReliability(): number {
   return rangeInt(AUTHOR_BASE_RELIABILITY, AUTHOR_BASE_RELIABILITY + 60)
 }
 
+/**
+ * 作者交稿节奏（v2.2.2）。
+ * 不再是固定 60s，按 persona 的种族节奏分档：
+ *  - fast  (~6 min):  凡间快枪手 / 年轻血族叛逆 — 短寿 or 多产
+ *  - medium(~20 min): 大部分 — 正常节奏
+ *  - slow  (~60 min): 巫妖 / 古魔典守护人 / 风暴女巫 / 血族贵族 / 哀嚎妖 — 长寿、深思
+ * 作者可靠性微调 0.7x ~ 1.3x。
+ * playerName 不变，但每个作者一生总产量受 maxBooks 限制，
+ * 配合长间隔形成"内容有限但游戏时长 200+ 小时"的体验。
+ */
 export function manuscriptSpawnInterval(author: Author): number {
-  const base = 60 // 1 minute base
-  return Math.max(10, Math.round(base * (1 - author.reliability / 200)))
+  // 动态 import 避免循环依赖（personaData 也可能 import formulas）
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { PUBLISHING_RHYTHM } = require('./data/personaData') as { PUBLISHING_RHYTHM: { fast: readonly string[]; medium: readonly string[]; slow: readonly string[] } }
+  const persona = author.persona as string
+  let base: number
+  if (PUBLISHING_RHYTHM.fast.includes(persona)) {
+    base = 360       // ~6 min
+  } else if (PUBLISHING_RHYTHM.slow.includes(persona)) {
+    base = 3600      // ~60 min
+  } else {
+    base = 1200      // ~20 min
+  }
+  // 可靠性微调（0.7x ~ 1.3x）
+  const reliabilityMult = 1.3 - author.reliability / 200
+  return Math.max(60, Math.round(base * reliabilityMult))
 }
 
 export function authorQualityBoost(author: Author): number {

@@ -1,7 +1,7 @@
 ﻿import type { Manuscript } from '@/core/types'
-import { GENRE_ICONS } from '@/core/types'
 import { useGameStore } from '@/store/gameStore'
 import { useState } from 'react'
+import { PixelCover } from '@/components/shared/PixelCover'
 
 interface Props {
   manuscript: Manuscript
@@ -11,8 +11,6 @@ interface Props {
 }
 
 export function CoverSelectModal({ manuscript, onConfirm, onReject, onCancel }: Props) {
-  const icon = GENRE_ICONS[manuscript.genre] ?? '/icons/misc/book.svg'
-  const displayCover = manuscript.cover.src ?? null
   const author = useGameStore(s => s.authors.get(manuscript.authorId))
   const permanentBonuses = useGameStore(s => s.permanentBonuses)
   const playerName = useGameStore(s => s.playerName)
@@ -38,18 +36,9 @@ export function CoverSelectModal({ manuscript, onConfirm, onReject, onCancel }: 
         <div className="p-4 md:p-5">
           {/* Desktop: side-by-side. Mobile: stack */}
           <div className="flex flex-col sm:flex-row gap-4 md:gap-5 mb-4">
-            {/* Cover — fixed 5:7 ratio */}
-            <div className="shrink-0 mx-auto sm:mx-0" style={{ width: 'min(200px, 50vw)', aspectRatio: '5/7' }}>
-              <div className="w-full h-full border-2 border-border-dark bg-card-inset overflow-hidden">
-                {displayCover ? (
-                  <img src={displayCover} alt="" className="w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none' }} />
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center gap-2">
-                    <img src={icon} alt="" className="w-10 h-10 md:w-12 md:h-12 opacity-50" />
-                    <span className="text-[13px] md:text-xs text-muted font-mono">占位封面</span>
-                  </div>
-                )}
-              </div>
+            {/* Cover — 40×56 像素源 × 5 = 200×280 显示 */}
+            <div className="shrink-0 mx-auto sm:mx-0">
+              <PixelCover manuscript={manuscript} size="lg" />
             </div>
 
             {/* Right panel: synopsis + stats */}
