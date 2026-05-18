@@ -19,6 +19,7 @@ interface ScenePanelProps {
   onClose: () => void
   children: ReactNode
   position?: string
+  /** v2.3.1: 提升到 640，web 端单行能多容纳几句吐槽；窄屏 (≤640px) 仍按视口自适应。 */
   width?: number
   variant?: PanelVariant
 }
@@ -28,7 +29,7 @@ export function ScenePanel({
   onClose,
   children,
   position = 'top-16 left-16',
-  width = 420,
+  width = 640,
   variant = 'paper',
 }: ScenePanelProps) {
   useEffect(() => {
@@ -42,7 +43,7 @@ export function ScenePanel({
   return (
     <div
       className={`absolute z-40 ${position}`}
-      style={{ maxWidth: width }}
+      style={{ maxWidth: `min(${width}px, calc(100vw - 32px))` }}
       role="dialog"
       aria-label={title}
     >

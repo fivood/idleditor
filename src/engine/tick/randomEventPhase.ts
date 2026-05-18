@@ -7,7 +7,8 @@ import type { TickResult } from '@/core/types'
 import type { PhaseResult, TickContext } from '../types'
 
 export function processRandomEventPhase(world: GameWorldState, _ctx: TickContext, result: TickResult): PhaseResult {
-  if (world.playTicks % 300 === 0) {
+  // v2.3.1: 节奏放慢 —— 从「每 5 分钟 × 40%」改为「每 15 分钟 × 25%」（平均约 1 小时 1 条）
+  if (world.playTicks % 900 === 0 && world.playTicks > 0) {
     const randomEvt = rollRandomEvent(world)
     world = randomEvt.world
     if (randomEvt.text) {
@@ -19,7 +20,7 @@ export function processRandomEventPhase(world: GameWorldState, _ctx: TickContext
 }
 
 export function rollRandomEvent(world: GameWorldState): { world: GameWorldState; text: string | null } {
-  if (Math.random() > 0.4) return { world, text: null }
+  if (Math.random() > 0.25) return { world, text: null }
 
   const pool: Array<() => { world: GameWorldState; text: string | null }> = [
     () => {

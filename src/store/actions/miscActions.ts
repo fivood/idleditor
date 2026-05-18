@@ -1,4 +1,5 @@
 import { nanoid } from '@/utils/id'
+import { pushToastDraft } from '@/utils/toastArchive'
 import type { GameStore } from '../gameStore'
 import { createManuscript } from '@/core/factories/manuscriptFactory'
 import { TALENTS, TALENT_UNLOCK_LEVELS, type Talent } from '@/core/talents'
@@ -196,12 +197,12 @@ export const createMiscActions = (
         spawned.push(ms.title)
       }
       draft.solicitCooldown = 300
-      draft.toasts = [...draft.toasts, {
+      pushToastDraft(draft,{
         id: nanoid(),
         text: `向出版业界发布了匿名征稿函。${count}份稿件应声而至：${spawned.join('、')}`,
         type: 'info' as const,
         createdAt: draft.playTicks,
-      }].slice(-100)
+      })
     })
   },
 
@@ -218,12 +219,12 @@ export const createMiscActions = (
         spawned.push(ms.title)
       }
       draft.solicitCooldown = 480
-      draft.toasts = [...draft.toasts, {
+      pushToastDraft(draft,{
         id: nanoid(),
         text: `向${draft.preferredGenres.length > 0 ? draft.preferredGenres.map(g => GENRE_LABELS[g as keyof typeof GENRE_LABELS] ?? g).join('、') + '领域' : '各领域'}定向约稿。${count}份高质量稿件已到：${spawned.join('、')}`,
         type: 'info' as const,
         createdAt: draft.playTicks,
-      }].slice(-100)
+      })
     })
   },
 
@@ -239,12 +240,12 @@ export const createMiscActions = (
         spawned.push(ms.title)
       }
       draft.solicitCooldown = 120
-      draft.toasts = [...draft.toasts, {
+      pushToastDraft(draft,{
         id: nanoid(),
         text: `动用宣传预算紧急征稿。${count}份稿件火速抵达：${spawned.join('、')}`,
         type: 'info' as const,
         createdAt: draft.playTicks,
-      }].slice(-100)
+      })
     })
   },
 
@@ -324,12 +325,12 @@ export const createMiscActions = (
         `你合上《${ms.title}》，在退稿理由栏写了一个字："否"。实习生说是不是太简短了。你说这个字花了你两百年才学会。声望 -5`,
         `"${ms.title}"退回。作者可能会写一篇愤怒的博客，也可能从此发愤图强。你赌后者——因为你的投资回报率一直不错。声望 -5`,
       ]
-      draft.toasts = [...draft.toasts, {
+      pushToastDraft(draft,{
         id: nanoid(),
         text: quips[Math.floor(Math.random() * quips.length)] + (!wasUnsuitable && authorNote ? authorNote : ''),
         type: wasUnsuitable ? 'info' as const : 'rejection' as const,
         createdAt: draft.playTicks,
-      }].slice(-100)
+      })
       if (wasUnsuitable) {
         commentaryTitle = ms.title
         commentaryGenre = ms.genre
@@ -344,12 +345,12 @@ export const createMiscActions = (
       if (!ms || ms.status !== 'submitted') return
       ms.status = 'shelved'
       ms.shelvedAt = draft.playTicks
-      draft.toasts = [...draft.toasts, {
+      pushToastDraft(draft,{
         id: nanoid(),
         text: `"${ms.title}" 已搁置。作者可能会修改后重新投稿。`,
         type: 'info' as const,
         createdAt: draft.playTicks,
-      }].slice(-100)
+      })
     })
   },
 
@@ -370,12 +371,12 @@ export const createMiscActions = (
       const author = draft.authors.get(ms.authorId)
       if (author) author.affection += 3
       draft.currencies.revisionPoints -= option.rp
-      draft.toasts = [...draft.toasts, {
+      pushToastDraft(draft,{
         id: nanoid(),
         text: `🔍 ${option.label}：《${ms.title}》品质 +${option.quality}（花费 ${option.rp} RP）`,
         type: 'info' as const,
         createdAt: draft.playTicks,
-      }].slice(-100)
+      })
     })
   },
 
@@ -384,12 +385,12 @@ export const createMiscActions = (
       const ms = draft.manuscripts.get(id)
       if (!ms || ms.status !== 'cover_select') return
       if (draft.booksPublishedThisMonth >= 10 + (draft.publishingQuotaUpgrades || 0)) {
-        draft.toasts = [...draft.toasts, {
+        pushToastDraft(draft,{
           id: nanoid(),
           text: '本月出版额度已用完！下个月再来吧。',
           type: 'info' as const,
           createdAt: draft.playTicks,
-        }].slice(-100)
+        })
         return
       }
       ms.status = 'publishing'
@@ -428,12 +429,12 @@ export const createMiscActions = (
       if (!author || author.tier === 'new') return
       author.terminated = true
       author.cooldownUntil = null
-      draft.toasts = [...draft.toasts, {
+      pushToastDraft(draft,{
         id: nanoid(),
         text: `合约解除。${author.name}从永夜出版社的作者名单中划去。他的书还在书架上——但新作不会再出现在你桌上了。`,
         type: 'info' as const,
         createdAt: draft.playTicks,
-      }].slice(-100)
+      })
     })
   },
 
@@ -499,7 +500,7 @@ export const createMiscActions = (
     set(draft => { draft.toasts = draft.toasts.filter(t => t.id !== id) })
   },
   addToast: (toast) => {
-    set(draft => { draft.toasts = [...draft.toasts, toast].slice(-100) })
+    set(draft => { pushToastDraft(draft, toast) })
   },
 
   // ──── Cloud save ────
@@ -628,14 +629,14 @@ export const createMiscActions = (
       if (!ms || ms.status !== 'published') return
       const cost = 200 + Math.floor(ms.quality * 5)
       if (draft.currencies.royalties < cost) {
-        draft.toasts = [...draft.toasts, { id: nanoid(), text: `再版需要 ${cost} 版税，当前不足。`, type: 'info' as const, createdAt: draft.playTicks }].slice(-100)
+        pushToastDraft(draft,{ id: nanoid(), text: `再版需要 ${cost} 版税，当前不足。`, type: 'info' as const, createdAt: draft.playTicks })
         return
       }
       ms.quality = Math.min(100, ms.quality + 3)
       ms.meticulouslyEdited = true
       ms.reissueBoostUntil = draft.playTicks + 420 // 7 game-day marketing window
       draft.currencies.royalties -= cost
-      draft.toasts = [...draft.toasts, { id: nanoid(), text: `"${ms.title}" 已再版！品质 +3，进入7天营销窗口期。`, type: 'milestone' as const, createdAt: draft.playTicks }].slice(-100)
+      pushToastDraft(draft,{ id: nanoid(), text: `"${ms.title}" 已再版！品质 +3，进入7天营销窗口期。`, type: 'milestone' as const, createdAt: draft.playTicks })
     })
   },
 
@@ -648,7 +649,7 @@ export const createMiscActions = (
       author.affection = Math.min(100, author.affection + 15)
       author.lastInteractionAt = draft.playTicks
       draft.currencies.revisionPoints -= 20
-      draft.toasts = [...draft.toasts, { id: nanoid(), text: `请${author.name}${meals[Math.floor(Math.random() * meals.length)]}好感 +15。`, type: 'info' as const, createdAt: draft.playTicks }].slice(-100)
+      pushToastDraft(draft,{ id: nanoid(), text: `请${author.name}${meals[Math.floor(Math.random() * meals.length)]}好感 +15。`, type: 'info' as const, createdAt: draft.playTicks })
     })
   },
 
@@ -661,7 +662,7 @@ export const createMiscActions = (
       author.affection = Math.min(100, author.affection + 10)
       author.lastInteractionAt = draft.playTicks
       draft.currencies.revisionPoints -= 15
-      draft.toasts = [...draft.toasts, { id: nanoid(), text: `${author.name}${gifts[Math.floor(Math.random() * gifts.length)]}好感 +10。`, type: 'info' as const, createdAt: draft.playTicks }].slice(-100)
+      pushToastDraft(draft,{ id: nanoid(), text: `${author.name}${gifts[Math.floor(Math.random() * gifts.length)]}好感 +10。`, type: 'info' as const, createdAt: draft.playTicks })
     })
   },
 
@@ -674,7 +675,7 @@ export const createMiscActions = (
       author.affection = Math.min(100, author.affection + 8)
       author.lastInteractionAt = draft.playTicks
       draft.currencies.revisionPoints -= 10
-      draft.toasts = [...draft.toasts, { id: nanoid(), text: `${author.name}${letters[Math.floor(Math.random() * letters.length)]}好感 +8。`, type: 'info' as const, createdAt: draft.playTicks }].slice(-100)
+      pushToastDraft(draft,{ id: nanoid(), text: `${author.name}${letters[Math.floor(Math.random() * letters.length)]}好感 +8。`, type: 'info' as const, createdAt: draft.playTicks })
     })
   },
 
@@ -703,7 +704,7 @@ export const createMiscActions = (
       author.affection = Math.max(0, author.affection - 5)
       author.lastInteractionAt = draft.playTicks
       draft.currencies.revisionPoints -= 30
-      draft.toasts = [...draft.toasts, { id: nanoid(), text: `催稿成功！${author.name}的冷却时间减半。好感 -5。`, type: 'info' as const, createdAt: draft.playTicks }].slice(-100)
+      pushToastDraft(draft,{ id: nanoid(), text: `催稿成功！${author.name}的冷却时间减半。好感 -5。`, type: 'info' as const, createdAt: draft.playTicks })
     })
   },
 

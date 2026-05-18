@@ -49,6 +49,8 @@ export interface SavedGame {
   blacklistedGenres?: import('@/core/types').Genre[]
   // v1.8+
   acceptMortalSubmissions?: boolean
+  // v2.3.1+ 出版日志档案（按游戏年份归档的滚出日志）
+  archivedLogsByYear?: Record<number, Array<{ id: string; text: string; type: string; createdAt: number }>>
   updatedAt: number
 }
 

@@ -11,6 +11,7 @@ import type { GameWorldState } from '@/core/gameLoop'
 import { runTick } from '@/engine'
 import { saveGameToDb, loadGameFromDb, hasExistingSave } from '@/db/saveManager'
 import { nanoid } from '@/utils/id'
+import { pushToastDraft } from '@/utils/toastArchive'
 import { generateTemplateDecision } from '@/core/decisions'
 import { DECISION_EFFECTS } from '@/core/decisionEffects'
 import { loadSynopsisPool } from '@/core/humor/synopsis'
@@ -268,6 +269,8 @@ async function syncToCloudImpl(state: GameStore): Promise<boolean> {
 export interface GameStore extends GameWorldState {
   // UI state
   toasts: ToastMessage[]
+  /** v2.3.1: 按游戏年份归档的旧日志（超过可见窗口的滚出部分），可在档案室"出版日志档案"翻阅 */
+  archivedLogsByYear: Record<number, ToastMessage[]>
   isInitialized: boolean
   isRunning: boolean
   activeTab: 'desk' | 'shelf' | 'authors' | 'office' | 'study' | 'stats'
@@ -386,6 +389,7 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
   // ──── Initial state ────
   ...createInitialWorld(),
   toasts: [],
+  archivedLogsByYear: {},
   isInitialized: false,
   isRunning: false,
   activeTab: 'desk',
@@ -499,7 +503,8 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
       const result = engineTick.result
       draft.decisionCooldown = Math.max(0, (draft.decisionCooldown || 0) - 1)
       draft.catPetCooldown = Math.max(0, (draft.catPetCooldown ?? 0) - 1)
-      draft.toasts = [...draft.toasts, ...result.toasts].slice(-100)
+      if (!draft.archivedLogsByYear) draft.archivedLogsByYear = {}
+      pushToastDraft(draft as never, result.toasts)
     })
 
     // Post-tick: LLM, collections, decisions — need get() for async
@@ -605,6 +610,7 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
         trendTimer: state.trendTimer,
         blacklistedGenres: state.blacklistedGenres,
         acceptMortalSubmissions: state.acceptMortalSubmissions,
+        archivedLogsByYear: state.archivedLogsByYear,
       }).catch(() => {})
     }
   },
