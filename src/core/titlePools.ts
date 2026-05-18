@@ -157,7 +157,7 @@ export function titleToSlug(title: string): string {
   const base = getBaseTitle(title)
   return base
     .replace(/[：:]/g, '-')
-    .replace(/[？?！!。，,、（）()【】\[\]《》""·]/g, '')
+    .replace(/[？?！!。，,、（）()【】[]《》""·]/g, '')
     .replace(/\s+/g, '-')
     .replace(/\/+/g, '-')
     .trim()
