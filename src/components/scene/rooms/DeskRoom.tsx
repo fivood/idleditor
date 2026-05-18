@@ -196,7 +196,7 @@ export function DeskRoom() {
 
       {/* ─── 弹出面板 ─── */}
       {openPanel === 'submissions' && (
-        <ScenePanel variant="inbox" title={`📥 投稿池 · ${submitted.length} 份待审`} onClose={() => setOpenPanel(null)} position="top-12 left-4 md:top-16 md:left-16" width={460}>
+        <ScenePanel variant="inbox" title={`📥 投稿池 · ${submitted.length} 份待审`} onClose={() => setOpenPanel(null)} position="top-12 left-4 md:top-16 md:left-16" width={620}>
           {submitted.length === 0 ? (
             <EmptyInboxIllustration />
           ) : (
@@ -208,7 +208,7 @@ export function DeskRoom() {
       )}
 
       {openPanel === 'pipeline' && (
-        <ScenePanel variant="belt" title={`编辑流水线 · ${inProgress.length} 件进行中`} onClose={() => setOpenPanel(null)} position="bottom-20 left-1/2 -translate-x-1/2" width={520}>
+        <ScenePanel variant="belt" title={`编辑流水线 · ${inProgress.length} 件进行中`} onClose={() => setOpenPanel(null)} position="bottom-20 left-1/2 -translate-x-1/2" width={680}>
           {inProgress.length === 0 ? (
             <EmptyPipelineIllustration />
           ) : (
@@ -220,7 +220,7 @@ export function DeskRoom() {
       )}
 
       {openPanel === 'log' && (
-        <ScenePanel variant="journal" title="出版日志" onClose={() => setOpenPanel(null)} position="top-12 right-4 md:top-16 md:right-16" width={420}>
+        <ScenePanel variant="journal" title="出版日志" onClose={() => setOpenPanel(null)} position="top-12 right-4 md:top-16 md:right-16" width={580}>
           <LogPanel />
         </ScenePanel>
       )}
@@ -295,7 +295,7 @@ export function DeskRoom() {
       )}
 
       {openPanel === 'dream' && (
-        <ScenePanel variant="scroll" title="🌙 梦境创作" onClose={() => setOpenPanel(null)} position="top-12 left-1/2 -translate-x-1/2" width={420}>
+        <ScenePanel variant="scroll" title="🌙 梦境创作" onClose={() => setOpenPanel(null)} position="top-12 left-1/2 -translate-x-1/2" width={560}>
           <DreamPanel onClose={() => setOpenPanel(null)} />
         </ScenePanel>
       )}

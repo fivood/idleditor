@@ -1,4 +1,5 @@
 import { TopBar } from './TopBar'
+import { TickerBar } from './TickerBar'
 import { DeskRoom } from '@/components/scene/rooms/DeskRoom'
 import { OfficeRoom } from '@/components/scene/rooms/OfficeRoom'
 import { ShelfRoom } from '@/components/scene/rooms/ShelfRoom'
@@ -69,6 +70,7 @@ export function Shell() {
     <div className="w-full h-dvh overflow-hidden bg-[#1a1410] md:p-2 lg:p-4">
       <div className="w-full h-full flex flex-col bg-cream md:border-2 md:border-border-dark md:shadow-[6px_6px_0_#4a3728] overflow-hidden relative">
         <TopBar />
+        <TickerBar />
         <main className="flex-1 overflow-hidden flex flex-col min-h-0 relative">
           {/* 6 个场景化房间 */}
           <div hidden={activeTab !== 'desk'} className="flex-1 min-h-0"><DeskRoom /></div>

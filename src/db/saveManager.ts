@@ -36,6 +36,7 @@ export interface GameSaveData {
   trendTimer: number
   blacklistedGenres: import('@/core/types').Genre[]
   acceptMortalSubmissions: boolean
+  archivedLogsByYear?: Record<number, import('@/core/types').ToastMessage[]>
 }
 
 export async function saveGameToDb(data: GameSaveData): Promise<void> {
@@ -71,6 +72,7 @@ export async function saveGameToDb(data: GameSaveData): Promise<void> {
     trendTimer: data.trendTimer,
     blacklistedGenres: data.blacklistedGenres,
     acceptMortalSubmissions: data.acceptMortalSubmissions,
+    archivedLogsByYear: data.archivedLogsByYear,
     updatedAt: Date.now(),
   }
   await db.saves.put(save)
@@ -111,6 +113,7 @@ export async function loadGameFromDb(): Promise<GameSaveData | null> {
     trendTimer: (save as any).trendTimer ?? 300,
     blacklistedGenres: (save as any).blacklistedGenres ?? [],
     acceptMortalSubmissions: (save as any).acceptMortalSubmissions ?? false,
+    archivedLogsByYear: (save as any).archivedLogsByYear ?? {},
   }
 }
 
