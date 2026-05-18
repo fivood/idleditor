@@ -52,24 +52,34 @@ export type ManuscriptStatus =
 // ──── Author progression (never degrades) ────
 export type AuthorTier = 'new' | 'signed' | 'known' | 'idol'
 
+// 永夜世界作者人格（17 种，按种族划分）。
+// 寿命越长，作品数上限越高，但创作期也越长——所以"挂机时长"被时间锁拉伸。
+// 短寿命人类作家上限低（一生写完），更替快，制造"新人辈出"的群像感。
 export type AuthorPersona =
-  | 'retired-professor'
-  | 'basement-scifi-geek'
-  | 'ex-intelligence-officer'
-  | 'sociology-phd'
-  | 'anxious-debut'
-  | 'reclusive-latam-writer'
-  | 'nordic-crime-queen'
-  | 'american-bestseller-machine'
-  | 'japanese-lightnovel-otaku'
-  | 'historical-detective-writer'
-  | 'fantasy-epic-writer'
-  | 'french-literary-recluse'
-  | 'indian-epic-sage'
-  | 'russian-doom-spiral'
-  | 'korean-webnovel-queen'
-  | 'nigerian-magical-realist'
-  | 'australian-outback-gothic'
+  // 吸血鬼系（长寿，作品多，节奏慢）
+  | 'vampire-aristocrat-historian'
+  | 'vampire-decadent-poet'
+  | 'vampire-young-rebel'
+  | 'vampire-amateur-detective'
+  // 狼人系（中等寿命）
+  | 'werewolf-pack-bard'
+  | 'werewolf-suburban-novelist'
+  | 'werewolf-frontier-survivor'
+  // 女巫系（超长寿，间歇产出）
+  | 'witch-grimoire-keeper'
+  | 'witch-kitchen-novelist'
+  | 'witch-storm-prophetess'
+  // 亡灵系（极长寿但寡言）
+  | 'lich-archive-curator'
+  | 'banshee-mourning-poet'
+  // 食尸鬼
+  | 'ghoul-cemetery-historian'
+  // 人类（短寿命，作品少更替快）
+  | 'mortal-investigative-journalist'
+  | 'mortal-bestseller-hustler'
+  // 奇幻种族
+  | 'fae-changeling-fabulist'
+  | 'demon-bureaucrat'
 
 // ──── Department types ────
 export type DepartmentType = 'editing' | 'design' | 'marketing' | 'rights'

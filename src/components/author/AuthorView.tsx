@@ -2,26 +2,12 @@
 import { useGameStore } from '@/store/gameStore'
 import { GENRE_ICONS } from '@/core/types'
 import { AUTHOR_TIER_THRESHOLDS, AFFECTION_ELITE_TALENT } from '@/core/constants'
-import type { Author, AuthorPersona } from '@/core/types'
+import type { Author } from '@/core/types'
 
 const TIER_LABELS: Record<string, string> = { idol: '传奇', known: '知名', signed: '签约', new: '新人' }
 const TIER_ORDER: Record<string, number> = { idol: 0, known: 1, signed: 2, new: 3 }
 
-const PERSONA_LABELS: Record<AuthorPersona, string> = {
-  'retired-professor': '退休教授', 'basement-scifi-geek': '地下室科幻宅',
-  'ex-intelligence-officer': '前情报官员', 'sociology-phd': '社会学博士',
-  'anxious-debut': '焦虑新人', 'reclusive-latam-writer': '隐居拉美作家',
-  'nordic-crime-queen': '北欧推理女王', 'american-bestseller-machine': '美国畅销流水线',
-  'japanese-lightnovel-otaku': '日本轻小说宅',
-  'historical-detective-writer': '考据派历史作家',
-  'fantasy-epic-writer': '奇幻史诗执笔',
-  'french-literary-recluse': '法国文学隐者',
-  'indian-epic-sage': '印度史诗圣者',
-  'russian-doom-spiral': '俄式沉重长卷',
-  'korean-webnovel-queen': '韩国网文女王',
-  'nigerian-magical-realist': '尼日利亚魔幻写实',
-  'australian-outback-gothic': '澳洲内陆哥特',
-}
+import { PERSONA_LABELS } from '@/core/data/personaData'
 
 export function AuthorView() {
   const authors = useGameStore(s => s.authors)

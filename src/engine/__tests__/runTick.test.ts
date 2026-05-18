@@ -11,7 +11,7 @@ function makeAuthor(id = 'author-1'): Author {
   return {
     id,
     name: '测试作者',
-    persona: 'anxious-debut',
+    persona: 'mortal-bestseller-hustler',
     genre: 'mystery',
     tier: 'signed',
     talent: 50,
