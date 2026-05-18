@@ -13,7 +13,7 @@ export function CountSceneModal({ scene, onChoose, showGenderChoice, onChooseGen
 
   if (showGenderChoice && step === 'gender') {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 pb-20 md:pb-24 overflow-y-auto">
         <div className="bg-cream border-2 border-border-dark w-full max-w-[420px] max-h-[90vh] overflow-y-auto shadow-[6px_6px_0_#4a3728]">
           <div className="bg-copper-dark text-white p-4">
             <h2 className="text-sm font-bold font-mono">一个细节</h2>
@@ -43,7 +43,7 @@ export function CountSceneModal({ scene, onChoose, showGenderChoice, onChooseGen
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 pb-20 md:pb-24 overflow-y-auto">
       <div className="bg-cream border-2 border-border-dark w-full max-w-[440px] max-h-[90vh] overflow-y-auto shadow-[6px_6px_0_#4a3728]">
         <div className="bg-copper-dark text-white p-4">
           <h2 className="text-sm font-bold font-mono">{scene.title}</h2>

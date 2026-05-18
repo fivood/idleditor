@@ -197,7 +197,7 @@ function RebirthModal({ onConfirm, onCancel, bonuses, statues, trait, stats, onS
   const nextCount = statues + 1
   const nextBossYears = Math.max(0, bonuses.bossYears - 1)
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4 pb-20 md:pb-24 overflow-y-auto">
       <div className="bg-cream border-2 border-border-dark w-full max-w-[380px] p-4 md:p-6 shadow-[6px_6px_0_#4a3728] max-h-[90vh] overflow-y-auto">
         <h2 className="text-sm md:text-base font-bold text-ink mb-1 font-mono">铸造铜像 · 新纪元</h2>
         <p className="text-[15px] md:text-[16px] text-muted mb-3 md:mb-4 font-mono">

@@ -401,13 +401,13 @@ function PipelineCard({ manuscript: ms, onSelectCover }: { manuscript: Manuscrip
   const isActionable = stage === 'cover_select'
   const StageIcon = STAGE_PIXEL[stage]
   return (
-    <div className="bg-[#fff8e8] border-2 border-border-dark p-2 flex gap-2 items-center">
+    <div className="border-2 p-2 flex gap-2 items-center" style={{ background: '#2a1810', borderColor: '#0a0806', color: '#ede0c8' }}>
       <div className="w-12 text-center">
         <div className="flex justify-center">{StageIcon && <StageIcon />}</div>
-        <div className="text-[10px] text-muted font-mono mt-0.5">{STAGE_LABELS[stage]}</div>
+        <div className="text-[10px] font-mono mt-0.5" style={{ color: '#b8a48a' }}>{STAGE_LABELS[stage]}</div>
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-xs font-bold text-ink truncate font-mono">{ms.title}</div>
+        <div className="text-xs font-bold truncate font-mono" style={{ color: '#f5e8d0' }}>{ms.title}</div>
         <div className="mt-1">
           <PixelProgressBar value={pct} height={8} />
         </div>
@@ -427,18 +427,23 @@ function SolicitButton({ Icon, label, cost, desc, disabled, cooldown, onClick }:
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`w-full text-left p-2 border border-border-dark font-mono transition-all ${
-        disabled ? 'bg-cream-dark text-muted cursor-not-allowed opacity-60' : 'bg-[#fff8e8] hover:bg-[#fff0d0] cursor-pointer'
-      }`}
+      className="w-full text-left p-2 border-2 font-mono"
+      style={{
+        background: disabled ? '#1a0e08' : '#2a1810',
+        borderColor: '#0a0806',
+        color: '#ede0c8',
+        opacity: disabled ? 0.5 : 1,
+        cursor: disabled ? 'not-allowed' : 'pointer',
+      }}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="text-sm font-bold text-ink flex items-center gap-2">
+        <span className="text-sm font-bold flex items-center gap-2" style={{ color: '#f5e8d0' }}>
           <Icon />
           {label}
         </span>
-        <span className="text-xs text-copper">{cost}</span>
+        <span className="text-xs" style={{ color: '#f5d878' }}>{cost}</span>
       </div>
-      <div className="text-[11px] text-muted mt-0.5">
+      <div className="text-[11px] mt-0.5" style={{ color: '#b8a48a' }}>
         {cooldown && cooldown > 0 ? `冷却中 ${Math.ceil(cooldown / 60)}分` : desc}
       </div>
     </button>

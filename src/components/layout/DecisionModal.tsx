@@ -9,7 +9,7 @@ export function DecisionModal({ decision }: Props) {
   const resolveDecision = useGameStore(s => s.resolveDecision)
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 pb-20 md:pb-24 overflow-y-auto">
       <div className="bg-cream border-2 border-border-dark w-full max-w-[420px] max-h-[90vh] overflow-y-auto shadow-[6px_6px_0_#4a3728]">
         <div className="bg-copper-dark text-white p-3 md:p-4 border-b-2 border-border-dark">
           <h2 className="text-sm md:text-base font-bold font-mono">📋 编辑决策</h2>
