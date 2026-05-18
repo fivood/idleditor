@@ -127,14 +127,23 @@ function titleToSlug(title) {
 /** @type {Array<{ title: string, genre: string, filename: string, slug: string }>} */
 const manifest = []
 
+// v2.3.2: 切回 PNG 像素封面。已上传的书用各自 PNG，其余统一映射 占位封面.png。
+const PLACEHOLDER = '占位封面.png'
+const coversDir = join(__dirname, '..', 'public', 'covers')
+const presentPngs = existsSync(coversDir)
+  ? new Set((await import('fs')).readdirSync(coversDir).filter(f => f.endsWith('.png')))
+  : new Set()
+
 for (const [genre, titles] of Object.entries(TITLE_POOLS)) {
   for (const title of titles) {
     const slug = titleToSlug(title)
+    const ownPng = `${title}.png`  // 用原标题（含括号等）查 PNG，与 generateCover 的 slug 解耦
+    const filename = presentPngs.has(ownPng) ? ownPng : PLACEHOLDER
     manifest.push({
       title,
       genre,
       slug,
-      filename: `${slug}.svg`,
+      filename,
     })
   }
 }

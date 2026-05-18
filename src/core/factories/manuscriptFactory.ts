@@ -44,12 +44,13 @@ export function generateTitle(genre: string, world: GameWorldState): string {
 }
 
 // ──── Cover generation ────
-// v2.1+: 所有封面都是 SVG（像素风格统一）。PNG 封面已弃用。
+// v2.3.2: 全部回归 PNG 像素封面。已上传的书用各自的 PNG，
+//         未制作的书统一用 /covers/占位封面.png（黑色像素卡画风占位）。
 export function generateCover(title: string, genre: string, coversManifest: Record<string, string> | null): Manuscript['cover'] {
   const baseTitle = getBaseTitle(title)
   const slug = titleToSlug(baseTitle)
   const entry = coversManifest?.[slug]
-  const localSrc = entry ? `/covers/${entry}` : `/covers/${slug}.svg`
+  const localSrc = entry ? `/covers/${entry}` : `/covers/占位封面.png`
   return {
     type: 'generated',
     src: localSrc,
