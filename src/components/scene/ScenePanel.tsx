@@ -52,7 +52,7 @@ interface VariantSpec {
  * 用 nearest-neighbor 把切片放大 N 倍渲染，让 UI 与场景颗粒感统一。
  * 数值可以独立调：标题栏 + 按钮通常用更小的倍数。
  */
-const PANEL_PIXEL_SCALE = 3
+const PANEL_PIXEL_SCALE = 2
 const TITLEBAR_PIXEL_SCALE = 2
 // BUTTON_PIXEL_SCALE 在 PixelTextButton.tsx 内独立定义，不需要这里重复
 
