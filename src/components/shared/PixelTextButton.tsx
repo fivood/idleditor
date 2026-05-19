@@ -54,20 +54,52 @@ const BUTTON_FRAMES: Record<ButtonVariant, ButtonFrameSpec> = {
   danger:  { slice: 16 },
 }
 
-/** 与 ScenePanel 同款：9 张切片 PNG 平铺组合 */
-function buildButtonBackground(variant: ButtonVariant, slice: number): string {
+// 与 ScenePanel 共享同一套 9-slice 拼图位置定义
+const BUTTON_SLICE_GRID: Array<{ suffix: string; col: number; row: number }> = [
+  { suffix: 'tl',     col: 0, row: 0 },
+  { suffix: 't-edge', col: 1, row: 0 },
+  { suffix: 'tr',     col: 2, row: 0 },
+  { suffix: 'l-edge', col: 0, row: 1 },
+  { suffix: 'center', col: 1, row: 1 },
+  { suffix: 'r-edge', col: 2, row: 1 },
+  { suffix: 'bl',     col: 0, row: 2 },
+  { suffix: 'b-edge', col: 1, row: 2 },
+  { suffix: 'br',     col: 2, row: 2 },
+]
+
+/** 把 9 张独立切片拼成单张 dataURL，喂给 border-image。 */
+function composeButton9Slice(variant: ButtonVariant, slice: number): Promise<string | null> {
   const base = `/ui/button-${variant}`
-  return [
-    `url('${base}-tl.png')     0     0     / ${slice}px ${slice}px no-repeat`,
-    `url('${base}-tr.png')     100%  0     / ${slice}px ${slice}px no-repeat`,
-    `url('${base}-bl.png')     0     100%  / ${slice}px ${slice}px no-repeat`,
-    `url('${base}-br.png')     100%  100%  / ${slice}px ${slice}px no-repeat`,
-    `url('${base}-t-edge.png') 0     0     / ${slice}px ${slice}px repeat-x`,
-    `url('${base}-b-edge.png') 0     100%  / ${slice}px ${slice}px repeat-x`,
-    `url('${base}-l-edge.png') 0     0     / ${slice}px ${slice}px repeat-y`,
-    `url('${base}-r-edge.png') 100%  0     / ${slice}px ${slice}px repeat-y`,
-    `url('${base}-center.png') 0     0     / ${slice}px ${slice}px repeat`,
-  ].join(', ')
+  return new Promise(resolve => {
+    const imgs = BUTTON_SLICE_GRID.map(({ suffix }) => {
+      const img = new Image()
+      img.src = `${base}-${suffix}.png`
+      return img
+    })
+    let loaded = 0
+    let failed = false
+    imgs.forEach(img => {
+      img.onload = () => {
+        loaded++
+        if (failed || loaded !== BUTTON_SLICE_GRID.length) return
+        const canvas = document.createElement('canvas')
+        canvas.width = slice * 3
+        canvas.height = slice * 3
+        const ctx = canvas.getContext('2d')
+        if (!ctx) { resolve(null); return }
+        ctx.imageSmoothingEnabled = false
+        BUTTON_SLICE_GRID.forEach(({ col, row }, i) => {
+          ctx.drawImage(imgs[i], col * slice, row * slice, slice, slice)
+        })
+        resolve(canvas.toDataURL('image/png'))
+      }
+      img.onerror = () => {
+        if (failed) return
+        failed = true
+        resolve(null)
+      }
+    })
+  })
 }
 
 const SIZE: Record<NonNullable<PixelTextButtonProps['size']>, { padX: number; padY: number; font: string; bevel: number }> = {
@@ -76,20 +108,19 @@ const SIZE: Record<NonNullable<PixelTextButtonProps['size']>, { padX: number; pa
   lg: { padX: 18, padY: 7, font: '15px', bevel: 2 },
 }
 
-// PNG 可用性探测：用 center.png 作为"9 张是否齐全"的代表。
-const frameAvailability = new Map<ButtonVariant, boolean>()
-function useButtonFrame(variant: ButtonVariant): boolean {
-  const cached = frameAvailability.get(variant)
-  const [available, setAvailable] = useState<boolean>(cached ?? false)
-  const src = `/ui/button-${variant}-center.png`
+// Canvas 拼接缓存：每个 variant 一份拼好的 dataURL（或 null = 缺图走兜底）
+const composedFrameCache = new Map<ButtonVariant, string | null>()
+function useButtonFrame(variant: ButtonVariant, slice: number): string | null {
+  const cached = composedFrameCache.get(variant)
+  const [dataUrl, setDataUrl] = useState<string | null>(cached ?? null)
   useEffect(() => {
-    if (cached !== undefined) return
-    const img = new Image()
-    img.onload = () => { frameAvailability.set(variant, true); setAvailable(true) }
-    img.onerror = () => { frameAvailability.set(variant, false); setAvailable(false) }
-    img.src = src
-  }, [variant, src, cached])
-  return available
+    if (composedFrameCache.has(variant)) return
+    composeButton9Slice(variant, slice).then(url => {
+      composedFrameCache.set(variant, url)
+      setDataUrl(url)
+    })
+  }, [variant, slice])
+  return dataUrl
 }
 
 export function PixelTextButton({
@@ -107,17 +138,24 @@ export function PixelTextButton({
   const s = SIZE[size]
   const spec = BUTTON_FRAMES[variant]
   const [hover, setHover] = useState(false)
-  const hasFrame = useButtonFrame(variant)
+  const frameDataUrl = useButtonFrame(variant, spec.slice)
+  const hasFrame = frameDataUrl !== null
 
-  // 9-切片模式：用 9 张独立 PNG 通过 CSS 多层背景叠加。
-  //              hover 提亮 / active 1px 下沉。
+  // 9-切片模式：Canvas 拼好的 dataURL → border-image。区域不重叠，
+  //              透明像素只露出元素背后。hover 提亮 / active 1px 下沉。
   // 兜底模式：保留 inset bevel + outer drop shadow，行为完全一致。
   const buttonStyle: CSSProperties = hasFrame
     ? {
-        padding: `${Math.max(s.padY, spec.slice / 2)}px ${Math.max(s.padX, spec.slice)}px`,
+        padding: `${s.padY}px ${s.padX}px`,
         fontSize: s.font,
         color: c.text,
-        background: buildButtonBackground(variant, spec.slice),
+        borderStyle: 'solid',
+        borderColor: 'transparent',
+        borderWidth: spec.slice,
+        borderImageSource: `url('${frameDataUrl}')`,
+        borderImageSlice: `${spec.slice} fill`,
+        borderImageRepeat: 'repeat',
+        backgroundColor: 'transparent',
         textShadow: `
           1px 0 0 ${c.textShadow},
           -1px 0 0 ${c.textShadow},
@@ -126,8 +164,6 @@ export function PixelTextButton({
         `,
         imageRendering: 'pixelated',
         letterSpacing: '0.5px',
-        border: 'none',
-        // hover / active 微反馈（不会破坏像素画框，因为只是滤镜）
         filter: hover && !disabled ? 'brightness(1.1)' : undefined,
         ...style,
       }

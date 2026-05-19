@@ -59,21 +59,74 @@ const PANEL_VARIANTS: Record<PanelVariant, VariantSpec> = {
   notice:  { slice: 48, fallbackBg: '#8b6b3e', titleColor: '#fce8e8', textColor: '#1a0e08', dividerColor: '#5c3a1f', titleIcon: '📌' },
 }
 
-/** 9-切片组合的 CSS background：4 角固定 + 4 边平铺 + 1 中心填充。
- *  第一张图在最上层，corners 覆盖 edges 在拐角处的多余像素，edges 覆盖 center。 */
-function buildPanelBackground(variant: PanelVariant, slice: number): string {
-  const base = `/ui/panel-${variant}`
-  return [
-    `url('${base}-tl.png')     0     0     / ${slice}px ${slice}px no-repeat`,
-    `url('${base}-tr.png')     100%  0     / ${slice}px ${slice}px no-repeat`,
-    `url('${base}-bl.png')     0     100%  / ${slice}px ${slice}px no-repeat`,
-    `url('${base}-br.png')     100%  100%  / ${slice}px ${slice}px no-repeat`,
-    `url('${base}-t-edge.png') 0     0     / ${slice}px ${slice}px repeat-x`,
-    `url('${base}-b-edge.png') 0     100%  / ${slice}px ${slice}px repeat-x`,
-    `url('${base}-l-edge.png') 0     0     / ${slice}px ${slice}px repeat-y`,
-    `url('${base}-r-edge.png') 100%  0     / ${slice}px ${slice}px repeat-y`,
-    `url('${base}-center.png') 0     0     / ${slice}px ${slice}px repeat`,
-  ].join(', ')
+/** 9-slice 拼图位置（按 3×3 网格） */
+const SLICE_GRID: Array<{ suffix: string; col: number; row: number }> = [
+  { suffix: 'tl',     col: 0, row: 0 },
+  { suffix: 't-edge', col: 1, row: 0 },
+  { suffix: 'tr',     col: 2, row: 0 },
+  { suffix: 'l-edge', col: 0, row: 1 },
+  { suffix: 'center', col: 1, row: 1 },
+  { suffix: 'r-edge', col: 2, row: 1 },
+  { suffix: 'bl',     col: 0, row: 2 },
+  { suffix: 'b-edge', col: 1, row: 2 },
+  { suffix: 'br',     col: 2, row: 2 },
+]
+
+/** 把 9 张独立切片 PNG 拼成一张 (slice×3)×(slice×3) 的大图（dataURL）。
+ *  这样喂给 CSS border-image 才能拿到真正的 9-slice 行为——
+ *  四角的透明像素只露出"元素背后"，而不是被另一张图填上。
+ *  失败（任一切片 404）返回 null；调用方据此走兜底色。 */
+function composeNineSliceDataUrl(basePath: string, slice: number): Promise<string | null> {
+  return new Promise(resolve => {
+    const imgs = SLICE_GRID.map(({ suffix }) => {
+      const img = new Image()
+      img.src = `${basePath}-${suffix}.png`
+      return img
+    })
+    let loaded = 0
+    let failed = false
+    const settle = () => {
+      if (failed) return
+      const canvas = document.createElement('canvas')
+      canvas.width = slice * 3
+      canvas.height = slice * 3
+      const ctx = canvas.getContext('2d')
+      if (!ctx) { resolve(null); return }
+      // 关闭图像平滑，保持像素清晰
+      ctx.imageSmoothingEnabled = false
+      SLICE_GRID.forEach(({ col, row }, i) => {
+        ctx.drawImage(imgs[i], col * slice, row * slice, slice, slice)
+      })
+      resolve(canvas.toDataURL('image/png'))
+    }
+    imgs.forEach(img => {
+      img.onload = () => {
+        loaded++
+        if (loaded === SLICE_GRID.length) settle()
+      }
+      img.onerror = () => {
+        if (failed) return
+        failed = true
+        resolve(null)
+      }
+    })
+  })
+}
+
+/** 缓存：每个 (kind, variant) 对应一张拼好的 dataURL（或 null = 缺图）。 */
+const composedCache = new Map<string, string | null>()
+function useComposedFrame(kind: string, variant: string, basePath: string, slice: number): string | null {
+  const key = `${kind}:${variant}`
+  const cached = composedCache.get(key)
+  const [dataUrl, setDataUrl] = useState<string | null>(cached ?? null)
+  useEffect(() => {
+    if (composedCache.has(key)) return
+    composeNineSliceDataUrl(basePath, slice).then(url => {
+      composedCache.set(key, url)
+      setDataUrl(url)
+    })
+  }, [key, basePath, slice])
+  return dataUrl
 }
 
 /** v2.6.2: 标题栏走独立 9-切片 PNG（命名同 panel，只是前缀 titlebar-{variant}-{slice}.png）。
@@ -91,36 +144,6 @@ const TITLEBAR_VARIANTS: Record<PanelVariant, TitleBarSpec> = {
   notice:  { slice: 16 },
 }
 
-function buildTitleBarBackground(variant: PanelVariant, slice: number): string {
-  const base = `/ui/titlebar-${variant}`
-  return [
-    `url('${base}-tl.png')     0     0     / ${slice}px ${slice}px no-repeat`,
-    `url('${base}-tr.png')     100%  0     / ${slice}px ${slice}px no-repeat`,
-    `url('${base}-bl.png')     0     100%  / ${slice}px ${slice}px no-repeat`,
-    `url('${base}-br.png')     100%  100%  / ${slice}px ${slice}px no-repeat`,
-    `url('${base}-t-edge.png') 0     0     / ${slice}px ${slice}px repeat-x`,
-    `url('${base}-b-edge.png') 0     100%  / ${slice}px ${slice}px repeat-x`,
-    `url('${base}-l-edge.png') 0     0     / ${slice}px ${slice}px repeat-y`,
-    `url('${base}-r-edge.png') 100%  0     / ${slice}px ${slice}px repeat-y`,
-    `url('${base}-center.png') 0     0     / ${slice}px ${slice}px repeat`,
-  ].join(', ')
-}
-
-/** 通用 PNG 可用性探测 hook：传 key + src，返回 image 是否加载成功。
- *  键名隔离让 panel/titlebar 互不串扰；缓存避免每次开窗重测。 */
-const pngAvailability = new Map<string, boolean>()
-function usePngAvailable(key: string, src: string): boolean {
-  const cached = pngAvailability.get(key)
-  const [available, setAvailable] = useState<boolean>(cached ?? false)
-  useEffect(() => {
-    if (cached !== undefined) return
-    const img = new Image()
-    img.onload = () => { pngAvailability.set(key, true); setAvailable(true) }
-    img.onerror = () => { pngAvailability.set(key, false); setAvailable(false) }
-    img.src = src
-  }, [key, src, cached])
-  return available
-}
 
 export function ScenePanel({
   title,
@@ -140,17 +163,22 @@ export function ScenePanel({
 
   const spec = PANEL_VARIANTS[variant]
   const titleBarSpec = TITLEBAR_VARIANTS[variant]
-  // 用 center.png 作为"9 张是否齐全"的代表（最后画的那张大概率是 center）
-  const hasFrame = usePngAvailable(`panel:${variant}`, `/ui/panel-${variant}-center.png`)
-  const hasTitleBar = usePngAvailable(`titlebar:${variant}`, `/ui/titlebar-${variant}-center.png`)
+  // v2.6.5: 用 Canvas 把 9 张切片拼成单张 dataURL → 给 border-image
+  //          → 真正的 9-slice 行为（区域不重叠，透明像素只露出元素背后）
+  const panelDataUrl = useComposedFrame('panel', variant, `/ui/panel-${variant}`, spec.slice)
+  const titleBarDataUrl = useComposedFrame('titlebar', variant, `/ui/titlebar-${variant}`, titleBarSpec.slice)
+  const hasFrame = panelDataUrl !== null
+  const hasTitleBar = titleBarDataUrl !== null
 
-  // 9-切片背景叠加：corners 在最上层 → edges → center 在最底。整个面板的内边距 = slice，
-  // 让标题栏 + 内容只在中央可平铺区出现，不会盖到边框纹理。
-  // v2.6.4: 移除所有黑色外框 / 阴影——画框 PNG 已自带边缘，描边反而破坏像素感。
+  // 用 CSS border-image 渲染拼好的画框。透明像素只显示元素背后（不会被其他切片填充）。
   const frameStyle: CSSProperties = hasFrame
     ? {
-        background: buildPanelBackground(variant, spec.slice),
-        padding: spec.slice,
+        borderStyle: 'solid',
+        borderColor: 'transparent',
+        borderWidth: spec.slice,
+        borderImageSource: `url('${panelDataUrl}')`,
+        borderImageSlice: `${spec.slice} fill`,
+        borderImageRepeat: 'repeat',
         color: spec.textColor,
         imageRendering: 'pixelated',
         maxHeight: '72vh',
@@ -183,8 +211,13 @@ export function ScenePanel({
           style={
             hasTitleBar
               ? {
-                  background: buildTitleBarBackground(variant, titleBarSpec.slice),
-                  padding: `${Math.max(titleBarSpec.slice / 2, titleBarPad)}px ${titleBarSpec.slice}px`,
+                  borderStyle: 'solid',
+                  borderColor: 'transparent',
+                  borderWidth: titleBarSpec.slice,
+                  borderImageSource: `url('${titleBarDataUrl}')`,
+                  borderImageSlice: `${titleBarSpec.slice} fill`,
+                  borderImageRepeat: 'repeat',
+                  padding: `${Math.max(0, titleBarPad - titleBarSpec.slice)}px ${Math.max(0, contentPad - titleBarSpec.slice)}px`,
                   imageRendering: 'pixelated',
                 }
               : {
