@@ -49,7 +49,9 @@ interface VariantSpec {
 // 命名约定：panel-{variant}-{tl,t-edge,tr,l-edge,center,r-edge,bl,b-edge,br}.png
 // 9 张全部存在 → 启用 9-切片平铺；任一缺失 → 退回 fallbackBg 纯色 + 黑边。
 const PANEL_VARIANTS: Record<PanelVariant, VariantSpec> = {
-  paper:   { slice: 48, fallbackBg: '#2a1810', titleColor: '#f5d878', textColor: '#ede0c8', dividerColor: '#5c3a1f' },
+  // paper: 浅色像素纸（用户上传），需要深色文字才能看清
+  paper:   { slice: 48, fallbackBg: '#e8d8b0', titleColor: '#2a1810', textColor: '#3a2412', dividerColor: '#8a7a5a' },
+  // 以下 5 个 variant 暂未交付 PNG，仍是深色兜底 + 浅色文字
   inbox:   { slice: 48, fallbackBg: '#4a2f18', titleColor: '#f5d878', textColor: '#ede0c8', dividerColor: '#5c3a1f', titleIcon: '📥' },
   belt:    { slice: 48, fallbackBg: '#2a1810', titleColor: '#d4a85a', textColor: '#ede0c8', dividerColor: '#4a3728', titleIcon: '⚙' },
   journal: { slice: 48, fallbackBg: '#3a2412', titleColor: '#f5d878', textColor: '#ede0c8', dividerColor: '#5c3a1f', titleIcon: '📖' },
@@ -144,23 +146,20 @@ export function ScenePanel({
 
   // 9-切片背景叠加：corners 在最上层 → edges → center 在最底。整个面板的内边距 = slice，
   // 让标题栏 + 内容只在中央可平铺区出现，不会盖到边框纹理。
+  // v2.6.4: 移除所有黑色外框 / 阴影——画框 PNG 已自带边缘，描边反而破坏像素感。
   const frameStyle: CSSProperties = hasFrame
     ? {
         background: buildPanelBackground(variant, spec.slice),
-        // padding 留出 slice 宽度让边框 PNG 可见；下面标题栏 + 内容会带 negative-margin 抵消
         padding: spec.slice,
         color: spec.textColor,
         imageRendering: 'pixelated',
-        boxShadow: '4px 4px 0 #0a0806',
         maxHeight: '72vh',
         overflow: 'hidden',
       }
     : {
-        // 降级：纯色 + 黑边 + 像素阴影。仍是可用 UI，只是没有手绘画框。
-        border: '2px solid #0a0806',
+        // 降级：纯色背景 + 无边框无阴影
         backgroundColor: spec.fallbackBg,
         color: spec.textColor,
-        boxShadow: '4px 4px 0 #0a0806',
         maxHeight: '72vh',
         overflow: 'hidden',
       }
@@ -198,7 +197,7 @@ export function ScenePanel({
             {spec.titleIcon && <span className="mr-1">{spec.titleIcon}</span>}
             {title}
           </h3>
-          <CloseBtn onClose={onClose} hoverColor={spec.titleColor} />
+          <CloseBtn onClose={onClose} defaultColor={spec.textColor} hoverColor={spec.titleColor} />
         </div>
         {/* 内容区 */}
         <div
@@ -215,7 +214,7 @@ export function ScenePanel({
   )
 }
 
-function CloseBtn({ onClose, hoverColor }: { onClose: () => void; hoverColor: string }) {
+function CloseBtn({ onClose, defaultColor, hoverColor }: { onClose: () => void; defaultColor: string; hoverColor: string }) {
   const [hover, setHover] = useState(false)
   return (
     <button
@@ -224,7 +223,7 @@ function CloseBtn({ onClose, hoverColor }: { onClose: () => void; hoverColor: st
       onMouseLeave={() => setHover(false)}
       aria-label="关闭"
       className="text-lg leading-none cursor-pointer ml-2 transition-colors"
-      style={{ color: hover ? hoverColor : '#b8a48a' }}
+      style={{ color: hover ? hoverColor : defaultColor }}
     >
       ✕
     </button>
