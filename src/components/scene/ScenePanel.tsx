@@ -45,6 +45,17 @@ interface VariantSpec {
   titleIcon?: string
 }
 
+/**
+ * v2.6.6: 像素放大倍率。
+ * 场景 PNG（desk-bg 320×180 等）被拉伸到屏幕大小，等效放大 3-4×。
+ * 弹窗 PNG 用 border-image 时，border-width = slice × scale，浏览器会
+ * 用 nearest-neighbor 把切片放大 N 倍渲染，让 UI 与场景颗粒感统一。
+ * 数值可以独立调：标题栏 + 按钮通常用更小的倍数。
+ */
+const PANEL_PIXEL_SCALE = 3
+const TITLEBAR_PIXEL_SCALE = 2
+// BUTTON_PIXEL_SCALE 在 PixelTextButton.tsx 内独立定义，不需要这里重复
+
 // ⬇️ 画师 (你) 之后画好 9 张切片 PNG 放到 public/ui/ 即自动接管。
 // 命名约定：panel-{variant}-{tl,t-edge,tr,l-edge,center,r-edge,bl,b-edge,br}.png
 // 9 张全部存在 → 启用 9-切片平铺；任一缺失 → 退回 fallbackBg 纯色 + 黑边。
@@ -170,12 +181,15 @@ export function ScenePanel({
   const hasFrame = panelDataUrl !== null
   const hasTitleBar = titleBarDataUrl !== null
 
-  // 用 CSS border-image 渲染拼好的画框。透明像素只显示元素背后（不会被其他切片填充）。
+  // 用 CSS border-image 渲染拼好的画框。
+  // border-width = slice × PANEL_PIXEL_SCALE → 浏览器把每张切片放大 N 倍 nearest-neighbor，
+  // 颗粒感与场景拉伸后的 PNG 视觉一致。透明像素只显示元素背后。
+  const panelBorder = spec.slice * PANEL_PIXEL_SCALE
   const frameStyle: CSSProperties = hasFrame
     ? {
         borderStyle: 'solid',
         borderColor: 'transparent',
-        borderWidth: spec.slice,
+        borderWidth: panelBorder,
         borderImageSource: `url('${panelDataUrl}')`,
         borderImageSlice: `${spec.slice} fill`,
         borderImageRepeat: 'repeat',
@@ -213,11 +227,11 @@ export function ScenePanel({
               ? {
                   borderStyle: 'solid',
                   borderColor: 'transparent',
-                  borderWidth: titleBarSpec.slice,
+                  borderWidth: titleBarSpec.slice * TITLEBAR_PIXEL_SCALE,
                   borderImageSource: `url('${titleBarDataUrl}')`,
                   borderImageSlice: `${titleBarSpec.slice} fill`,
                   borderImageRepeat: 'repeat',
-                  padding: `${Math.max(0, titleBarPad - titleBarSpec.slice)}px ${Math.max(0, contentPad - titleBarSpec.slice)}px`,
+                  padding: 0,
                   imageRendering: 'pixelated',
                 }
               : {

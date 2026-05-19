@@ -43,6 +43,9 @@ const PALETTE: Record<ButtonVariant, {
   danger:  { bg: '#a04030', highlight: '#d46060', shadow: '#5c1818', border: '#0a0606', text: '#fce8e8', textShadow: '#3a0808' },
 }
 
+/** v2.6.6: 按钮像素放大倍率——与场景 PNG 拉伸后的颗粒感对齐。 */
+const BUTTON_PIXEL_SCALE = 2
+
 interface ButtonFrameSpec {
   /** 每张切片 PNG 的像素尺寸（默认 16）。 */
   slice: number
@@ -151,7 +154,8 @@ export function PixelTextButton({
         color: c.text,
         borderStyle: 'solid',
         borderColor: 'transparent',
-        borderWidth: spec.slice,
+        // border-width = slice × scale → 切片被放大 N 倍渲染，与场景颗粒感一致
+        borderWidth: spec.slice * BUTTON_PIXEL_SCALE,
         borderImageSource: `url('${frameDataUrl}')`,
         borderImageSlice: `${spec.slice} fill`,
         borderImageRepeat: 'repeat',
