@@ -31,14 +31,9 @@ interface ScenePanelProps {
 }
 
 interface VariantSpec {
-  /** 画框 PNG 路径。文件不存在时自动降级为 fallbackBg 纯色。 */
-  src: string
-  /** border-image-slice 数值，同时作为 border 宽度。常用 16（48×48 画框）/ 12（32×32 紧凑）。 */
+  /** 切片像素尺寸——画师每张独立 PNG 的尺寸（48×48 对应 slice=48）。 */
   slice: number
-  /** 平铺策略：repeat 等距平铺 / round 整数倍缩放 / space 留缝平铺 / stretch 拉伸。
-   *  像素风优先 repeat 或 round——切勿用 stretch（会模糊）。 */
-  repeat: 'repeat' | 'round' | 'space' | 'stretch'
-  /** 兜底背景色（PNG 还没画 / 加载失败时露出来；也作为内容背景） */
+  /** 兜底背景色（9 张切片任一缺失时露出） */
   fallbackBg: string
   /** 标题文字色 */
   titleColor: string
@@ -50,29 +45,63 @@ interface VariantSpec {
   titleIcon?: string
 }
 
-// ⬇️ 画师 (你) 之后画好 PNG 放到 public/ui/ 即自动接管。文件不存在时仍可玩。
+// ⬇️ 画师 (你) 之后画好 9 张切片 PNG 放到 public/ui/ 即自动接管。
+// 命名约定：panel-{variant}-{tl,t-edge,tr,l-edge,center,r-edge,bl,b-edge,br}.png
+// 9 张全部存在 → 启用 9-切片平铺；任一缺失 → 退回 fallbackBg 纯色 + 黑边。
 const PANEL_VARIANTS: Record<PanelVariant, VariantSpec> = {
-  paper:   { src: '/ui/panel-paper.png',   slice: 16, repeat: 'repeat', fallbackBg: '#2a1810', titleColor: '#f5d878', textColor: '#ede0c8', dividerColor: '#5c3a1f' },
-  inbox:   { src: '/ui/panel-inbox.png',   slice: 16, repeat: 'repeat', fallbackBg: '#4a2f18', titleColor: '#f5d878', textColor: '#ede0c8', dividerColor: '#5c3a1f', titleIcon: '📥' },
-  belt:    { src: '/ui/panel-belt.png',    slice: 16, repeat: 'repeat', fallbackBg: '#2a1810', titleColor: '#d4a85a', textColor: '#ede0c8', dividerColor: '#4a3728', titleIcon: '⚙' },
-  journal: { src: '/ui/panel-journal.png', slice: 16, repeat: 'repeat', fallbackBg: '#3a2412', titleColor: '#f5d878', textColor: '#ede0c8', dividerColor: '#5c3a1f', titleIcon: '📖' },
-  scroll:  { src: '/ui/panel-scroll.png',  slice: 16, repeat: 'repeat', fallbackBg: '#3a2418', titleColor: '#f5d878', textColor: '#ede0c8', dividerColor: '#5c3a1f' },
-  notice:  { src: '/ui/panel-notice.png',  slice: 16, repeat: 'repeat', fallbackBg: '#8b6b3e', titleColor: '#fce8e8', textColor: '#1a0e08', dividerColor: '#5c3a1f', titleIcon: '📌' },
+  paper:   { slice: 48, fallbackBg: '#2a1810', titleColor: '#f5d878', textColor: '#ede0c8', dividerColor: '#5c3a1f' },
+  inbox:   { slice: 48, fallbackBg: '#4a2f18', titleColor: '#f5d878', textColor: '#ede0c8', dividerColor: '#5c3a1f', titleIcon: '📥' },
+  belt:    { slice: 48, fallbackBg: '#2a1810', titleColor: '#d4a85a', textColor: '#ede0c8', dividerColor: '#4a3728', titleIcon: '⚙' },
+  journal: { slice: 48, fallbackBg: '#3a2412', titleColor: '#f5d878', textColor: '#ede0c8', dividerColor: '#5c3a1f', titleIcon: '📖' },
+  scroll:  { slice: 48, fallbackBg: '#3a2418', titleColor: '#f5d878', textColor: '#ede0c8', dividerColor: '#5c3a1f' },
+  notice:  { slice: 48, fallbackBg: '#8b6b3e', titleColor: '#fce8e8', textColor: '#1a0e08', dividerColor: '#5c3a1f', titleIcon: '📌' },
 }
 
-/** v2.6.2: 标题栏走独立 9-slice PNG（位于 public/ui/titlebar-{variant}.png）。
+/** 9-切片组合的 CSS background：4 角固定 + 4 边平铺 + 1 中心填充。
+ *  第一张图在最上层，corners 覆盖 edges 在拐角处的多余像素，edges 覆盖 center。 */
+function buildPanelBackground(variant: PanelVariant, slice: number): string {
+  const base = `/ui/panel-${variant}`
+  return [
+    `url('${base}-tl.png')     0     0     / ${slice}px ${slice}px no-repeat`,
+    `url('${base}-tr.png')     100%  0     / ${slice}px ${slice}px no-repeat`,
+    `url('${base}-bl.png')     0     100%  / ${slice}px ${slice}px no-repeat`,
+    `url('${base}-br.png')     100%  100%  / ${slice}px ${slice}px no-repeat`,
+    `url('${base}-t-edge.png') 0     0     / ${slice}px ${slice}px repeat-x`,
+    `url('${base}-b-edge.png') 0     100%  / ${slice}px ${slice}px repeat-x`,
+    `url('${base}-l-edge.png') 0     0     / ${slice}px ${slice}px repeat-y`,
+    `url('${base}-r-edge.png') 100%  0     / ${slice}px ${slice}px repeat-y`,
+    `url('${base}-center.png') 0     0     / ${slice}px ${slice}px repeat`,
+  ].join(', ')
+}
+
+/** v2.6.2: 标题栏走独立 9-切片 PNG（命名同 panel，只是前缀 titlebar-{variant}-{slice}.png）。
  *  画师选择性提供：不画就用变体的 dividerColor 横条样式。 */
 interface TitleBarSpec {
-  src: string
+  /** 标题栏切片像素尺寸（默认 16，画师如果用 24 改这里）。 */
   slice: number
 }
 const TITLEBAR_VARIANTS: Record<PanelVariant, TitleBarSpec> = {
-  paper:   { src: '/ui/titlebar-paper.png',   slice: 4 },
-  inbox:   { src: '/ui/titlebar-inbox.png',   slice: 4 },
-  belt:    { src: '/ui/titlebar-belt.png',    slice: 4 },
-  journal: { src: '/ui/titlebar-journal.png', slice: 4 },
-  scroll:  { src: '/ui/titlebar-scroll.png',  slice: 4 },
-  notice:  { src: '/ui/titlebar-notice.png',  slice: 4 },
+  paper:   { slice: 16 },
+  inbox:   { slice: 16 },
+  belt:    { slice: 16 },
+  journal: { slice: 16 },
+  scroll:  { slice: 16 },
+  notice:  { slice: 16 },
+}
+
+function buildTitleBarBackground(variant: PanelVariant, slice: number): string {
+  const base = `/ui/titlebar-${variant}`
+  return [
+    `url('${base}-tl.png')     0     0     / ${slice}px ${slice}px no-repeat`,
+    `url('${base}-tr.png')     100%  0     / ${slice}px ${slice}px no-repeat`,
+    `url('${base}-bl.png')     0     100%  / ${slice}px ${slice}px no-repeat`,
+    `url('${base}-br.png')     100%  100%  / ${slice}px ${slice}px no-repeat`,
+    `url('${base}-t-edge.png') 0     0     / ${slice}px ${slice}px repeat-x`,
+    `url('${base}-b-edge.png') 0     100%  / ${slice}px ${slice}px repeat-x`,
+    `url('${base}-l-edge.png') 0     0     / ${slice}px ${slice}px repeat-y`,
+    `url('${base}-r-edge.png') 100%  0     / ${slice}px ${slice}px repeat-y`,
+    `url('${base}-center.png') 0     0     / ${slice}px ${slice}px repeat`,
+  ].join(', ')
 }
 
 /** 通用 PNG 可用性探测 hook：传 key + src，返回 image 是否加载成功。
@@ -109,19 +138,17 @@ export function ScenePanel({
 
   const spec = PANEL_VARIANTS[variant]
   const titleBarSpec = TITLEBAR_VARIANTS[variant]
-  const hasFrame = usePngAvailable(`panel:${variant}`, spec.src)
-  const hasTitleBar = usePngAvailable(`titlebar:${variant}`, titleBarSpec.src)
+  // 用 center.png 作为"9 张是否齐全"的代表（最后画的那张大概率是 center）
+  const hasFrame = usePngAvailable(`panel:${variant}`, `/ui/panel-${variant}-center.png`)
+  const hasTitleBar = usePngAvailable(`titlebar:${variant}`, `/ui/titlebar-${variant}-center.png`)
 
-  // 9-slice 模式：用 border-image；像素整数倍放大；shadow 用 box-shadow 不会糊。
+  // 9-切片背景叠加：corners 在最上层 → edges → center 在最底。整个面板的内边距 = slice，
+  // 让标题栏 + 内容只在中央可平铺区出现，不会盖到边框纹理。
   const frameStyle: CSSProperties = hasFrame
     ? {
-        borderStyle: 'solid',
-        borderColor: 'transparent',
-        borderWidth: spec.slice,
-        borderImageSource: `url('${spec.src}')`,
-        borderImageSlice: `${spec.slice} fill`,
-        borderImageRepeat: spec.repeat,
-        backgroundColor: spec.fallbackBg,  // 防止 fill 区透明时穿底
+        background: buildPanelBackground(variant, spec.slice),
+        // padding 留出 slice 宽度让边框 PNG 可见；下面标题栏 + 内容会带 negative-margin 抵消
+        padding: spec.slice,
         color: spec.textColor,
         imageRendering: 'pixelated',
         boxShadow: '4px 4px 0 #0a0806',
@@ -138,10 +165,9 @@ export function ScenePanel({
         overflow: 'hidden',
       }
 
-  // 内容区 padding 在 9-slice 模式下取 max(8, slice/2)；
-  // 兜底模式直接用 12/16。
-  const contentPad = hasFrame ? Math.max(8, Math.round(spec.slice / 2)) : 12
-  const titleBarPad = hasFrame ? Math.max(6, Math.round(spec.slice / 2)) : 8
+  // 内容区 padding 在 9-切片模式下：外层已留出 slice，内部用较小 padding；兜底模式用 12/8
+  const contentPad = hasFrame ? 8 : 12
+  const titleBarPad = hasFrame ? 6 : 8
 
   return (
     <div
@@ -151,21 +177,15 @@ export function ScenePanel({
       aria-label={title}
     >
       <div className="font-mono" style={frameStyle}>
-        {/* 标题栏：可选 9-slice PNG。画了 → 用 PNG 渲染整条；没画 → 退回色块 + 底分割线。
+        {/* 标题栏：可选 9-切片 PNG。画了 → 用 9 张切片背景；没画 → 退回色块 + 底分割线。
             标题文字本身始终是 HTML 渲染，保证 CJK 像素字体清晰。 */}
         <div
           className="flex items-center justify-between"
           style={
             hasTitleBar
               ? {
-                  // 9-slice 模式：与 panel 一样的 border-image 技术，但是装在标题条上
-                  borderStyle: 'solid',
-                  borderColor: 'transparent',
-                  borderWidth: titleBarSpec.slice,
-                  borderImageSource: `url('${titleBarSpec.src}')`,
-                  borderImageSlice: `${titleBarSpec.slice} fill`,
-                  borderImageRepeat: 'repeat',
-                  padding: `${Math.max(2, titleBarPad - titleBarSpec.slice)}px ${Math.max(4, contentPad - titleBarSpec.slice)}px`,
+                  background: buildTitleBarBackground(variant, titleBarSpec.slice),
+                  padding: `${Math.max(titleBarSpec.slice / 2, titleBarPad)}px ${titleBarSpec.slice}px`,
                   imageRendering: 'pixelated',
                 }
               : {

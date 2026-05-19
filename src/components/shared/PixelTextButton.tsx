@@ -44,15 +44,30 @@ const PALETTE: Record<ButtonVariant, {
 }
 
 interface ButtonFrameSpec {
-  src: string
-  /** border-image-slice 数值，同时也作为 border 宽度。16×16 PNG → slice=4。 */
+  /** 每张切片 PNG 的像素尺寸（默认 16）。 */
   slice: number
 }
 
 const BUTTON_FRAMES: Record<ButtonVariant, ButtonFrameSpec> = {
-  default: { src: '/ui/button-default.png', slice: 4 },
-  primary: { src: '/ui/button-primary.png', slice: 4 },
-  danger:  { src: '/ui/button-danger.png',  slice: 4 },
+  default: { slice: 16 },
+  primary: { slice: 16 },
+  danger:  { slice: 16 },
+}
+
+/** 与 ScenePanel 同款：9 张切片 PNG 平铺组合 */
+function buildButtonBackground(variant: ButtonVariant, slice: number): string {
+  const base = `/ui/button-${variant}`
+  return [
+    `url('${base}-tl.png')     0     0     / ${slice}px ${slice}px no-repeat`,
+    `url('${base}-tr.png')     100%  0     / ${slice}px ${slice}px no-repeat`,
+    `url('${base}-bl.png')     0     100%  / ${slice}px ${slice}px no-repeat`,
+    `url('${base}-br.png')     100%  100%  / ${slice}px ${slice}px no-repeat`,
+    `url('${base}-t-edge.png') 0     0     / ${slice}px ${slice}px repeat-x`,
+    `url('${base}-b-edge.png') 0     100%  / ${slice}px ${slice}px repeat-x`,
+    `url('${base}-l-edge.png') 0     0     / ${slice}px ${slice}px repeat-y`,
+    `url('${base}-r-edge.png') 100%  0     / ${slice}px ${slice}px repeat-y`,
+    `url('${base}-center.png') 0     0     / ${slice}px ${slice}px repeat`,
+  ].join(', ')
 }
 
 const SIZE: Record<NonNullable<PixelTextButtonProps['size']>, { padX: number; padY: number; font: string; bevel: number }> = {
@@ -61,11 +76,12 @@ const SIZE: Record<NonNullable<PixelTextButtonProps['size']>, { padX: number; pa
   lg: { padX: 18, padY: 7, font: '15px', bevel: 2 },
 }
 
-// PNG 可用性探测：每个 variant 探测一次，缓存到 module-level Map。
+// PNG 可用性探测：用 center.png 作为"9 张是否齐全"的代表。
 const frameAvailability = new Map<ButtonVariant, boolean>()
-function useButtonFrame(variant: ButtonVariant, src: string): boolean {
+function useButtonFrame(variant: ButtonVariant): boolean {
   const cached = frameAvailability.get(variant)
   const [available, setAvailable] = useState<boolean>(cached ?? false)
+  const src = `/ui/button-${variant}-center.png`
   useEffect(() => {
     if (cached !== undefined) return
     const img = new Image()
@@ -91,23 +107,17 @@ export function PixelTextButton({
   const s = SIZE[size]
   const spec = BUTTON_FRAMES[variant]
   const [hover, setHover] = useState(false)
-  const hasFrame = useButtonFrame(variant, spec.src)
+  const hasFrame = useButtonFrame(variant)
 
-  // 9-slice 模式：用 border-image + 透明 border 占位。
-  //                hover 提亮 / active 1px 下沉。
+  // 9-切片模式：用 9 张独立 PNG 通过 CSS 多层背景叠加。
+  //              hover 提亮 / active 1px 下沉。
   // 兜底模式：保留 inset bevel + outer drop shadow，行为完全一致。
   const buttonStyle: CSSProperties = hasFrame
     ? {
-        padding: `${s.padY}px ${s.padX}px`,
+        padding: `${Math.max(s.padY, spec.slice / 2)}px ${Math.max(s.padX, spec.slice)}px`,
         fontSize: s.font,
         color: c.text,
-        borderStyle: 'solid',
-        borderColor: 'transparent',
-        borderWidth: spec.slice,
-        borderImageSource: `url('${spec.src}')`,
-        borderImageSlice: `${spec.slice} fill`,
-        borderImageRepeat: 'repeat',
-        backgroundColor: 'transparent',
+        background: buildButtonBackground(variant, spec.slice),
         textShadow: `
           1px 0 0 ${c.textShadow},
           -1px 0 0 ${c.textShadow},
@@ -116,6 +126,7 @@ export function PixelTextButton({
         `,
         imageRendering: 'pixelated',
         letterSpacing: '0.5px',
+        border: 'none',
         // hover / active 微反馈（不会破坏像素画框，因为只是滤镜）
         filter: hover && !disabled ? 'brightness(1.1)' : undefined,
         ...style,
