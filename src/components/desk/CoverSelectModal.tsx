@@ -16,6 +16,11 @@ export function CoverSelectModal({ manuscript, onConfirm, onReject, onCancel }: 
   const playerName = useGameStore(s => s.playerName)
   const playTicks = useGameStore(s => s.playTicks)
   const setEditorNote = useGameStore(s => s.setEditorNote)
+  // v2.6: 当前设计部等级——用于在标题区提示"由 Lv.N 设计部出品"
+  const designLevel = useGameStore(s => {
+    const d = [...s.departments.values()].find(x => x.type === 'design')
+    return d?.level ?? 0
+  })
 
   const pubPrestige = manuscript.isUnsuitable ? -10 : 10
   const marketLabel = manuscript.marketPotential >= 75 ? '极高' : manuscript.marketPotential >= 50 ? '良好' : manuscript.marketPotential >= 30 ? '一般' : '较低'
@@ -29,8 +34,15 @@ export function CoverSelectModal({ manuscript, onConfirm, onReject, onCancel }: 
       <div className="border-2 w-full max-w-[640px] max-h-[88vh] overflow-y-auto shadow-[4px_4px_0_#0a0806] my-auto"
         style={{ background: '#2a1810', borderColor: '#0a0806', color: '#ede0c8' }}>
         <div className="p-4 md:p-5 border-b-2 border-border-dark">
-          <h2 className="text-sm md:text-base font-bold text-ink font-mono">查看封面</h2>
-          <p className="text-[13px] md:text-xs text-muted mt-0.5 font-mono">《{manuscript.title}》· {manuscript.genre}</p>
+          <h2 className="text-sm md:text-base font-bold text-ink font-mono">确认封面 · 准备付印</h2>
+          <p className="text-[13px] md:text-xs text-muted mt-0.5 font-mono">
+            《{manuscript.title}》· {manuscript.genre}
+            {designLevel > 0 && (
+              <span className="ml-2" style={{ color: '#d4a85a' }}>
+                · 设计部 Lv.{designLevel} 出品
+              </span>
+            )}
+          </p>
         </div>
 
         <div className="p-4 md:p-5">

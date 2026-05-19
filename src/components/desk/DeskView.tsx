@@ -8,12 +8,12 @@ import type { Manuscript } from '@/core/types'
 
 const STAGE_ICONS: Record<string, string> = {
   reviewing: '👀', editing: '✍️', proofing: '🔍',
-  cover_select: '🎨', publishing: '🖨️',
+  cover_designing: '🖌️', cover_select: '🎨', publishing: '🖨️',
 }
 
 const STAGE_LABELS: Record<string, string> = {
   reviewing: '审稿', editing: '编辑', proofing: '校对',
-  cover_select: '待选封面', publishing: '付印',
+  cover_designing: '设计封面中', cover_select: '待选封面', publishing: '付印',
 }
 
 export function DeskView() {
@@ -39,7 +39,7 @@ export function DeskView() {
   const all = useMemo(() => [...manuscripts.values()], [manuscripts])
   const submitted = useMemo(() => all.filter(m => m.status === 'submitted'), [all])
   const inProgress = useMemo(() => {
-    const list = all.filter(m => ['reviewing', 'editing', 'proofing', 'cover_select', 'publishing'].includes(m.status))
+    const list = all.filter(m => ['reviewing', 'editing', 'proofing', 'cover_designing', 'cover_select', 'publishing'].includes(m.status))
     // Pin cover_select manuscripts to top
     return list.sort((a, b) => {
       if (a.status === 'cover_select' && b.status !== 'cover_select') return -1

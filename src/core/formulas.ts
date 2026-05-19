@@ -110,6 +110,17 @@ export function publishingTicks(departmentEfficiency: number): number {
   return Math.max(2, Math.round(PUBLISHING_TICKS_BASE * (1 - departmentEfficiency)))
 }
 
+/**
+ * v2.6: 封面设计阶段时长（仅当设计部存在时才会进入此阶段）。
+ * 基准 90 ticks ≈ 1.5 个游戏日；设计部每提升 1 级约缩短 7%，地板 30 ticks。
+ * Lv.0（无设计部）：跳过此阶段，直接出版（覆盖灰阶兜底封面）。
+ * Lv.1 ≈ 84 / Lv.3 ≈ 72 / Lv.5 ≈ 60 / Lv.10 ≈ 30
+ */
+export function coverDesigningTicks(designDeptLevel: number): number {
+  if (designDeptLevel <= 0) return 0
+  return Math.max(30, Math.round(90 * Math.pow(0.93, designDeptLevel - 1)))
+}
+
 // ──── Currency ────
 
 export function rpPerReview(editorSpeedBonus: number): number {

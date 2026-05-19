@@ -395,6 +395,7 @@ export const createMiscActions = (
       }
       ms.status = 'publishing'
       ms.editingProgress = 0
+      ms.coverDesigned = true  // v2.6: 玩家手动确认即视为设计完成
     })
   },
 
@@ -409,7 +410,7 @@ export const createMiscActions = (
   getInProgressManuscripts: () => {
     const state = get()
     return [...state.manuscripts.values()].filter(
-      m => ['reviewing', 'editing', 'proofing', 'cover_select', 'publishing'].includes(m.status)
+      m => ['reviewing', 'editing', 'proofing', 'cover_designing', 'cover_select', 'publishing'].includes(m.status)
     )
   },
 

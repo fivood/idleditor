@@ -57,6 +57,7 @@ export function processAutomationPhase(world: GameWorldState, { ct }: TickContex
         if (world.booksPublishedThisMonth + count >= 10 + world.publishingQuotaUpgrades) break
         ms.status = 'publishing'
         ms.editingProgress = 0
+        ms.coverDesigned = true  // v2.6: 走到 cover_select 自动出版的，必然来自有设计部的产线
         count++
       }
       if (count > 0) {

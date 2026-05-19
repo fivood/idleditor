@@ -7,6 +7,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: 'v2.6',
+    date: '2026-05-19',
+    title: '封面设计作为挂机进度 · 设计部价值显性化',
+    items: [
+      '出版流水线新增「封面设计中」阶段：proofing 完成后，若已雇佣设计部 → 进入 cover_designing 挂机进度（基准 1.5 游戏日，每升 1 级缩 7%，地板 30 ticks）→ 完成后回到原来的 cover_select 让玩家确认付印。',
+      '若没建设计部，校对完成 → 直接付印，但封面会显示为灰阶兜底（grayscale + brightness 0.78），主编一眼就能看出"这本没经过设计"——很丑，但流程顺滑无打扰。',
+      '设计部 Lv.1 起视觉立刻翻新：彩色专属 PNG / 占位封面恢复彩色 + 设计完成时主动 milestone toast。等级越高，设计越快、玩家越快被通知确认。',
+      'CoverSelectModal 标题从"查看封面"改为"确认封面 · 准备付印"，并在标题区显示"设计部 Lv.N 出品"，让玩家感受到这是部门成果而不是流水线噪音。',
+      'PixelCover 自动按 manuscript.coverDesigned 决定彩色 / 灰阶，老存档（字段缺失）默认按"已设计"处理，避免老书突然变灰。',
+      '全自动跳过封面审核（quality < 门槛 + autoCover）继承设计部状态：有设计部就是设计封面、没设计部就是灰阶。',
+    ],
+  },
+  {
     version: 'v2.5',
     date: '2026-05-19',
     title: '八题材结构 · 21 位作者人格 · 502 本书',

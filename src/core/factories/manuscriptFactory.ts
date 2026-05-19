@@ -153,6 +153,7 @@ export function createManuscript(world: GameWorldState, qualityBonus = 0): Manus
     reissueBoostUntil: null,
     editorNote: '',
     customNote: '',
+    coverDesigned: false,  // v2.6: 默认未设计；走过 cover_designing 后才置 true
   }
 }
 
@@ -198,6 +199,7 @@ export function createManuscriptForAuthor(world: GameWorldState, author: Author)
     reissueBoostUntil: null,
     editorNote: '',
     customNote: '',
+    coverDesigned: false,  // v2.6: 默认未设计；走过 cover_designing 后才置 true
   }
 }
 

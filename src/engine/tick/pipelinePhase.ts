@@ -1,5 +1,5 @@
-import { getDeptEfficiency } from '@/core/helpers'
-import { reviewTicks, rpPerReview, editingTicks, rpPerEdit, proofingTicks, rpPerProof, publishingTicks, rpPerPublish } from '@/core/formulas'
+import { getDeptEfficiency, getDeptLevel } from '@/core/helpers'
+import { reviewTicks, rpPerReview, editingTicks, rpPerEdit, proofingTicks, rpPerProof, publishingTicks, rpPerPublish, coverDesigningTicks } from '@/core/formulas'
 import { gainInspiration } from '@/core/dream/inspiration'
 import { generateToast } from '@/core/humor/generator'
 import { generatePublishNote, generateLevelUpToast } from '@/core/data/editorNotes'
@@ -21,6 +21,7 @@ import type { PhaseResult, TickContext } from '../types'
 export function processPipelinePhase(world: GameWorldState, { ct, effSpeedBonus, effRpBonus, talentBonuses, epochSocialite }: TickContext, result: TickResult): PhaseResult {
   const editEfficiency = getDeptEfficiency(world, 'editing')
   const designEfficiency = getDeptEfficiency(world, 'design')
+  const designLevel = getDeptLevel(world, 'design')
   const speedMult = 1 + effSpeedBonus
   let thresholdSkips = 0
 
@@ -65,17 +66,42 @@ export function processPipelinePhase(world: GameWorldState, { ct, effSpeedBonus,
           m.quality = Math.min(100, m.quality + Math.round(designEfficiency * 10))
         }
         const quota = 10 + world.publishingQuotaUpgrades
+        const hasDesignDept = designLevel > 0
+
         if (world.qualityThreshold > 0 && m.quality < world.qualityThreshold && world.autoCoverEnabled) {
+          // 全自动跳过封面审核：低品质书直接付印，封面经设计部就是设计版，没设计部就是灰阶
           if (world.booksPublishedThisMonth + thresholdSkips >= quota) continue
           m.status = 'publishing'
           m.editingProgress = 0
+          m.coverDesigned = hasDesignDept
           thresholdSkips++
           result.toasts.push(ct(`🤖 全自动流水线跳过封面审核：《${m.title}》（品质${m.quality}，门槛${world.qualityThreshold}）`, 'info'))
-        } else {
-          m.status = 'cover_select'
+        } else if (!hasDesignDept) {
+          // v2.6: 没有设计部 → 跳过 cover_designing 与 cover_select，直接付印（灰阶兜底封面）
+          m.status = 'publishing'
           m.editingProgress = 0
+          m.coverDesigned = false
+          result.toasts.push(ct(`🖨️ 《${m.title}》直接付印（无设计部 · 使用灰阶兜底封面）`, 'info'))
+        } else {
+          // v2.6: 有设计部 → 进入挂机式封面设计阶段
+          m.status = 'cover_designing'
+          m.editingProgress = 0
+          m.coverDesigned = false
         }
         world.currencies.revisionPoints += rpPerProof(effSpeedBonus + effRpBonus)
+      }
+      continue
+    }
+
+    // v2.6: 封面设计挂机阶段（仅当设计部存在时）
+    if (m.status === 'cover_designing') {
+      const needed = coverDesigningTicks(designLevel)
+      m.editingProgress += (1 / needed) * speedMult
+      if (m.editingProgress >= 1) {
+        m.status = 'cover_select'
+        m.editingProgress = 0
+        m.coverDesigned = true
+        result.toasts.push(ct(`🎨 《${m.title}》封面设计完成，等待主编确认付印。`, 'milestone'))
       }
       continue
     }

@@ -58,6 +58,7 @@ export type ManuscriptStatus =
   | 'reviewing'
   | 'editing'
   | 'proofing'
+  | 'cover_designing'  // v2.6: 设计部进行封面设计的挂机阶段（有设计部时插入）
   | 'cover_select'
   | 'publishing'
   | 'published'
@@ -144,6 +145,8 @@ export interface Manuscript {
   customNote: string
   // v2.2.3: 玩家自创作（梦境写作产物）
   isPlayerCreated?: boolean
+  // v2.6: 是否经过设计部完成封面设计。false → 出版时显示灰阶兜底封面。
+  coverDesigned?: boolean
 }
 
 // 梦境创作项目（玩家进入梦境正在写的一本书）
