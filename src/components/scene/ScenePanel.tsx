@@ -60,19 +60,34 @@ const PANEL_VARIANTS: Record<PanelVariant, VariantSpec> = {
   notice:  { src: '/ui/panel-notice.png',  slice: 16, repeat: 'repeat', fallbackBg: '#8b6b3e', titleColor: '#fce8e8', textColor: '#1a0e08', dividerColor: '#5c3a1f', titleIcon: '📌' },
 }
 
-/** 用 Image() 探测 PNG 是否存在；存在 → 启用 border-image。否则纯色兜底。
- *  每个 variant 探测一次后用 module-level 缓存，避免每次开 panel 都重测。 */
-const variantAvailability = new Map<PanelVariant, boolean>()
-function useVariantHasFrame(variant: PanelVariant, src: string): boolean {
-  const cached = variantAvailability.get(variant)
+/** v2.6.2: 标题栏走独立 9-slice PNG（位于 public/ui/titlebar-{variant}.png）。
+ *  画师选择性提供：不画就用变体的 dividerColor 横条样式。 */
+interface TitleBarSpec {
+  src: string
+  slice: number
+}
+const TITLEBAR_VARIANTS: Record<PanelVariant, TitleBarSpec> = {
+  paper:   { src: '/ui/titlebar-paper.png',   slice: 4 },
+  inbox:   { src: '/ui/titlebar-inbox.png',   slice: 4 },
+  belt:    { src: '/ui/titlebar-belt.png',    slice: 4 },
+  journal: { src: '/ui/titlebar-journal.png', slice: 4 },
+  scroll:  { src: '/ui/titlebar-scroll.png',  slice: 4 },
+  notice:  { src: '/ui/titlebar-notice.png',  slice: 4 },
+}
+
+/** 通用 PNG 可用性探测 hook：传 key + src，返回 image 是否加载成功。
+ *  键名隔离让 panel/titlebar 互不串扰；缓存避免每次开窗重测。 */
+const pngAvailability = new Map<string, boolean>()
+function usePngAvailable(key: string, src: string): boolean {
+  const cached = pngAvailability.get(key)
   const [available, setAvailable] = useState<boolean>(cached ?? false)
   useEffect(() => {
     if (cached !== undefined) return
     const img = new Image()
-    img.onload = () => { variantAvailability.set(variant, true); setAvailable(true) }
-    img.onerror = () => { variantAvailability.set(variant, false); setAvailable(false) }
+    img.onload = () => { pngAvailability.set(key, true); setAvailable(true) }
+    img.onerror = () => { pngAvailability.set(key, false); setAvailable(false) }
     img.src = src
-  }, [variant, src, cached])
+  }, [key, src, cached])
   return available
 }
 
@@ -93,7 +108,9 @@ export function ScenePanel({
   }, [onClose])
 
   const spec = PANEL_VARIANTS[variant]
-  const hasFrame = useVariantHasFrame(variant, spec.src)
+  const titleBarSpec = TITLEBAR_VARIANTS[variant]
+  const hasFrame = usePngAvailable(`panel:${variant}`, spec.src)
+  const hasTitleBar = usePngAvailable(`titlebar:${variant}`, titleBarSpec.src)
 
   // 9-slice 模式：用 border-image；像素整数倍放大；shadow 用 box-shadow 不会糊。
   const frameStyle: CSSProperties = hasFrame
@@ -134,13 +151,28 @@ export function ScenePanel({
       aria-label={title}
     >
       <div className="font-mono" style={frameStyle}>
-        {/* 标题栏：纯 HTML，不参与 9-slice。让画师专注画框；标题文字由 CSS 字体渲染保持清晰。 */}
+        {/* 标题栏：可选 9-slice PNG。画了 → 用 PNG 渲染整条；没画 → 退回色块 + 底分割线。
+            标题文字本身始终是 HTML 渲染，保证 CJK 像素字体清晰。 */}
         <div
           className="flex items-center justify-between"
-          style={{
-            padding: `${titleBarPad}px ${contentPad}px`,
-            borderBottom: `1px solid ${spec.dividerColor}`,
-          }}
+          style={
+            hasTitleBar
+              ? {
+                  // 9-slice 模式：与 panel 一样的 border-image 技术，但是装在标题条上
+                  borderStyle: 'solid',
+                  borderColor: 'transparent',
+                  borderWidth: titleBarSpec.slice,
+                  borderImageSource: `url('${titleBarSpec.src}')`,
+                  borderImageSlice: `${titleBarSpec.slice} fill`,
+                  borderImageRepeat: 'repeat',
+                  padding: `${Math.max(2, titleBarPad - titleBarSpec.slice)}px ${Math.max(4, contentPad - titleBarSpec.slice)}px`,
+                  imageRendering: 'pixelated',
+                }
+              : {
+                  padding: `${titleBarPad}px ${contentPad}px`,
+                  borderBottom: `1px solid ${spec.dividerColor}`,
+                }
+          }
         >
           <h3 className="text-sm md:text-base font-bold truncate" style={{ color: spec.titleColor }}>
             {spec.titleIcon && <span className="mr-1">{spec.titleIcon}</span>}
