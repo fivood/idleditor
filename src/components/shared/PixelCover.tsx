@@ -39,6 +39,9 @@ export function PixelCover({ manuscript, size = 'md', width, className = '', sty
 
   const cover = manuscript.cover
   const placeholder = cover?.placeholder
+  // v2.6: coverDesigned === false → 灰阶兜底封面（没建设计部、或还在设计中）。
+  //       注意 undefined 视为"老存档默认"，按已设计处理，避免老书在 UI 上突然变灰。
+  const isRaw = manuscript.coverDesigned === false
 
   return (
     <div
@@ -46,11 +49,14 @@ export function PixelCover({ manuscript, size = 'md', width, className = '', sty
       style={{
         width: w,
         height: h,
-        borderColor: '#0a0806',
-        background: placeholder?.bgColor ?? '#2a1810',
+        borderColor: isRaw ? '#3a3530' : '#0a0806',
+        background: isRaw ? '#2a2724' : (placeholder?.bgColor ?? '#2a1810'),
         imageRendering: 'pixelated',
+        // 灰阶 + 略压低饱和度，让"未经设计部加工"一眼可辨
+        filter: isRaw ? 'grayscale(1) brightness(0.78) contrast(0.92)' : undefined,
         ...style,
       }}
+      title={isRaw ? '未经设计部加工的灰阶兜底封面（雇佣设计部以解锁专属封面设计）' : undefined}
     >
       {cover?.src ? (
         <img

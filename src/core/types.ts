@@ -1,40 +1,55 @@
-// ──── Genres ────
-export type Genre = 'sci-fi' | 'mystery' | 'suspense'   | 'social-science'
-  | 'hybrid'
-  | 'light-novel'
+// ──── Genres（v2.5 八题材结构）────
+export type Genre =
+  | 'sci-fi'         // 日光幻想
+  | 'mystery'        // 凡间悬案
+  | 'suspense'       // 银器恐怖
+  | 'social-science' // 真实研究
+  | 'literary'       // 凡间名著（v2.5 从 social 拆出）
+  | 'hybrid'         // 跨种合著
+  | 'fantasy'        // 远古纪事（v2.5 从 hybrid 拆出）
+  | 'light-novel'    // 少年血宫
 
-export const GENRES: Genre[] = ['sci-fi', 'mystery', 'suspense', 'social-science', 'hybrid', 'light-novel']
+export const GENRES: Genre[] = [
+  'sci-fi', 'mystery', 'suspense', 'social-science',
+  'literary', 'hybrid', 'fantasy', 'light-novel',
+]
 
 // 永夜版语义：把题材标签反转为永夜世界的视角
 // 真实世界看起来是"奇幻"的东西（吸血鬼/狼人）在永夜是日常
 // 真实世界的"日常"（阳光/人类生活）在永夜是奇幻
 // 类型用 Record<string, string> 以兼容旧的字符串索引访问。
 export const GENRE_LABELS: Record<string, string> = {
-  'sci-fi': '日光幻想',          // 原"科幻"——关于阳光/人类的奇想
-  mystery: '凡间悬案',           // 原"推理"——人类视角的离奇案件
-  suspense: '银器恐怖',          // 原"悬疑"——涉及银/十字/阳光禁忌
-  'social-science': '真实研究',  // 原"社科"——关于永夜社会的纪实
-  hybrid: '跨种合著',            // 原"混血"——两个物种作者合作
-  'light-novel': '少年血宫',     // 原"轻小说"——年轻吸血鬼/狼人爽文
+  'sci-fi':         '日光幻想',  // 关于阳光/人类的奇想
+  mystery:          '凡间悬案',  // 人类视角的离奇案件
+  suspense:         '银器恐怖',  // 涉及银/十字/阳光禁忌
+  'social-science': '真实研究',  // 关于永夜社会的纪实
+  literary:         '凡间名著',  // v2.5 凡人经典在永夜视角的改写
+  hybrid:           '跨种合著',  // 两个物种作者合作
+  fantasy:          '远古纪事',  // v2.5 永夜大陆古传说 / 大型奇幻史诗
+  'light-novel':    '少年血宫',  // 年轻血族/异世界编辑爽文
 }
 
 // 旧称谓（人类世界视角），用于"凡间专栏"开关开启时显示
 export const GENRE_LABELS_MORTAL: Record<string, string> = {
-  'sci-fi': '科幻',
-  mystery: '推理',
-  suspense: '悬疑',
+  'sci-fi':         '科幻',
+  mystery:          '推理',
+  suspense:         '悬疑',
   'social-science': '社科',
-  hybrid: '混血',
-  'light-novel': '轻小说',
+  literary:         '经典改编',
+  hybrid:           '跨界融合',
+  fantasy:          '奇幻史诗',
+  'light-novel':    '轻小说',
 }
 
 export const GENRE_ICONS: Record<Genre, string> = {
-  'sci-fi': '/icons/genre/sci-fi.svg',
-  mystery: '/icons/genre/mystery.svg',
-  suspense: '/icons/genre/suspense.svg',
+  'sci-fi':         '/icons/genre/sci-fi.svg',
+  mystery:          '/icons/genre/mystery.svg',
+  suspense:         '/icons/genre/suspense.svg',
   'social-science': '/icons/genre/social-science.svg',
-  hybrid: '/icons/genre/hybrid.svg',
-  'light-novel': '/icons/genre/light-novel.svg',
+  literary:         '/icons/genre/social-science.svg', // 暂复用 social-science 图标
+  hybrid:           '/icons/genre/hybrid.svg',
+  fantasy:          '/icons/genre/hybrid.svg',         // 暂复用 hybrid 图标
+  'light-novel':    '/icons/genre/light-novel.svg',
 }
 
 // ──── Manuscript lifecycle ────
@@ -43,6 +58,7 @@ export type ManuscriptStatus =
   | 'reviewing'
   | 'editing'
   | 'proofing'
+  | 'cover_designing'  // v2.6: 设计部进行封面设计的挂机阶段（有设计部时插入）
   | 'cover_select'
   | 'publishing'
   | 'published'
@@ -80,6 +96,11 @@ export type AuthorPersona =
   // 奇幻种族
   | 'fae-changeling-fabulist'
   | 'demon-bureaucrat'
+  // v2.5 新增：覆盖哥特/史学/noir/史诗 4 个新风格
+  | 'ghost-gothic-poet'        // 幽灵诗人（哥特+经典改编）
+  | 'mummy-chronicle-scholar'  // 木乃伊史学家（纪实+古传说）
+  | 'noir-pulp-novelist'       // 黑色小说作家（悬疑+推理）
+  | 'ancient-dragon-epic'      // 始祖级龙（远古纪事，超慢节奏巨著）
 
 // ──── Department types ────
 export type DepartmentType = 'editing' | 'design' | 'marketing' | 'rights'
@@ -124,6 +145,8 @@ export interface Manuscript {
   customNote: string
   // v2.2.3: 玩家自创作（梦境写作产物）
   isPlayerCreated?: boolean
+  // v2.6: 是否经过设计部完成封面设计。false → 出版时显示灰阶兜底封面。
+  coverDesigned?: boolean
 }
 
 // 梦境创作项目（玩家进入梦境正在写的一本书）

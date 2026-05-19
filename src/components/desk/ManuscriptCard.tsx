@@ -11,7 +11,9 @@ const GENRE_BAND_COLORS: Record<Genre, string> = {
   mystery:          '#8b5cf6',  // 紫
   suspense:         '#ef4444',  // 红
   'social-science': '#d97706',  // 琥珀
+  literary:         '#b91c1c',  // 葡萄酒红
   hybrid:           '#10b981',  // 绿
+  fantasy:          '#7c3aed',  // 紫罗兰
   'light-novel':    '#ec4899',  // 粉
 }
 

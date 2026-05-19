@@ -96,8 +96,10 @@ function randomDreamTitle(genre: Genre): string {
     'mystery': ['昨夜我做了一个奇怪的梦', '梦里那个人是谁', '镜中的访客'],
     'suspense': ['银器之梦', '梦境深处的银光', '不该梦到的'],
     'social-science': ['一份关于梦的田野笔记', '夜与梦的边界'],
+    'literary': ['梦里我重写了一本经典', '醒来时盖茨比还在'],
     'light-novel': ['转生到自己的梦里', '梦中学院'],
     'hybrid': ['梦境合著', '醒来时我们都是另一个人'],
+    'fantasy': ['梦里的古龙', '远古纪事·我做的那段'],
   }
   const arr = pool[genre] ?? pool['hybrid']
   return arr[Math.floor(Math.random() * arr.length)]

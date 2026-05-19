@@ -43,6 +43,11 @@ export const PERSONA_PASSIVES: Record<AuthorPersona, PersonaPassive> = {
   // 奇幻种族
   'fae-changeling-fabulist':       { qualityBonus: 4,  speedBonus: 0,    royaltyBonus: 0,    prestigeBonus: 5,  salesBonus: 0,    wordCountBonus: 0.2,  affectionGainBonus: 2,  bestsellerThresholdReduction: 0 },
   'demon-bureaucrat':              { qualityBonus: 2,  speedBonus: 0,    royaltyBonus: 0,    prestigeBonus: 10, salesBonus: 0.1,  wordCountBonus: 0.3,  affectionGainBonus: -2, bestsellerThresholdReduction: 0 },
+  // v2.5
+  'ghost-gothic-poet':             { qualityBonus: 6,  speedBonus: -0.4, royaltyBonus: 0,    prestigeBonus: 14, salesBonus: 0,    wordCountBonus: -0.3, affectionGainBonus: -2, bestsellerThresholdReduction: 0 },
+  'mummy-chronicle-scholar':       { qualityBonus: 4,  speedBonus: -0.15,royaltyBonus: 0,    prestigeBonus: 10, salesBonus: 0,    wordCountBonus: 0.4,  affectionGainBonus: 0,  bestsellerThresholdReduction: 0 },
+  'noir-pulp-novelist':            { qualityBonus: 0,  speedBonus: 0.4,  royaltyBonus: 0.25, prestigeBonus: 0,  salesBonus: 0.35, wordCountBonus: -0.1, affectionGainBonus: 0,  bestsellerThresholdReduction: 4000 },
+  'ancient-dragon-epic':           { qualityBonus: 10, speedBonus: -0.6, royaltyBonus: 0.3,  prestigeBonus: 30, salesBonus: 0,    wordCountBonus: 1.0,  affectionGainBonus: -3, bestsellerThresholdReduction: 0 },
 }
 
 export function personaPassiveFor(author: Author): PersonaPassive {

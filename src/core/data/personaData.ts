@@ -33,6 +33,11 @@ export const PERSONA_GENRE_BIAS: Partial<Record<AuthorPersona, Genre[]>> = {
   // 奇幻种族
   'fae-changeling-fabulist':       ['hybrid', 'sci-fi'],
   'demon-bureaucrat':              ['social-science', 'suspense'],
+  // v2.5 新增
+  'ghost-gothic-poet':             ['literary', 'suspense'],     // 哥特调诗集 / 凡间名著改写
+  'mummy-chronicle-scholar':       ['fantasy', 'social-science'], // 古传说 + 社会纪实
+  'noir-pulp-novelist':            ['suspense', 'mystery'],       // noir 主力
+  'ancient-dragon-epic':           ['fantasy', 'literary'],       // 史诗巨著 + 凡间名著点评
 }
 
 // ──── 作品数上限（按种族寿命差异化）────
@@ -64,6 +69,11 @@ export const PERSONA_MAX_BOOKS: Partial<Record<AuthorPersona, [number, number]>>
   // 奇幻种族
   'fae-changeling-fabulist':       [3, 9],
   'demon-bureaucrat':              [3, 8],
+  // v2.5 新增
+  'ghost-gothic-poet':             [2, 5],   // 幽灵节奏极慢、产量少
+  'mummy-chronicle-scholar':       [3, 6],   // 木乃伊勤奋但讲究
+  'noir-pulp-novelist':            [5, 12],  // 黑色小说作家多产高产
+  'ancient-dragon-epic':           [1, 3],   // 始祖龙一生只写极少几部巨著
 }
 
 export const DEFAULT_MAX_BOOKS: [number, number] = [3, 8]
@@ -86,6 +96,11 @@ export const ALL_PERSONAS: AuthorPersona[] = [
   'mortal-bestseller-hustler',
   'fae-changeling-fabulist',
   'demon-bureaucrat',
+  // v2.5
+  'ghost-gothic-poet',
+  'mummy-chronicle-scholar',
+  'noir-pulp-novelist',
+  'ancient-dragon-epic',
 ]
 
 export const PERSONA_LABELS: Record<AuthorPersona, string> = {
@@ -106,6 +121,11 @@ export const PERSONA_LABELS: Record<AuthorPersona, string> = {
   'mortal-bestseller-hustler':       '凡间畅销快枪手',
   'fae-changeling-fabulist':         '换生灵寓言家',
   'demon-bureaucrat':                '魔裔官僚作家',
+  // v2.5
+  'ghost-gothic-poet':               '幽灵哥特诗人',
+  'mummy-chronicle-scholar':         '木乃伊编年史家',
+  'noir-pulp-novelist':              '黑色小说快手',
+  'ancient-dragon-epic':             '始祖龙史诗作者',
 }
 
 export const PERSONA_SPECIES: Record<AuthorPersona, string> = {
@@ -126,6 +146,11 @@ export const PERSONA_SPECIES: Record<AuthorPersona, string> = {
   'mortal-bestseller-hustler':       'human',
   'fae-changeling-fabulist':         'fae',
   'demon-bureaucrat':                'demon',
+  // v2.5 新种族
+  'ghost-gothic-poet':               'ghost',
+  'mummy-chronicle-scholar':         'mummy',
+  'noir-pulp-novelist':              'human',  // 人类 noir 作家（短寿命快产）
+  'ancient-dragon-epic':             'dragon',
 }
 
 // ──── 发表节奏（按种族/人格分档）────
@@ -137,11 +162,12 @@ export const PERSONA_SPECIES: Record<AuthorPersona, string> = {
 // 中节奏（10-20 分钟/本）：狼人吟游诗人、厨房女巫、血族侦探
 // 慢节奏（>30 分钟/本）：巫妖、古魔典守护人、风暴女巫
 export const PUBLISHING_RHYTHM = {
-  fast: ['mortal-bestseller-hustler', 'vampire-young-rebel'],
+  fast: ['mortal-bestseller-hustler', 'vampire-young-rebel', 'noir-pulp-novelist'],
   medium: ['werewolf-pack-bard', 'witch-kitchen-novelist', 'vampire-amateur-detective',
            'werewolf-suburban-novelist', 'mortal-investigative-journalist',
-           'fae-changeling-fabulist', 'demon-bureaucrat', 'werewolf-frontier-survivor'],
+           'fae-changeling-fabulist', 'demon-bureaucrat', 'werewolf-frontier-survivor',
+           'mummy-chronicle-scholar'],
   slow: ['vampire-aristocrat-historian', 'vampire-decadent-poet', 'witch-grimoire-keeper',
          'witch-storm-prophetess', 'lich-archive-curator', 'banshee-mourning-poet',
-         'ghoul-cemetery-historian'],
+         'ghoul-cemetery-historian', 'ghost-gothic-poet', 'ancient-dragon-epic'],
 } as const
