@@ -144,7 +144,8 @@ export function DeskRoom() {
               hoverSrc="/scenes/desk-cat-hover.png"
               outlineColor={null}
               label={`🐈 ${catState.name || '黑猫'} (好感 ${catState.affection})`}
-              position={{ left: '72%', bottom: '4%', width: '14%', height: '34%' }}
+              // v2.6.1: 猫放大约 30%，bottom 从 4% 下移到 0%
+              position={{ left: '69%', bottom: '0%', width: '18%', height: '42%' }}
               onClick={() => togglePanel('cat')}
             />
           )}
@@ -153,7 +154,8 @@ export function DeskRoom() {
             hoverSrc="/scenes/desk-lamp-hover.png"
             outlineColor={null}
             label="📋 出版日志"
-            position={{ left: '87%', bottom: '6%', width: '11%', height: '30%' }}
+            // v2.6.1: 与猫等量下移 4%（bottom 6% → 2%）
+            position={{ left: '87%', bottom: '2%', width: '11%', height: '30%' }}
             onClick={() => togglePanel('log')}
           />
         </>
