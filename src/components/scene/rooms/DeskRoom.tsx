@@ -198,7 +198,7 @@ export function DeskRoom() {
 
       {/* ─── 弹出面板 ─── */}
       {openPanel === 'submissions' && (
-        <ScenePanel variant="inbox" title={`📥 投稿池 · ${submitted.length} 份待审`} onClose={() => setOpenPanel(null)} position="top-12 left-4 md:top-16 md:left-16" width={620}>
+        <ScenePanel variant="paper" title={`📥 投稿池 · ${submitted.length} 份待审`} onClose={() => setOpenPanel(null)} position="top-12 left-4 md:top-16 md:left-16" width={620}>
           {submitted.length === 0 ? (
             <EmptyInboxIllustration />
           ) : (
@@ -210,7 +210,7 @@ export function DeskRoom() {
       )}
 
       {openPanel === 'pipeline' && (
-        <ScenePanel variant="belt" title={`编辑流水线 · ${inProgress.length} 件进行中`} onClose={() => setOpenPanel(null)} position="bottom-20 left-1/2 -translate-x-1/2" width={680}>
+        <ScenePanel variant="paper" title={`编辑流水线 · ${inProgress.length} 件进行中`} onClose={() => setOpenPanel(null)} position="bottom-20 left-1/2 -translate-x-1/2" width={680}>
           {inProgress.length === 0 ? (
             <EmptyPipelineIllustration />
           ) : (
