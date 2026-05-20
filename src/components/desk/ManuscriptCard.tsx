@@ -4,6 +4,11 @@ import { useGameStore } from '@/store/gameStore'
 import { PaperCard } from '@/components/shared/PaperCard'
 import { PixelProgressBar } from '@/components/shared/PixelProgressBar'
 import { PixelTextButton } from '@/components/shared/PixelTextButton'
+import { useComposedFrame } from '@/utils/composeNineSlice'
+
+// v2.6.10: 投稿池稿件卡用 inbox 9-切片做底色（像一张投稿纸条）
+const INBOX_SLICE = 16  // 与 ScenePanel 里 inbox variant 的 slice 一致
+const INBOX_PIXEL_SCALE = 2  // 16 × 2 = 32px 边宽
 
 // 不同题材的稿件用不同颜色的"题材带"区分（标签图 PNG 缺失时的兜底）
 const GENRE_BAND_COLORS: Record<Genre, string> = {
@@ -59,6 +64,9 @@ export function ManuscriptCard({ manuscript }: Props) {
   const noise = useMemo(() => deterministicNoise(manuscript.id), [manuscript.id])
   const bandColor = GENRE_BAND_COLORS[manuscript.genre] ?? GENRE_BAND_COLORS.hybrid
   const hasGenreTag = useGenreTag(manuscript.genre)
+  // v2.6.10: 投稿纸条底色——inbox 9-切片拼好的 dataURL（缺图 → null → 走 PaperCard 兜底）
+  const inboxDataUrl = useComposedFrame('manuscript-bg', 'inbox', '/ui/panel-inbox', INBOX_SLICE)
+  const hasInboxBg = inboxDataUrl !== null
 
   // Animate flipping progress
   useEffect(() => {
@@ -89,13 +97,9 @@ export function ManuscriptCard({ manuscript }: Props) {
     : manuscript.marketPotential < 65 ? { text: '可堪一读', color: 'text-progress' }
     : { text: '潜力之作', color: 'text-copper' }
 
-  return (
-    <PaperCard
-      highlighted={flipping}
-      className={`flex gap-2 md:gap-3 items-start overflow-hidden ${
-        isSignedAuthor ? 'border-l-4 border-l-copper' : ''
-      }`}
-    >
+  // 卡片内部内容——左侧题材标签 / 装饰 / 主体文字 / 右侧操作按钮
+  const innerContent = (
+    <>
       {/* 左侧题材标签：画师 PNG 在 public/ui/genre-{genre}.png 就用 PNG，
           缺失则退回 8px 彩色窄条作为兜底 */}
       {hasGenreTag ? (
@@ -182,6 +186,41 @@ export function ManuscriptCard({ manuscript }: Props) {
           </PixelTextButton>
         )}
       </div>
+    </>
+  )
+
+  // v2.6.10: 有 inbox PNG → 用 inbox 9-切片做卡片底色（投稿纸条样）
+  if (hasInboxBg) {
+    return (
+      <div
+        className={`relative flex gap-2 md:gap-3 items-start ${
+          isSignedAuthor ? 'border-l-4 border-l-copper' : ''
+        }`}
+        style={{
+          borderStyle: 'solid',
+          borderColor: 'transparent',
+          borderWidth: INBOX_SLICE * INBOX_PIXEL_SCALE,
+          borderImageSource: `url('${inboxDataUrl}')`,
+          borderImageSlice: `${INBOX_SLICE} fill`,
+          borderImageRepeat: 'round',
+          imageRendering: 'pixelated',
+          filter: flipping ? 'brightness(1.05)' : undefined,
+        }}
+      >
+        {innerContent}
+      </div>
+    )
+  }
+
+  // 兜底：PNG 缺失退回原 PaperCard 暗色风格
+  return (
+    <PaperCard
+      highlighted={flipping}
+      className={`flex gap-2 md:gap-3 items-start overflow-hidden ${
+        isSignedAuthor ? 'border-l-4 border-l-copper' : ''
+      }`}
+    >
+      {innerContent}
     </PaperCard>
   )
 }

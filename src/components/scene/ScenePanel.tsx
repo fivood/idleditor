@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
+import { useComposedFrame } from '@/utils/composeNineSlice'
 
 /**
  * 场景内弹出面板。
@@ -86,76 +87,6 @@ const PANEL_VARIANTS: Record<PanelVariant, VariantSpec> = {
   journal: { slice: 48, fallbackBg: '#3a2412', titleColor: '#f5d878', textColor: '#ede0c8', dividerColor: '#5c3a1f', titleIcon: '📖' },
   scroll:  { slice: 48, fallbackBg: '#3a2418', titleColor: '#f5d878', textColor: '#ede0c8', dividerColor: '#5c3a1f' },
   notice:  { slice: 48, fallbackBg: '#8b6b3e', titleColor: '#fce8e8', textColor: '#1a0e08', dividerColor: '#5c3a1f', titleIcon: '📌' },
-}
-
-/** 9-slice 拼图位置（按 3×3 网格） */
-const SLICE_GRID: Array<{ suffix: string; col: number; row: number }> = [
-  { suffix: 'tl',     col: 0, row: 0 },
-  { suffix: 't-edge', col: 1, row: 0 },
-  { suffix: 'tr',     col: 2, row: 0 },
-  { suffix: 'l-edge', col: 0, row: 1 },
-  { suffix: 'center', col: 1, row: 1 },
-  { suffix: 'r-edge', col: 2, row: 1 },
-  { suffix: 'bl',     col: 0, row: 2 },
-  { suffix: 'b-edge', col: 1, row: 2 },
-  { suffix: 'br',     col: 2, row: 2 },
-]
-
-/** 把 9 张独立切片 PNG 拼成一张 (slice×3)×(slice×3) 的大图（dataURL）。
- *  这样喂给 CSS border-image 才能拿到真正的 9-slice 行为——
- *  四角的透明像素只露出"元素背后"，而不是被另一张图填上。
- *  失败（任一切片 404）返回 null；调用方据此走兜底色。 */
-function composeNineSliceDataUrl(basePath: string, slice: number): Promise<string | null> {
-  return new Promise(resolve => {
-    const imgs = SLICE_GRID.map(({ suffix }) => {
-      const img = new Image()
-      img.src = `${basePath}-${suffix}.png`
-      return img
-    })
-    let loaded = 0
-    let failed = false
-    const settle = () => {
-      if (failed) return
-      const canvas = document.createElement('canvas')
-      canvas.width = slice * 3
-      canvas.height = slice * 3
-      const ctx = canvas.getContext('2d')
-      if (!ctx) { resolve(null); return }
-      // 关闭图像平滑，保持像素清晰
-      ctx.imageSmoothingEnabled = false
-      SLICE_GRID.forEach(({ col, row }, i) => {
-        ctx.drawImage(imgs[i], col * slice, row * slice, slice, slice)
-      })
-      resolve(canvas.toDataURL('image/png'))
-    }
-    imgs.forEach(img => {
-      img.onload = () => {
-        loaded++
-        if (loaded === SLICE_GRID.length) settle()
-      }
-      img.onerror = () => {
-        if (failed) return
-        failed = true
-        resolve(null)
-      }
-    })
-  })
-}
-
-/** 缓存：每个 (kind, variant) 对应一张拼好的 dataURL（或 null = 缺图）。 */
-const composedCache = new Map<string, string | null>()
-function useComposedFrame(kind: string, variant: string, basePath: string, slice: number): string | null {
-  const key = `${kind}:${variant}`
-  const cached = composedCache.get(key)
-  const [dataUrl, setDataUrl] = useState<string | null>(cached ?? null)
-  useEffect(() => {
-    if (composedCache.has(key)) return
-    composeNineSliceDataUrl(basePath, slice).then(url => {
-      composedCache.set(key, url)
-      setDataUrl(url)
-    })
-  }, [key, basePath, slice])
-  return dataUrl
 }
 
 /** v2.6.2: 标题栏走独立 9-切片 PNG（命名同 panel，只是前缀 titlebar-{variant}-{slice}.png）。
