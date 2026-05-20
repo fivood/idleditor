@@ -230,7 +230,7 @@ export function ScenePanel({
               borderWidth: panelBorder,
               borderImageSource: `url('${panelDataUrl}')`,
               borderImageSlice: `${spec.slice} fill`,
-              borderImageRepeat: 'repeat',
+              borderImageRepeat: 'round',
               imageRendering: 'pixelated',
               pointerEvents: 'none',
             }}
@@ -250,7 +250,7 @@ export function ScenePanel({
                     borderWidth: titleBarSpec.slice * TITLEBAR_PIXEL_SCALE,
                     borderImageSource: `url('${titleBarDataUrl}')`,
                     borderImageSlice: `${titleBarSpec.slice} fill`,
-                    borderImageRepeat: 'repeat',
+                    borderImageRepeat: 'round',
                     padding: 0,
                     imageRendering: 'pixelated',
                   }

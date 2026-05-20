@@ -158,7 +158,7 @@ export function PixelTextButton({
         borderWidth: spec.slice * BUTTON_PIXEL_SCALE,
         borderImageSource: `url('${frameDataUrl}')`,
         borderImageSlice: `${spec.slice} fill`,
-        borderImageRepeat: 'repeat',
+        borderImageRepeat: 'round',
         backgroundColor: 'transparent',
         textShadow: `
           1px 0 0 ${c.textShadow},
