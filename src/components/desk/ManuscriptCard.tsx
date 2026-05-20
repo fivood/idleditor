@@ -7,12 +7,13 @@ import { PixelTextButton } from '@/components/shared/PixelTextButton'
 import { useComposedFrame } from '@/utils/composeNineSlice'
 
 // v2.6.10: 投稿池稿件卡用 inbox 9-切片做底色（像一张投稿纸条）
-// v2.6.12: 画框瘦一圈——16×16 源 × 1× 渲染 = 16px 边框
-//          每边 16px 边框，上下加起来 32px 装饰区，比之前 32+32=64px 省一半。
-//          画师之后若想升级到 32×32 源（更多像素表达细节），改这两个常量同步即可：
-//            INBOX_SLICE = 32, INBOX_PIXEL_SCALE = 1 → 32px 边框
-const INBOX_SLICE = 16
-const INBOX_PIXEL_SCALE = 1
+// v2.6.13: 适配画师上传的 96×96 单图（按 3×3 网格切，每格 32×32 → slice 32）。
+//          渲染倍率 0.5：源 32 → 屏 16px 边框，瘦一圈但是非整数倍缩放（每隔一行/列丢一个像素）。
+//          inbox 是纯纹理本来变化就小，pixel-drop 不明显；如果觉得不行可以换：
+//            · PIXEL_SCALE = 1 → 32px 边框，1:1 像素精确，但更大
+//            · 画师把单图改成 48×48 → 改 slice=16, scale=1，16px 边框 + 像素精确
+const INBOX_SLICE = 32
+const INBOX_PIXEL_SCALE = 0.5
 
 // 不同题材的稿件用不同颜色的"题材带"区分（标签图 PNG 缺失时的兜底）
 const GENRE_BAND_COLORS: Record<Genre, string> = {
