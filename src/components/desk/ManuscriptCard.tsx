@@ -7,8 +7,12 @@ import { PixelTextButton } from '@/components/shared/PixelTextButton'
 import { useComposedFrame } from '@/utils/composeNineSlice'
 
 // v2.6.10: 投稿池稿件卡用 inbox 9-切片做底色（像一张投稿纸条）
-const INBOX_SLICE = 16  // 与 ScenePanel 里 inbox variant 的 slice 一致
-const INBOX_PIXEL_SCALE = 2  // 16 × 2 = 32px 边宽
+// v2.6.11: 切片源从 16×16 升级到 32×32，渲染倍率 1×，保持 32px 平铺单元尺寸不变，
+//          但每个源像素 = 1 屏幕像素 → 锯齿感降到最低（比 16×16 × 2 细 4 倍）。
+//          画师还没交付 32×32 时，原 16×16 会被 Canvas 自动 nearest-neighbor 拉到 32×32
+//          继续工作，视觉等同于 16×16 × 2，不会破坏。
+const INBOX_SLICE = 32
+const INBOX_PIXEL_SCALE = 1
 
 // 不同题材的稿件用不同颜色的"题材带"区分（标签图 PNG 缺失时的兜底）
 const GENRE_BAND_COLORS: Record<Genre, string> = {
