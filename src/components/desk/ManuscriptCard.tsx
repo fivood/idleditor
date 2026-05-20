@@ -5,7 +5,7 @@ import { PaperCard } from '@/components/shared/PaperCard'
 import { PixelProgressBar } from '@/components/shared/PixelProgressBar'
 import { PixelTextButton } from '@/components/shared/PixelTextButton'
 
-// 不同题材的稿件用不同颜色的"题材带"区分（替代原来的整张色卡）
+// 不同题材的稿件用不同颜色的"题材带"区分（标签图 PNG 缺失时的兜底）
 const GENRE_BAND_COLORS: Record<Genre, string> = {
   'sci-fi':         '#3b82f6',  // 蓝
   mystery:          '#8b5cf6',  // 紫
@@ -17,14 +17,28 @@ const GENRE_BAND_COLORS: Record<Genre, string> = {
   'light-novel':    '#ec4899',  // 粉
 }
 
-// 基于 ID 稳定地生成是否有咖啡渍 + 是否有回形针
-// v2.0.2: 移除旋转，改为像素风整齐对齐
-function deterministicNoise(id: string): { hasStain: boolean; hasClip: boolean } {
+// v2.6.8: 题材标签图 PNG 探测——画师后续交付到 public/ui/genre-{genre}.png
+//          每个 genre 探测一次，缓存到 module-level Map 避免每张卡片都重测。
+const genreTagAvailability = new Map<Genre, boolean>()
+function useGenreTag(genre: Genre): boolean {
+  const cached = genreTagAvailability.get(genre)
+  const [available, setAvailable] = useState<boolean>(cached ?? false)
+  useEffect(() => {
+    if (genreTagAvailability.has(genre)) return
+    const img = new Image()
+    img.onload = () => { genreTagAvailability.set(genre, true); setAvailable(true) }
+    img.onerror = () => { genreTagAvailability.set(genre, false); setAvailable(false) }
+    img.src = `/ui/genre-${genre}.png`
+  }, [genre])
+  return available
+}
+
+// 基于 ID 稳定地生成是否有咖啡渍（v2.6.8 移除回形针装饰）
+function deterministicNoise(id: string): { hasStain: boolean } {
   let h = 0
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0
   const hasStain = (h & 0x10) !== 0  // ~50%
-  const hasClip = (h & 0x20) === 0   // ~50%
-  return { hasStain, hasClip }
+  return { hasStain }
 }
 
 interface Props {
@@ -44,6 +58,7 @@ export function ManuscriptCard({ manuscript }: Props) {
 
   const noise = useMemo(() => deterministicNoise(manuscript.id), [manuscript.id])
   const bandColor = GENRE_BAND_COLORS[manuscript.genre] ?? GENRE_BAND_COLORS.hybrid
+  const hasGenreTag = useGenreTag(manuscript.genre)
 
   // Animate flipping progress
   useEffect(() => {
@@ -81,25 +96,25 @@ export function ManuscriptCard({ manuscript }: Props) {
         isSignedAuthor ? 'border-l-4 border-l-copper' : ''
       }`}
     >
-      {/* 左侧题材色带（替代原来的整张色卡缩略图）*/}
-      <div
-        aria-hidden
-        className="self-stretch w-2 shrink-0"
-        style={{ backgroundColor: bandColor }}
-      />
-
-      {/* 回形针装饰（仅未审阅时显示）*/}
-      {!viewed && !flipping && noise.hasClip && (
+      {/* 左侧题材标签：画师 PNG 在 public/ui/genre-{genre}.png 就用 PNG，
+          缺失则退回 8px 彩色窄条作为兜底 */}
+      {hasGenreTag ? (
+        <img
+          src={`/ui/genre-${manuscript.genre}.png`}
+          alt=""
+          aria-hidden
+          width={32}
+          height={32}
+          draggable={false}
+          className="self-center shrink-0 ml-1.5 md:ml-2 pointer-events-none select-none"
+          style={{ imageRendering: 'pixelated' }}
+        />
+      ) : (
         <div
           aria-hidden
-          className="absolute -top-1.5 left-3 pointer-events-none"
-          style={{ filter: 'drop-shadow(1px 1px 0 #0a0806)' }}
-        >
-          <svg width="14" height="22" viewBox="0 0 20 40">
-            <path d="M 10 4 Q 4 4 4 10 L 4 30 Q 4 36 10 36 Q 16 36 16 30 L 16 14 Q 16 10 12 10 Q 8 10 8 14 L 8 28"
-              stroke="#a89072" strokeWidth="1.8" fill="none" strokeLinecap="round" />
-          </svg>
-        </div>
+          className="self-stretch w-2 shrink-0"
+          style={{ backgroundColor: bandColor }}
+        />
       )}
 
       {/* 咖啡渍装饰（随机点缀）*/}
