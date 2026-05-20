@@ -7,11 +7,11 @@ import { PixelTextButton } from '@/components/shared/PixelTextButton'
 import { useComposedFrame } from '@/utils/composeNineSlice'
 
 // v2.6.10: 投稿池稿件卡用 inbox 9-切片做底色（像一张投稿纸条）
-// v2.6.11: 切片源从 16×16 升级到 32×32，渲染倍率 1×，保持 32px 平铺单元尺寸不变，
-//          但每个源像素 = 1 屏幕像素 → 锯齿感降到最低（比 16×16 × 2 细 4 倍）。
-//          画师还没交付 32×32 时，原 16×16 会被 Canvas 自动 nearest-neighbor 拉到 32×32
-//          继续工作，视觉等同于 16×16 × 2，不会破坏。
-const INBOX_SLICE = 32
+// v2.6.12: 画框瘦一圈——16×16 源 × 1× 渲染 = 16px 边框
+//          每边 16px 边框，上下加起来 32px 装饰区，比之前 32+32=64px 省一半。
+//          画师之后若想升级到 32×32 源（更多像素表达细节），改这两个常量同步即可：
+//            INBOX_SLICE = 32, INBOX_PIXEL_SCALE = 1 → 32px 边框
+const INBOX_SLICE = 16
 const INBOX_PIXEL_SCALE = 1
 
 // 不同题材的稿件用不同颜色的"题材带"区分（标签图 PNG 缺失时的兜底）
@@ -141,7 +141,7 @@ export function ManuscriptCard({ manuscript }: Props) {
       )}
 
       {/* 主体内容（右侧）*/}
-      <div className="flex-1 min-w-0 py-2 md:py-3 pr-1">
+      <div className="flex-1 min-w-0 py-1 pr-1">
         <h3 className="text-xs md:text-sm font-bold text-ink truncate font-mono">{manuscript.title}</h3>
         <p className="text-[14px] md:text-[16px] text-muted mt-0.5 font-mono">
           <span className={`font-bold mr-1 ${impression.color}`}>{impression.text}</span>·
@@ -172,7 +172,7 @@ export function ManuscriptCard({ manuscript }: Props) {
       </div>
 
       {/* 操作按钮 */}
-      <div className="flex flex-col gap-1 flex-shrink-0 py-2 md:py-3 pr-2 md:pr-3">
+      <div className="flex flex-col gap-1 flex-shrink-0 py-1 pr-1">
         {viewed ? (
           <>
             <PixelTextButton variant="primary" size="sm" onClick={() => startReview(manuscript.id)}>审稿</PixelTextButton>
