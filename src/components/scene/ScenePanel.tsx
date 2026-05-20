@@ -28,6 +28,9 @@ interface ScenePanelProps {
   /** 桌面端最大宽度（窄屏会按视口自动收缩）。默认 640。 */
   width?: number
   variant?: PanelVariant
+  /** v2.6.9: 内层底图变体（可选）。指定后内容区域会用该 variant 的 9 切片做内框背景。
+   *  典型用法：外层 variant="paper" + innerVariant="inbox"，让 paper 弹窗有 inbox 内纹理。 */
+  innerVariant?: PanelVariant
 }
 
 interface VariantSpec {
@@ -54,6 +57,7 @@ interface VariantSpec {
  */
 const PANEL_PIXEL_SCALE = 2
 const TITLEBAR_PIXEL_SCALE = 2
+const INNER_PIXEL_SCALE = 2  // 内层底图（如 inbox 嵌入 paper）的放大倍率
 /**
  * v2.6.7: 画框可视厚度——内容沿着这个距离从外缘内缩。
  * 画框 PNG 全宽 = 48 × 2 = 96px（每边），但视觉上"装饰边缘"通常只占 PNG
@@ -76,8 +80,8 @@ const PANEL_DECOR_INSET = 20
 const PANEL_VARIANTS: Record<PanelVariant, VariantSpec> = {
   // paper: 浅色像素纸（用户上传），需要深色文字才能看清
   paper:   { slice: 48, fallbackBg: '#e8d8b0', titleColor: '#2a1810', textColor: '#3a2412', dividerColor: '#8a7a5a' },
-  // 以下 5 个 variant 暂未交付 PNG，仍是深色兜底 + 浅色文字
-  inbox:   { slice: 48, fallbackBg: '#4a2f18', titleColor: '#f5d878', textColor: '#ede0c8', dividerColor: '#5c3a1f', titleIcon: '📥' },
+  // inbox: 切片源 16×16（比 paper 紧凑），用作 paper 弹窗的内层底图
+  inbox:   { slice: 16, fallbackBg: '#4a2f18', titleColor: '#f5d878', textColor: '#ede0c8', dividerColor: '#5c3a1f', titleIcon: '📥' },
   belt:    { slice: 48, fallbackBg: '#2a1810', titleColor: '#d4a85a', textColor: '#ede0c8', dividerColor: '#4a3728', titleIcon: '⚙' },
   journal: { slice: 48, fallbackBg: '#3a2412', titleColor: '#f5d878', textColor: '#ede0c8', dividerColor: '#5c3a1f', titleIcon: '📖' },
   scroll:  { slice: 48, fallbackBg: '#3a2418', titleColor: '#f5d878', textColor: '#ede0c8', dividerColor: '#5c3a1f' },
@@ -177,6 +181,7 @@ export function ScenePanel({
   position = 'top-16 left-16',
   width = 640,
   variant = 'paper',
+  innerVariant,
 }: ScenePanelProps) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -192,10 +197,20 @@ export function ScenePanel({
   //          → 真正的 9-slice 行为（区域不重叠，透明像素只露出元素背后）
   const panelDataUrl = useComposedFrame('panel', variant, `/ui/panel-${variant}`, spec.slice)
   const titleBarDataUrl = useComposedFrame('titlebar', variant, `/ui/titlebar-${variant}`, titleBarSpec.slice)
+  // v2.6.9: 内层底图（可选）。Hook 必须无条件调用，缺 innerVariant 时塞个不存在的路径返回 null
+  const innerSpec = innerVariant ? PANEL_VARIANTS[innerVariant] : spec
+  const innerDataUrl = useComposedFrame(
+    'inner',
+    innerVariant ?? 'none' as PanelVariant,
+    innerVariant ? `/ui/panel-${innerVariant}` : '/ui/__none__',
+    innerSpec.slice,
+  )
   const hasFrame = panelDataUrl !== null
   const hasTitleBar = titleBarDataUrl !== null
+  const hasInner = innerVariant !== undefined && innerDataUrl !== null
 
   const panelBorder = spec.slice * PANEL_PIXEL_SCALE
+  const innerBorder = innerSpec.slice * INNER_PIXEL_SCALE
   // v2.6.7: 画框做绝对定位底层，内容用 PANEL_DECOR_INSET 小内边距浮在上层，
   //          自然覆盖画框中"纸张纹理"区，只让外缘装饰露出来。
   const contentInset = hasFrame ? PANEL_DECOR_INSET : 12
@@ -237,8 +252,25 @@ export function ScenePanel({
           />
         )}
 
-        {/* ── 内容层（浮在画框上） ── */}
-        <div className="relative" style={{ padding: contentInset }}>
+        {/* ── 内容层（浮在画框上）── 可选 innerVariant 9-切片做内层底图 */}
+        <div
+          className="relative"
+          style={
+            hasInner
+              ? {
+                  // 内层底图：用 inner variant 的 9-切片做 border-image
+                  margin: contentInset,
+                  borderStyle: 'solid',
+                  borderColor: 'transparent',
+                  borderWidth: innerBorder,
+                  borderImageSource: `url('${innerDataUrl}')`,
+                  borderImageSlice: `${innerSpec.slice} fill`,
+                  borderImageRepeat: 'round',
+                  imageRendering: 'pixelated',
+                }
+              : { padding: contentInset }
+          }
+        >
           {/* 标题栏 */}
           <div
             className="flex items-center justify-between"
