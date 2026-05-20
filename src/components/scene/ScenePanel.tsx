@@ -220,7 +220,6 @@ export function ScenePanel({
                 : {
                     padding: `${titleBarPad}px ${contentInset}px`,
                     margin: `-${contentInset}px -${contentInset}px 0`,
-                    borderBottom: `1px solid ${spec.dividerColor}`,
                   }
             }
           >
@@ -247,8 +246,44 @@ export function ScenePanel({
   )
 }
 
+// 探测 btn-close.png 一次（module-level 缓存）
+const btnCloseAvailability = { checked: false, has: false }
+
 function CloseBtn({ onClose, defaultColor, hoverColor }: { onClose: () => void; defaultColor: string; hoverColor: string }) {
   const [hover, setHover] = useState(false)
+  const [hasPng, setHasPng] = useState(btnCloseAvailability.has)
+
+  useEffect(() => {
+    if (btnCloseAvailability.checked) return
+    const img = new Image()
+    img.onload = () => { btnCloseAvailability.checked = true; btnCloseAvailability.has = true; setHasPng(true) }
+    img.onerror = () => { btnCloseAvailability.checked = true; btnCloseAvailability.has = false }
+    img.src = '/ui/btn-close.png'
+  }, [])
+
+  if (hasPng) {
+    return (
+      <button
+        onClick={onClose}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        aria-label="关闭"
+        className="ml-2 cursor-pointer leading-none p-0 border-0 bg-transparent"
+      >
+        <img
+          src={hover ? '/ui/btn-close-hover.png' : '/ui/btn-close.png'}
+          alt="关闭"
+          width={32}
+          height={32}
+          draggable={false}
+          className="block pointer-events-none select-none"
+          style={{ imageRendering: 'pixelated' }}
+        />
+      </button>
+    )
+  }
+
+  // 兜底：还是用 ✕ 字符
   return (
     <button
       onClick={onClose}

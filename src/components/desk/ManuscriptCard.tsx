@@ -6,13 +6,27 @@ import { PixelProgressBar } from '@/components/shared/PixelProgressBar'
 import { PixelTextButton } from '@/components/shared/PixelTextButton'
 import { useComposedFrame } from '@/utils/composeNineSlice'
 
+// 探测 btn-browse.png 一次（module-level 缓存）
+const btnBrowseAvailability = { checked: false, has: false }
+function useBtnBrowse(): boolean {
+  const [hasPng, setHasPng] = useState(btnBrowseAvailability.has)
+  useEffect(() => {
+    if (btnBrowseAvailability.checked) return
+    const img = new Image()
+    img.onload = () => { btnBrowseAvailability.checked = true; btnBrowseAvailability.has = true; setHasPng(true) }
+    img.onerror = () => { btnBrowseAvailability.checked = true; btnBrowseAvailability.has = false }
+    img.src = '/ui/btn-browse.png'
+  }, [])
+  return hasPng
+}
+
 // v2.6.10: 投稿池稿件卡用 inbox 9-切片做底色（像一张投稿纸条）
 // v2.6.14: 画师确认用 96×96 单图（按 3×3 切，每格 32×32）。
 //          为保住像素精确（每个源像素 = 1 屏幕像素），用 1× 整数倍渲染：
 //          边框 32px/边。
 //          想再瘦一圈的话，画师把单图改成 48×48（每格 16×16）就行——
 //          改 INBOX_SLICE=16 同步即可拿到 16px 像素精确边框。
-const INBOX_SLICE = 32
+const INBOX_SLICE = 16
 const INBOX_PIXEL_SCALE = 1
 
 // 不同题材的稿件用不同颜色的"题材带"区分（标签图 PNG 缺失时的兜底）
@@ -69,6 +83,8 @@ export function ManuscriptCard({ manuscript }: Props) {
   const noise = useMemo(() => deterministicNoise(manuscript.id), [manuscript.id])
   const bandColor = GENRE_BAND_COLORS[manuscript.genre] ?? GENRE_BAND_COLORS.hybrid
   const hasGenreTag = useGenreTag(manuscript.genre)
+  const hasBtnBrowse = useBtnBrowse()
+  const [browseHover, setBrowseHover] = useState(false)
   // v2.6.10: 投稿纸条底色——inbox 9-切片拼好的 dataURL（缺图 → null → 走 PaperCard 兜底）
   const inboxDataUrl = useComposedFrame('manuscript-bg', 'inbox', '/ui/panel-inbox', INBOX_SLICE)
   const hasInboxBg = inboxDataUrl !== null
@@ -108,15 +124,15 @@ export function ManuscriptCard({ manuscript }: Props) {
       {/* 左侧题材标签：画师 PNG 在 public/ui/genre-{genre}.png 就用 PNG，
           缺失则退回 8px 彩色窄条作为兜底 */}
       {hasGenreTag ? (
+        // 按源 PNG 原生尺寸渲染（不强制 32×32），让画师按各题材自由设计
+        // 比例。代码只限制最大不超过 48×48，避免过大撑破布局。
         <img
           src={`/ui/genre-${manuscript.genre}.png`}
           alt=""
           aria-hidden
-          width={32}
-          height={32}
           draggable={false}
           className="self-center shrink-0 ml-1.5 md:ml-2 pointer-events-none select-none"
-          style={{ imageRendering: 'pixelated' }}
+          style={{ imageRendering: 'pixelated', maxWidth: 48, maxHeight: 48 }}
         />
       ) : (
         <div
@@ -173,13 +189,34 @@ export function ManuscriptCard({ manuscript }: Props) {
       </div>
 
       {/* 操作按钮 */}
-      <div className="flex flex-col gap-1 flex-shrink-0 py-1 pr-1">
+      <div className="flex flex-col gap-1 flex-shrink-0 py-1 pr-1 self-center">
         {viewed ? (
           <>
             <PixelTextButton variant="primary" size="sm" onClick={() => startReview(manuscript.id)}>审稿</PixelTextButton>
             <PixelTextButton variant="danger" size="sm" onClick={() => rejectManuscript(manuscript.id)}>退稿</PixelTextButton>
             <PixelTextButton variant="default" size="sm" onClick={() => shelveManuscript(manuscript.id)}>搁置</PixelTextButton>
           </>
+        ) : hasBtnBrowse ? (
+          // 用画师交付的 btn-browse PNG（hover 时切到 btn-browse-hover）
+          <button
+            onClick={() => !flipping && setFlipping(true)}
+            disabled={flipping}
+            onMouseEnter={() => setBrowseHover(true)}
+            onMouseLeave={() => setBrowseHover(false)}
+            aria-label={flipping ? '翻阅中' : '翻阅'}
+            title={flipping ? '翻阅中' : '翻阅'}
+            className="p-0 border-0 bg-transparent cursor-pointer disabled:cursor-wait disabled:opacity-60"
+          >
+            <img
+              src={browseHover && !flipping ? '/ui/btn-browse-hover.png' : '/ui/btn-browse.png'}
+              alt=""
+              width={64}
+              height={64}
+              draggable={false}
+              className="block pointer-events-none select-none"
+              style={{ imageRendering: 'pixelated' }}
+            />
+          </button>
         ) : (
           <PixelTextButton
             variant="primary"
