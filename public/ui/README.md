@@ -1,165 +1,105 @@
 # 弹窗 / 按钮 / 标题栏画框 PNG 规范
 
-> **v2.6.12 起支持两种画师交付模式（代码自动检测）：**
+> **v2.6.15 统一约定：96×96 单图模式**
 >
-> ### A) 单图模式（推荐给低变化纹理）
-> 画师交付**单张**大图：`panel-{variant}.png`，尺寸 = `slice × 3 × slice × 3`（例如 slice=32 → 96×96）。
-> 图中按 3×3 网格自己规划：四角放拐角、四边放可平铺纹理、中心放可平铺底色。
-> 适合纯纸面 / 木纹 / 砖墙等**像素变化小的纹理**——画师一张图直接搞定，不用切。
+> 画师交付**单张** 96×96 的 PNG（按 3×3 网格切，每格 32×32 → `slice = 32`）。布局：
+> ```
+> ┌─────────┬─────────┬─────────┐
+> │ TL 32×32│  T 32×32│ TR 32×32│
+> ├─────────┼─────────┼─────────┤
+> │ L 32×32 │ CENTER  │ R 32×32 │
+> ├─────────┼─────────┼─────────┤
+> │ BL 32×32│ B 32×32 │ BR 32×32│
+> └─────────┴─────────┴─────────┘
+> ```
+> - **TL/TR/BL/BR**：四角拐角装饰（固定，不平铺）
+> - **T / B**：上下边纹理（横向平铺，左右像素必须无缝）
+> - **L / R**：左右边纹理（纵向平铺，上下像素必须无缝）
+> - **CENTER**：中央底色（双向平铺，四向接缝无痕）
 >
-> ### B) 9 切片模式（推荐给装饰丰富的画框）
-> 画师交付 **9 张独立 PNG**：`panel-{variant}-{tl,t-edge,tr,l-edge,center,r-edge,bl,b-edge,br}.png`，每张 `slice × slice`。
-> 适合**复杂拐角 / 不同纹理边**的画框——单格能独立迭代，不用重切大图。
+> ### 检测顺序（向下兼容老的 9 切片）
 >
-> ### 检测顺序
-> 代码先试 `{variant}.png` → 缺失再试 9 张切片 → 都没有就退回纯色兜底。**两种模式自由选**，可以同一项目里 paper 用 9 切片、inbox 用单图。
+> 代码先试 `{name}.png` 单图 → 缺失再试 9 张独立切片 `{name}-tl.png` 等 → 都没有就退回纯色兜底。**两种模式可以混用**——大部分情况建议单图，复杂装饰可以选 9 切片单独迭代某一格。
 
 ---
 
-## 1. 弹窗画框（panel）· 6 个 variant · 每个 9 张
-
-每张 PNG 都是 **同尺寸正方形**（默认 48×48）。文件命名严格匹配。
-
-```
-public/ui/
-  ├── panel-paper-tl.png       ┐
-  ├── panel-paper-t-edge.png   │ 顶部一排（左上 / 顶边可平铺 / 右上）
-  ├── panel-paper-tr.png       ┘
-  ├── panel-paper-l-edge.png   ┐
-  ├── panel-paper-center.png   │ 中部一排（左边可平铺 / 中央可平铺 / 右边可平铺）
-  ├── panel-paper-r-edge.png   ┘
-  ├── panel-paper-bl.png       ┐
-  ├── panel-paper-b-edge.png   │ 底部一排
-  └── panel-paper-br.png       ┘
-```
-
-### 6 个 variant
+## 1. 弹窗画框（panel）· 6 个 variant
 
 | variant | 用途 | 兜底色 |
 |---------|------|--------|
-| paper   | 通用纸张面板 | `#2a1810` |
-| inbox   | 投稿池（木质托盘） | `#4a2f18` |
-| belt    | 编辑流水线（铁质传送带） | `#2a1810` |
-| journal | 出版日志 / 档案（羊皮日记） | `#3a2412` |
-| scroll  | 猫详情 / 秘密事项（卷轴） | `#3a2418` |
-| notice  | 征稿 / 公告（软木板） | `#8b6b3e` |
+| paper   | 通用纸张面板（投稿池 / 编辑流水线）| `#e8d8b0` |
+| inbox   | 投稿池（木质托盘）/ 也用作稿件卡底色 | `#4a2f18` |
+| belt    | 编辑流水线（铁质传送带）| `#2a1810` |
+| journal | 出版日志 / 档案（羊皮日记）| `#3a2412` |
+| scroll  | 猫详情 / 秘密事项（卷轴）| `#3a2418` |
+| notice  | 征稿 / 公告（软木板）| `#8b6b3e` |
 
-### 每张切片的职责
+文件命名：`panel-{variant}.png`（96×96 单图）。例：
+```
+public/ui/panel-paper.png      ← 已上传 ✓
+public/ui/panel-inbox.png      ← 已上传 ✓
+public/ui/panel-belt.png       ← 待画
+public/ui/panel-journal.png    ← 待画
+public/ui/panel-scroll.png     ← 待画
+public/ui/panel-notice.png     ← 待画
+```
 
-| 文件后缀 | 平铺方式 | 画什么 |
-|---------|---------|--------|
-| `-tl`     | 固定 1 块  | 左上角拐角装饰 |
-| `-tr`     | 固定 1 块  | 右上角拐角装饰 |
-| `-bl`     | 固定 1 块  | 左下角拐角装饰 |
-| `-br`     | 固定 1 块  | 右下角拐角装饰 |
-| `-t-edge` | 横向平铺   | 顶部边纹理（必须左右像素无缝） |
-| `-b-edge` | 横向平铺   | 底部边纹理 |
-| `-l-edge` | 纵向平铺   | 左边纹理（必须上下像素无缝） |
-| `-r-edge` | 纵向平铺   | 右边纹理 |
-| `-center` | 双向平铺   | 中央底色（纸纹 / 木纹 / 软木颗粒，必须四向接缝无痕） |
-
-### 切片尺寸调整
-
-默认 48×48。如果你想改成其他尺寸（比如 32×32 紧凑、64×64 精细）：
-- 9 张文件统一改成新尺寸
-- 修改 `src/components/scene/ScenePanel.tsx` 里 `PANEL_VARIANTS.{variant}.slice` 数值
+渲染规则：`border-image` 用 `border-image-slice: 32`，`border-width = 32 × 2 = 64px`（PANEL_PIXEL_SCALE = 2）。屏幕上每个源像素显示为 2×2 屏幕像素方块，与场景颗粒感对齐。
 
 ---
 
-## 2. 按钮画框（button）· 3 个 variant · 每个 9 张
+## 2. 标题栏画框（titlebar）· 6 个 variant · 可选
 
-跟 panel 完全同结构，只是默认更紧凑（**16×16 per slice**）。
-
-```
-public/ui/
-  ├── button-{variant}-tl.png       (4 个角)
-  ├── button-{variant}-tr.png
-  ├── button-{variant}-bl.png
-  ├── button-{variant}-br.png
-  ├── button-{variant}-t-edge.png   (4 条边)
-  ├── button-{variant}-b-edge.png
-  ├── button-{variant}-l-edge.png
-  ├── button-{variant}-r-edge.png
-  └── button-{variant}-center.png   (中心)
-```
-
-### 3 个 variant
-
-| variant | 用途 | 兜底主色 |
-|---------|------|---------|
-| default | 灰色硬质塑料（OK / 取消 / 常规） | `#a8a8a8` |
-| primary | 铜色（"审稿""提交""确认出版"等主 CTA） | `#b8763b` |
-| danger  | 暗红（退稿 / 撤销） | `#a04030` |
-
-### 8-bit 立体凸起的实现建议
-
-如果想保留经典 NES/SFC 风格的"凸起感"——
-- `tl` / `t-edge` / `l-edge` 用高光带（亮一点）
-- `br` / `b-edge` / `r-edge` 用阴影带（暗一点）
-- 整张图最外圈 1px 黑边封装
-
-平铺后按钮自动"立起来"。
-
-### hover / active 状态
-
-代码自动处理：
-- **hover** → 整组 PNG `filter: brightness(1.1)`
-- **active 按下** → 整组向右下 1px 偏移
-
-你不需要画 hover/pressed 状态（除非想要更精细的反馈）。
+如果想让标题栏也走手绘——文件命名：`titlebar-{variant}.png`（96×96 单图）。**不画就退回当前的纯色 + 标题文字**。
 
 ---
 
-## 3. 标题栏画框（titlebar，可选）· 6 个 variant · 每个 9 张
+## 3. 按钮画框（button）· 9-slice 版 · 3 个 variant · 可选
 
-跟 button 完全同结构（16×16），文件名前缀换成 `titlebar-`。
+如果想给 `PixelTextButton`（默认/主色/危险三档）做 9-slice 画框——文件命名：`button-{variant}.png`（96×96 单图）。**不画就退回 CSS 立体凸起兜底**。
 
-```
-public/ui/
-  ├── titlebar-{variant}-tl.png
-  ├── titlebar-{variant}-t-edge.png
-  ├── titlebar-{variant}-tr.png
-  ├── titlebar-{variant}-l-edge.png
-  ├── titlebar-{variant}-center.png
-  ├── titlebar-{variant}-r-edge.png
-  ├── titlebar-{variant}-bl.png
-  ├── titlebar-{variant}-b-edge.png
-  └── titlebar-{variant}-br.png
-```
+| variant | 用途 |
+|---------|------|
+| default | 灰色硬质塑料（OK / 取消 / 常规） |
+| primary | 铜色（"审稿""提交""确认出版"等主 CTA） |
+| danger  | 暗红（退稿 / 撤销） |
 
-**6 个 variant 同 panel 列表。完全可选**：不画就退回当前的纯色 + 1px 分割线。
+---
+
+## 4. 独立按钮 PNG（非 9-slice）· 已用
+
+这些是**完整一张图**的按钮（不是 9-slice 画框）。直接当 `<img>` 显示，不需要平铺/切片。每个按钮配一张静态 + 一张 hover 状态。
+
+| 文件 | 尺寸 | 用途 |
+|------|------|------|
+| `btn-close.png` + `-hover.png` | 16×16 | 弹窗右上的关闭按钮 |
+| `btn-browse.png` + `-hover.png` | 32×32 | 稿件卡的"翻阅"按钮 |
+
+代码以 2× 渲染（btn-close → 32px 屏幕，btn-browse → 64px 屏幕），与场景颗粒一致。
+
+---
+
+## 5. 题材标签（genre）· 8 个 · 可选
+
+文件命名：`genre-{genre}.png`。**画师自由设计尺寸 / 比例**——代码按源 PNG 原生尺寸渲染（上限 48×48）。可以做长方形标签贴纸（如 32×16）、方形徽章（24×24）、任意你想要的形状。
+
+| 文件 | 题材 |
+|------|------|
+| `genre-sci-fi.png` ✓ | 日光幻想 / 科幻 |
+| `genre-mystery.png`     | 凡间悬案 / 推理 |
+| `genre-suspense.png`    | 银器恐怖 / 悬疑 |
+| `genre-social-science.png` | 真实研究 / 社科 |
+| `genre-literary.png`    | 凡间名著 / 经典改编 |
+| `genre-hybrid.png`      | 跨种合著 / 跨界融合 |
+| `genre-fantasy.png`     | 远古纪事 / 奇幻史诗 |
+| `genre-light-novel.png` | 少年血宫 / 轻小说 |
 
 ---
 
 ## 通用提醒
 
-1. **9 张全部存在才启用**——如果只画了 8 张，会自动退回纯色兜底
-2. **检测方式**：代码探测 `*-center.png` 是否能加载，所以**最后画 center**比较稳
-3. **所有 PNG 必须像素整数对齐**（不要在编辑器里用浮点缩放）
-4. **导出时关闭抗锯齿**（PNG 直接是离散像素值）
-5. **像素整数倍渲染由代码处理**（`image-rendering: pixelated`），无须你手动放大资源
-6. **接缝检查**：让 t-edge 的左边一列和 r-edge 的左边一列对齐；center 必须四向都能无缝平铺
-7. 兜底色已经能让游戏正常玩，所以**画一组接管一组**——不必一次画全
-
----
-
-## 验证清单
-
-放好 9 张 PNG 后开浏览器：
-
-1. 弹窗顶部 + 底部边框看不出"接缝"（t-edge 与 corners、bl-edge 与 corners 的接缝处像素对齐）
-2. 中央纹理在大尺寸面板下没有可见的重复模式（或重复但有意为之）
-3. 缩放浏览器窗口至 720px 宽 → 画框依然锐利不糊
-4. 跨 DPR（普通屏 + Retina）外观一致
-5. 把任一切片改名（让它"消失"）→ 整个弹窗应该退回纯色兜底，而不是缺一块
-
-如果接缝处有错位，最常见原因是 corner 文件比实际拐角块多/少了一行像素。
-
----
-
-## 推荐迭代顺序
-
-1. **panel-paper 一组（9 张）** → 立刻看到弹窗换装效果，决定整体氛围基调
-2. **button-primary 一组（9 张）** → 解锁最频繁的交互反馈
-3. panel + button 其余 variant 补齐
-4. titlebar-paper 一组 → 看是否值得做齐 6 个 titlebar
+1. **96×96 单图**是统一约定。除非有特殊理由（比如 inbox 在 ManuscriptCard 里用了 slice=16），都用这个尺寸。
+2. **不要预先放大**。源 PNG 保持像素整数对齐，代码自动按整数倍 nearest-neighbor 渲染。
+3. **接缝检查**：T / B 边的左右像素列要无缝相接，L / R 边的上下像素行要无缝相接，center 必须四向都能无缝平铺。
+4. **检测路径**：单图缺失会自动找 9 切片，9 切片也缺会走纯色兜底——任何中间状态都不会崩。
+5. **画一张接管一张**：不必一次画全所有 variant；某个 variant 没画的时候只会显示纯色，其他变体不受影响。

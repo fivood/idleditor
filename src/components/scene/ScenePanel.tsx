@@ -78,15 +78,15 @@ const PANEL_DECOR_INSET = 20
 // ⬇️ 画师 (你) 之后画好 9 张切片 PNG 放到 public/ui/ 即自动接管。
 // 命名约定：panel-{variant}-{tl,t-edge,tr,l-edge,center,r-edge,bl,b-edge,br}.png
 // 9 张全部存在 → 启用 9-切片平铺；任一缺失 → 退回 fallbackBg 纯色 + 黑边。
+// v2.6.15: 画师统一约定单图 96×96，3×3 切片 → 每格 32×32 → slice = 32
 const PANEL_VARIANTS: Record<PanelVariant, VariantSpec> = {
   // paper: 浅色像素纸（用户上传），需要深色文字才能看清
-  paper:   { slice: 48, fallbackBg: '#e8d8b0', titleColor: '#2a1810', textColor: '#3a2412', dividerColor: '#8a7a5a' },
-  // inbox: 切片源 16×16（比 paper 紧凑），用作 paper 弹窗的内层底图
-  inbox:   { slice: 16, fallbackBg: '#4a2f18', titleColor: '#f5d878', textColor: '#ede0c8', dividerColor: '#5c3a1f', titleIcon: '📥' },
-  belt:    { slice: 48, fallbackBg: '#2a1810', titleColor: '#d4a85a', textColor: '#ede0c8', dividerColor: '#4a3728', titleIcon: '⚙' },
-  journal: { slice: 48, fallbackBg: '#3a2412', titleColor: '#f5d878', textColor: '#ede0c8', dividerColor: '#5c3a1f', titleIcon: '📖' },
-  scroll:  { slice: 48, fallbackBg: '#3a2418', titleColor: '#f5d878', textColor: '#ede0c8', dividerColor: '#5c3a1f' },
-  notice:  { slice: 48, fallbackBg: '#8b6b3e', titleColor: '#fce8e8', textColor: '#1a0e08', dividerColor: '#5c3a1f', titleIcon: '📌' },
+  paper:   { slice: 32, fallbackBg: '#e8d8b0', titleColor: '#2a1810', textColor: '#3a2412', dividerColor: '#8a7a5a' },
+  inbox:   { slice: 32, fallbackBg: '#4a2f18', titleColor: '#f5d878', textColor: '#ede0c8', dividerColor: '#5c3a1f', titleIcon: '📥' },
+  belt:    { slice: 32, fallbackBg: '#2a1810', titleColor: '#d4a85a', textColor: '#ede0c8', dividerColor: '#4a3728', titleIcon: '⚙' },
+  journal: { slice: 32, fallbackBg: '#3a2412', titleColor: '#f5d878', textColor: '#ede0c8', dividerColor: '#5c3a1f', titleIcon: '📖' },
+  scroll:  { slice: 32, fallbackBg: '#3a2418', titleColor: '#f5d878', textColor: '#ede0c8', dividerColor: '#5c3a1f' },
+  notice:  { slice: 32, fallbackBg: '#8b6b3e', titleColor: '#fce8e8', textColor: '#1a0e08', dividerColor: '#5c3a1f', titleIcon: '📌' },
 }
 
 /** v2.6.2: 标题栏走独立 9-切片 PNG（命名同 panel，只是前缀 titlebar-{variant}-{slice}.png）。
@@ -95,13 +95,14 @@ interface TitleBarSpec {
   /** 标题栏切片像素尺寸（默认 16，画师如果用 24 改这里）。 */
   slice: number
 }
+// v2.6.15: 同步到 96×96 单图约定（如果画师后续画标题栏的话也是 96×96）
 const TITLEBAR_VARIANTS: Record<PanelVariant, TitleBarSpec> = {
-  paper:   { slice: 16 },
-  inbox:   { slice: 16 },
-  belt:    { slice: 16 },
-  journal: { slice: 16 },
-  scroll:  { slice: 16 },
-  notice:  { slice: 16 },
+  paper:   { slice: 32 },
+  inbox:   { slice: 32 },
+  belt:    { slice: 32 },
+  journal: { slice: 32 },
+  scroll:  { slice: 32 },
+  notice:  { slice: 32 },
 }
 
 

@@ -51,10 +51,12 @@ interface ButtonFrameSpec {
   slice: number
 }
 
+// v2.6.15: 同步 96×96 单图约定（slice = 32）。若画师后续画 button 9-切片版本，
+//          PNG 应放到 public/ui/button-{variant}.png（96×96 单图）或独立 9 切片。
 const BUTTON_FRAMES: Record<ButtonVariant, ButtonFrameSpec> = {
-  default: { slice: 16 },
-  primary: { slice: 16 },
-  danger:  { slice: 16 },
+  default: { slice: 32 },
+  primary: { slice: 32 },
+  danger:  { slice: 32 },
 }
 
 // 与 ScenePanel 共享同一套 9-slice 拼图位置定义
