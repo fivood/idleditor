@@ -163,6 +163,8 @@ export function ScenePanel({
           overflow: 'hidden',
           // 兜底模式（缺图）直接用纯色背景
           backgroundColor: hasFrame ? 'transparent' : spec.fallbackBg,
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
         {/* ── 画框底层（绝对定位，pointer-events: none） ── */}
@@ -184,14 +186,45 @@ export function ScenePanel({
           />
         )}
 
-        {/* ── 内容层（浮在画框上）── 可选 innerVariant 9-切片做内层底图 */}
+        {/* ── 标题栏：直接做 panel root 的子元素，full-width 不需要负 margin
+              叠在画框上层（DOM 后于 frame layer，自动 stacking 在上）── */}
         <div
-          className="relative"
+          className="relative flex items-center justify-between shrink-0"
+          style={
+            hasTitleBar
+              ? {
+                  borderStyle: 'solid',
+                  borderColor: 'transparent',
+                  borderWidth: titleBarSpec.slice * TITLEBAR_PIXEL_SCALE,
+                  borderImageSource: `url('${titleBarDataUrl}')`,
+                  borderImageSlice: `${titleBarSpec.slice} fill`,
+                  borderImageRepeat: 'round',
+                  padding: 0,
+                  imageRendering: 'pixelated',
+                  zIndex: 1,
+                }
+              : {
+                  padding: `${titleBarPad}px ${contentInset}px`,
+                  zIndex: 1,
+                }
+          }
+        >
+          <h3 className="text-sm md:text-base font-bold truncate" style={{ color: spec.titleColor }}>
+            {spec.titleIcon && <span className="mr-1">{spec.titleIcon}</span>}
+            {title}
+          </h3>
+          <CloseBtn onClose={onClose} defaultColor={spec.textColor} hoverColor={spec.titleColor} />
+        </div>
+
+        {/* ── 内容区：直接做 panel root 的子元素，独立 padding 控制
+              可选 innerVariant 9-切片做内层底图 ── */}
+        <div
+          className="relative overflow-y-auto"
           style={
             hasInner
               ? {
-                  // 内层底图：用 inner variant 的 9-切片做 border-image
                   margin: contentInset,
+                  marginTop: 0,
                   borderStyle: 'solid',
                   borderColor: 'transparent',
                   borderWidth: innerBorder,
@@ -199,48 +232,19 @@ export function ScenePanel({
                   borderImageSlice: `${innerSpec.slice} fill`,
                   borderImageRepeat: 'round',
                   imageRendering: 'pixelated',
+                  zIndex: 1,
+                  flex: 1,
+                  minHeight: 0,
                 }
-              : { padding: contentInset }
+              : {
+                  padding: `0 ${contentInset}px ${contentInset}px`,
+                  zIndex: 1,
+                  flex: 1,
+                  minHeight: 0,
+                }
           }
         >
-          {/* 标题栏 */}
-          <div
-            className="flex items-center justify-between"
-            style={
-              hasTitleBar
-                ? {
-                    borderStyle: 'solid',
-                    borderColor: 'transparent',
-                    borderWidth: titleBarSpec.slice * TITLEBAR_PIXEL_SCALE,
-                    borderImageSource: `url('${titleBarDataUrl}')`,
-                    borderImageSlice: `${titleBarSpec.slice} fill`,
-                    borderImageRepeat: 'round',
-                    padding: 0,
-                    imageRendering: 'pixelated',
-                  }
-                : {
-                    padding: `${titleBarPad}px ${contentInset}px`,
-                    margin: `-${contentInset}px -${contentInset}px 0`,
-                  }
-            }
-          >
-            <h3 className="text-sm md:text-base font-bold truncate" style={{ color: spec.titleColor }}>
-              {spec.titleIcon && <span className="mr-1">{spec.titleIcon}</span>}
-              {title}
-            </h3>
-            <CloseBtn onClose={onClose} defaultColor={spec.textColor} hoverColor={spec.titleColor} />
-          </div>
-
-          {/* 正文 */}
-          <div
-            className="overflow-y-auto"
-            style={{
-              paddingTop: titleBarPad * 2,
-              maxHeight: `calc(72vh - ${titleBarPad * 2 + contentInset * 2 + 24}px)`,
-            }}
-          >
-            {children}
-          </div>
+          {children}
         </div>
       </div>
     </div>
