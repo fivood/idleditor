@@ -144,7 +144,8 @@ export function DeskRoom() {
               hoverSrc="/scenes/desk-cat-hover.png"
               outlineColor={null}
               label={`🐈 ${catState.name || '黑猫'} (好感 ${catState.affection})`}
-              position={{ left: '72%', bottom: '4%', width: '14%', height: '34%' }}
+              // v2.6.1: 猫放大约 30%，bottom 从 4% 下移到 0%
+              position={{ left: '69%', bottom: '0%', width: '18%', height: '42%' }}
               onClick={() => togglePanel('cat')}
             />
           )}
@@ -153,7 +154,8 @@ export function DeskRoom() {
             hoverSrc="/scenes/desk-lamp-hover.png"
             outlineColor={null}
             label="📋 出版日志"
-            position={{ left: '87%', bottom: '6%', width: '11%', height: '30%' }}
+            // v2.6.1: 与猫等量下移 4%（bottom 6% → 2%）
+            position={{ left: '87%', bottom: '2%', width: '11%', height: '30%' }}
             onClick={() => togglePanel('log')}
           />
         </>
@@ -196,7 +198,7 @@ export function DeskRoom() {
 
       {/* ─── 弹出面板 ─── */}
       {openPanel === 'submissions' && (
-        <ScenePanel variant="inbox" title={`📥 投稿池 · ${submitted.length} 份待审`} onClose={() => setOpenPanel(null)} position="top-12 left-4 md:top-16 md:left-16" width={620}>
+        <ScenePanel variant="paper" title={`📥 投稿池 · ${submitted.length} 份待审`} onClose={() => setOpenPanel(null)} position="top-12 left-4 md:top-16 md:left-16" width={620}>
           {submitted.length === 0 ? (
             <EmptyInboxIllustration />
           ) : (
@@ -208,7 +210,7 @@ export function DeskRoom() {
       )}
 
       {openPanel === 'pipeline' && (
-        <ScenePanel variant="belt" title={`编辑流水线 · ${inProgress.length} 件进行中`} onClose={() => setOpenPanel(null)} position="bottom-20 left-1/2 -translate-x-1/2" width={680}>
+        <ScenePanel variant="paper" title={`编辑流水线 · ${inProgress.length} 件进行中`} onClose={() => setOpenPanel(null)} position="bottom-20 left-1/2 -translate-x-1/2" width={680}>
           {inProgress.length === 0 ? (
             <EmptyPipelineIllustration />
           ) : (
