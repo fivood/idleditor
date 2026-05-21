@@ -7,8 +7,9 @@ import { CorridorDoor } from '@/components/scene/CorridorDoor'
 import { StatsView } from '@/components/stats/StatsView'
 import { ArchivedLogsView } from '@/components/stats/ArchivedLogsView'
 import { AwardsView } from '@/components/stats/AwardsView'
+import { MemoriesView } from '@/components/stats/MemoriesView'
 
-type PanelKey = null | 'ledger' | 'scrolls' | 'logs' | 'awards'
+type PanelKey = null | 'ledger' | 'scrolls' | 'logs' | 'awards' | 'memories'
 
 /**
  * 档案室：文件柜墙 + 中央账本桌 + 蜡封卷轴 + 装订日志册 + 永夜文学奖名录。
@@ -22,6 +23,10 @@ export function ArchiveRoom() {
   const totalPublished = useGameStore(s => s.totalPublished)
   const archivedYearCount = useGameStore(s => Object.keys(s.archivedLogsByYear ?? {}).length)
   const awardCount = useGameStore(s => (s.awardHistory ?? []).length)
+  const memoryCount = useGameStore(s => {
+    const pools = s.memories ?? { current: [], heirloom: [] }
+    return pools.current.length + pools.heirloom.length
+  })
   const [openPanel, setOpenPanel] = useState<PanelKey>(null)
 
   return (
@@ -54,6 +59,12 @@ export function ArchiveRoom() {
         style={{ right: '2%', top: '28%', width: '10%', height: '36%' }}
         onClick={() => setOpenPanel('awards')}
       />
+      {/* 记忆碎片柜（v0.11）：放在右下角，靠近主编自己的桌椅位置 */}
+      <Hotspot
+        label={`🧠 记忆碎片柜${memoryCount > 0 ? `（${memoryCount} 片）` : ''}`}
+        style={{ right: '2%', bottom: '8%', width: '10%', height: '20%' }}
+        onClick={() => setOpenPanel('memories')}
+      />
 
       <CorridorDoor to="office" side="left" label="通往走廊" />
 
@@ -78,6 +89,18 @@ export function ArchiveRoom() {
           width={780}
         >
           <AwardsView />
+        </ScenePanel>
+      )}
+
+      {openPanel === 'memories' && (
+        <ScenePanel
+          variant="journal"
+          title="记忆碎片柜"
+          onClose={() => setOpenPanel(null)}
+          position="top-12 left-1/2 -translate-x-1/2"
+          width={780}
+        >
+          <MemoriesView />
         </ScenePanel>
       )}
 
