@@ -65,6 +65,11 @@ export interface SavedGame {
     salesCount: number
     citation: string
   }>
+  // v0.11+ 玩家记忆碎片
+  memories?: {
+    current: Array<unknown>
+    heirloom: Array<unknown>
+  }
   updatedAt: number
 }
 

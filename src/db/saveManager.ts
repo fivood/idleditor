@@ -39,6 +39,7 @@ export interface GameSaveData {
   archivedLogsByYear?: Record<number, import('@/core/types').ToastMessage[]>
   lastAwardYear?: number
   awardHistory?: import('@/core/awards').AwardWinner[]
+  memories?: import('@/core/memories').MemoryPools
 }
 
 export async function saveGameToDb(data: GameSaveData): Promise<void> {
@@ -77,6 +78,7 @@ export async function saveGameToDb(data: GameSaveData): Promise<void> {
     archivedLogsByYear: data.archivedLogsByYear,
     lastAwardYear: data.lastAwardYear,
     awardHistory: data.awardHistory,
+    memories: data.memories,
     updatedAt: Date.now(),
   }
   await db.saves.put(save)
@@ -120,6 +122,7 @@ export async function loadGameFromDb(): Promise<GameSaveData | null> {
     archivedLogsByYear: (save as any).archivedLogsByYear ?? {},
     lastAwardYear: (save as any).lastAwardYear ?? 0,
     awardHistory: (save as any).awardHistory ?? [],
+    memories: (save as any).memories ?? { current: [], heirloom: [] },
   }
 }
 

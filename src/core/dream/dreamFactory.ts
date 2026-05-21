@@ -70,7 +70,7 @@ export function dreamToManuscript(
         titleOverlay: dream.title,
       },
     },
-    synopsis: '主编在梦中亲手写的作品。',
+    synopsis: '主编在梦中亲手写的作品。LLM 正在编织灵感记忆……',
     isUnsuitable: false,
     rejectionReason: '',
     meticulouslyEdited: true,
@@ -79,6 +79,7 @@ export function dreamToManuscript(
     editorNote: '',
     customNote: '',
     isPlayerCreated: true,
+    inspirationMemoryIds: dream.inspirationMemoryIds ?? [],
   }
 }
 

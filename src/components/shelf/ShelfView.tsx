@@ -352,7 +352,20 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
             {book.isBestseller && <p className="text-[13px] md:text-xs text-copper font-bold mt-1.5 font-mono">★ 畅销书</p>}
           </div>
           <div className="bg-cream-dark border-2 border-border-dark p-2 md:p-3 mb-3 md:mb-4">
-            <p className="text-[13px] md:text-xs text-ink leading-relaxed font-mono">{book.synopsis}</p>
+            <p className="text-[13px] md:text-xs text-ink leading-relaxed font-mono whitespace-pre-line">{book.synopsis}</p>
+            {/* v0.11: 章节摘录（仅梦境创作长篇/巨著） */}
+            {book.generatedExcerpts && book.generatedExcerpts.length > 0 && (
+              <div className="mt-2 pt-2 border-t border-border-medium space-y-2">
+                <p className="text-[12px] md:text-[11px] text-muted font-mono uppercase tracking-wider">章节摘录</p>
+                {book.generatedExcerpts.map((ex, i) => (
+                  <p key={i} className="text-[13px] md:text-xs text-ink-light leading-relaxed font-mono italic">{ex}</p>
+                ))}
+              </div>
+            )}
+            {/* v0.11: 灵感来源（仅梦境创作书） */}
+            {book.isPlayerCreated && book.inspirationMemoryIds && book.inspirationMemoryIds.length > 0 && (
+              <InspirationSourcesPanel memoryIds={book.inspirationMemoryIds} />
+            )}
           </div>
 
           {/* Editor's note */}
@@ -401,6 +414,35 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+
+// v0.11: 在书详情里展示这本书引用过的玩家记忆碎片
+function InspirationSourcesPanel({ memoryIds }: { memoryIds: string[] }) {
+  const memories = useGameStore(s => s.memories ?? { current: [], heirloom: [] })
+  const items = useMemo(() => {
+    const lookup = new Map<string, import('@/core/memories').PlayerMemory>()
+    for (const m of memories.current) lookup.set(m.id, m)
+    for (const m of memories.heirloom) lookup.set(m.id, m)
+    return memoryIds.map(id => lookup.get(id)).filter((m): m is import('@/core/memories').PlayerMemory => !!m)
+  }, [memoryIds, memories])
+  if (items.length === 0) return null
+  return (
+    <div className="mt-2 pt-2 border-t border-border-medium space-y-1">
+      <p className="text-[12px] md:text-[11px] text-muted font-mono uppercase tracking-wider">灵感来源</p>
+      {items.map(m => (
+        <div key={m.id} className="text-[13px] md:text-xs text-ink-light leading-snug font-mono flex gap-1.5">
+          <span style={{ color: '#b8763b' }}>·</span>
+          <div className="flex-1">
+            <div>{m.text}</div>
+            <div className="text-[11px] mt-0.5" style={{ color: '#8a7a5a' }}>
+              第{m.capturedYear}年（第{m.capturedEpoch}次纪元）
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   )
 }

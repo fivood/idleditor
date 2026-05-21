@@ -147,6 +147,10 @@ export interface Manuscript {
   isPlayerCreated?: boolean
   // v2.6: 是否经过设计部完成封面设计。false → 出版时显示灰阶兜底封面。
   coverDesigned?: boolean
+  // v0.11: 这本书引用了哪些玩家记忆（仅梦境创作书会有）
+  inspirationMemoryIds?: string[]
+  // v0.11: LLM 生成的章节摘录（巨著/长篇梦境作品会有，1-2 段）
+  generatedExcerpts?: string[]
 }
 
 // 梦境创作项目（玩家进入梦境正在写的一本书）
@@ -158,6 +162,10 @@ export interface DreamProject {
   progressTicks: number      // 已推进 tick
   totalTicks: number         // 总需 tick（一般 1800-5400）
   startedAt: number          // playTicks 时间戳
+  // v0.11: 选中的灵感记忆 ID 列表（1-5 条），LLM 写书时引用
+  inspirationMemoryIds?: string[]
+  // v0.11: 投入档位（sketch/short/novella/novel/magnum），决定 LLM 是否额外输出章节摘录
+  tier?: 'sketch' | 'short' | 'novella' | 'novel' | 'magnum'
 }
 
 export interface BookCover {

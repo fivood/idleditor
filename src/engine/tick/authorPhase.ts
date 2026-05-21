@@ -2,6 +2,7 @@ import { manuscriptSpawnInterval } from '@/core/formulas'
 import { createManuscriptForAuthorWithWorld } from '@/core/factories/manuscriptFactory'
 import { personaPassiveFor } from '@/core/data/personaPassives'
 import { MAX_SUBMITTED_QUEUE } from '@/core/constants'
+import { collectAuthorMemory } from '@/core/dream/memoryCollector'
 import type { GameWorldState } from '@/core/gameLoop'
 import type { TickResult } from '@/core/types'
 import type { PhaseResult, TickContext } from '../types'
@@ -33,6 +34,7 @@ export function processAuthorPhase(world: GameWorldState, ctx: TickContext, resu
             'milestone'
           ))
           author.retirementAnnounced = true
+          collectAuthorMemory(world, { authorName: author.name, kind: 'retired', booksWritten: author.booksWritten })
         }
         continue
       }

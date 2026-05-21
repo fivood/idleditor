@@ -1,5 +1,6 @@
 import type { Author, CatState, Department, DreamProject, EditorTrait, GameEvent, Genre, Manuscript, PermanentBonuses, TickResult } from './types'
 import type { AwardWinner } from './awards'
+import type { MemoryPools } from './memories'
 import { BOSS_START_YEARS } from './constants'
 import { createCalendar } from './calendar'
 import type { GameCalendar } from './calendar'
@@ -34,6 +35,9 @@ export interface GameWorldState {
   lastAwardYear?: number
   /** 历届获奖名录，按时间顺序追加 */
   awardHistory?: AwardWinner[]
+  // v0.11: 玩家记忆碎片（梦境创作灵感来源）
+  /** 当前周目 + 跨周目传家记忆 */
+  memories?: MemoryPools
   permanentBonuses: PermanentBonuses
   trait: EditorTrait | null
   playerName: string
@@ -89,6 +93,7 @@ export function createInitialWorld(): GameWorldState {
     announcedUnlocks: new Set(),
     lastAwardYear: 0,
     awardHistory: [],
+    memories: { current: [], heirloom: [] },
     permanentBonuses: {
       manuscriptQualityBonus: 0,
       editingSpeedBonus: 0,

@@ -92,6 +92,7 @@ function applyWorldToDraft(draft: GameWorldState, world: GameWorldState) {
   draft.inspirationDailyResetAt = world.inspirationDailyResetAt
   draft.lastAwardYear = world.lastAwardYear
   draft.awardHistory = world.awardHistory
+  draft.memories = world.memories
 
   if (import.meta.env.DEV) {
     if (draft.manuscripts.size !== world.manuscripts.size || draft.authors.size !== world.authors.size || draft.departments.size !== world.departments.size) {
@@ -151,6 +152,7 @@ function extractWorldFromState(state: GameStore): GameWorldState {
     inspirationDailyResetAt: state.inspirationDailyResetAt ?? 0,
     lastAwardYear: state.lastAwardYear ?? 0,
     awardHistory: structuredClone(state.awardHistory ?? []),
+    memories: structuredClone(state.memories ?? { current: [], heirloom: [] }),
   }
 }
 
@@ -225,6 +227,69 @@ async function generateRebirthSummary(state: GameStore, statues: number): Promis
     const data = await res.json()
     return data.text || null
   } catch { return null }
+}
+
+/**
+ * v0.11: 梦境创作完成后，把玩家选中的记忆送给 LLM 编织成书的简介 + 章节摘录。
+ * 异步进行，完成后直接 set 到 state.manuscripts 里替换简介。
+ * 失败回到本地模板兜底，玩家不会卡住。
+ */
+async function weaveDreamBookFromMemories(bookId: string): Promise<void> {
+  const state = useGameStore.getState()
+  const book = state.manuscripts.get(bookId)
+  if (!book?.isPlayerCreated || !book.inspirationMemoryIds?.length) return
+
+  // 解析记忆 ID → 完整记忆对象
+  const pools = state.memories ?? { current: [], heirloom: [] }
+  const lookup = new Map<string, import('@/core/memories').PlayerMemory>()
+  for (const m of pools.current) lookup.set(m.id, m)
+  for (const m of pools.heirloom) lookup.set(m.id, m)
+  const memories = book.inspirationMemoryIds
+    .map(id => lookup.get(id))
+    .filter((m): m is import('@/core/memories').PlayerMemory => !!m)
+
+  if (memories.length === 0) return
+
+  // 推断梦境投入档位（已存在的 manuscript 取词数估算）
+  const tier = book.wordCount <= 15_000 ? 'sketch'
+    : book.wordCount <= 25_000 ? 'short'
+    : book.wordCount <= 60_000 ? 'novella'
+    : book.wordCount <= 100_000 ? 'novel'
+    : 'magnum'
+
+  try {
+    const res = await fetch('/api/dream-from-memories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        memories,
+        title: book.title,
+        genre: book.genre,
+        tier,
+        playerName: state.playerName,
+        currentEpoch: state.currencies.statues + 1,
+      }),
+    })
+    const data = await res.json()
+    if (data?.synopsis) {
+      useGameStore.setState(draft => {
+        const m = draft.manuscripts.get(bookId)
+        if (!m) return
+        m.synopsis = data.synopsis
+        if (Array.isArray(data.excerpts) && data.excerpts.length > 0) {
+          m.generatedExcerpts = data.excerpts
+        }
+      })
+      useGameStore.getState().addToast({
+        id: nanoid(),
+        text: `🌙 《${book.title}》——梦境写作完成，灵感记忆已编织进文字。`,
+        type: 'milestone',
+        createdAt: useGameStore.getState().playTicks,
+      })
+    }
+  } catch {
+    // 静默失败，保留原本的兜底简介
+  }
 }
 
 async function syncToCloudImpl(state: GameStore): Promise<boolean> {
@@ -319,7 +384,7 @@ export interface GameStore extends GameWorldState {
   toggleBlacklistedGenre: (genre: Genre) => void
   toggleAcceptMortalSubmissions: () => void
   // v2.2.3 梦境创作
-  startDream: (title: string, genre: import('@/core/types').Genre, inspirationCost: number) => boolean
+  startDream: (title: string, genre: import('@/core/types').Genre, inspirationCost: number, memoryIds?: string[]) => boolean
   cancelDream: () => void
   reissueBook: (id: string) => void
   buyAuthorMeal: (id: string) => void
@@ -511,6 +576,13 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
       pushToastDraft(draft as never, result.toasts)
     })
 
+    // v0.11: 梦境创作完成时如果带了 memoryIds → 后台 LLM 编织简介
+    for (const book of engineTick.result.publishedBooks) {
+      if (book.isPlayerCreated && (book.inspirationMemoryIds?.length ?? 0) > 0) {
+        weaveDreamBookFromMemories(book.id)
+      }
+    }
+
     // Post-tick: LLM, collections, decisions — need get() for async
     const state = get()
 
@@ -617,6 +689,7 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
         archivedLogsByYear: state.archivedLogsByYear,
         lastAwardYear: state.lastAwardYear,
         awardHistory: state.awardHistory,
+        memories: state.memories,
       }).catch(() => {})
     }
   },
@@ -662,6 +735,14 @@ export const useGameStore = create<GameStore>()(immer((set, get) => ({
       // v2.4: 文学奖名录跨纪元保留（永久荣誉）；lastAwardYear 重置随新纪元日历
       awardHistory: state.awardHistory ?? [],
       lastAwardYear: 0,
+      // v0.11: 记忆碎片跨纪元——把当前周目最有 importance 的 N 条提升到 heirloom 池
+      memories: (() => {
+        const { promoteToHeirloom } = require('@/core/memories') as typeof import('@/core/memories')
+        const pools = state.memories ?? { current: [], heirloom: [] }
+        const next = { current: [...pools.current], heirloom: [...pools.heirloom] }
+        promoteToHeirloom(next, newStatues)
+        return next
+      })(),
     })
 
     // Check for count scene

@@ -6,6 +6,7 @@ import {
   computeAuthorsFirstBook,
   selectWinners,
 } from '@/core/awards'
+import { collectAwardMemory } from '@/core/dream/memoryCollector'
 import type { AwardWinner } from '@/core/awards'
 import type { GameWorldState } from '@/core/gameLoop'
 import type { TickResult } from '@/core/types'
@@ -65,6 +66,12 @@ function runAwardsForYear(world: GameWorldState, year: number, result: TickResul
     }
     world.awardHistory.push(w)
     pushToast(world, result, w)
+    collectAwardMemory(world, {
+      category: w.category,
+      bookTitle: w.bookTitle,
+      authorName: w.authorName,
+      year: w.year,
+    })
   }
 }
 

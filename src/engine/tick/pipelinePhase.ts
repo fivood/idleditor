@@ -1,6 +1,7 @@
 import { getDeptEfficiency, getDeptLevel } from '@/core/helpers'
 import { reviewTicks, rpPerReview, editingTicks, rpPerEdit, proofingTicks, rpPerProof, publishingTicks, rpPerPublish, coverDesigningTicks } from '@/core/formulas'
 import { gainInspiration } from '@/core/dream/inspiration'
+import { collectPublishMemory, collectAuthorMemory } from '@/core/dream/memoryCollector'
 import { generateToast } from '@/core/humor/generator'
 import { generatePublishNote, generateLevelUpToast } from '@/core/data/editorNotes'
 import { xpForPublish, getLevelFromXP } from '@/core/leveling'
@@ -127,6 +128,15 @@ export function processPipelinePhase(world: GameWorldState, { ct, effSpeedBonus,
     world.totalPublished++
     // v2.2.3: 出版成功 +2 灵感
     gainInspiration(world, 2)
+    // v0.11: 出版作为记忆碎片采集
+    collectPublishMemory(world, {
+      title: m.title,
+      authorName: world.authors.get(m.authorId)?.name ?? '匿名',
+      genre: m.genre,
+      quality: m.quality,
+      isBestseller: m.isBestseller,
+      isUnsuitable: m.isUnsuitable,
+    })
     world.currencies.revisionPoints += rpPerPublish(m.quality, 0, world.booksPublishedThisMonth)
     const pubPrestige = m.isUnsuitable ? -10 : 10
     world.currencies.prestige += pubPrestige * (epochSocialite ? 1.5 : 1)
@@ -165,9 +175,11 @@ export function processPipelinePhase(world: GameWorldState, { ct, effSpeedBonus,
     if (prevTier === 'signed' && author.fame >= AUTHOR_TIER_THRESHOLDS.known) {
       author.tier = 'known'
       result.toasts.push(ct(`🌟 ${author.name} 已晋升为知名作者！其作品质量获得了永久提升。`, 'milestone'))
+      collectAuthorMemory(world, { authorName: author.name, kind: 'tier-up', newTier: '知名作者' })
     } else if (prevTier === 'known' && author.fame >= AUTHOR_TIER_THRESHOLDS.idol) {
       author.tier = 'idol'
       result.toasts.push(ct(`🏆 ${author.name} 已晋升为传奇作者！永夜出版社的藏书阁将铭记这个时刻。`, 'milestone'))
+      collectAuthorMemory(world, { authorName: author.name, kind: 'tier-up', newTier: '传奇作者' })
     }
     if (author.tier !== prevTier) {
       author.talent = Math.min(95, author.talent + 5)

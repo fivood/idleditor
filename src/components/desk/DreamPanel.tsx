@@ -1,10 +1,18 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useGameStore } from '@/store/gameStore'
 import { PixelTextButton } from '@/components/shared/PixelTextButton'
 import { PixelProgressBar } from '@/components/shared/PixelProgressBar'
 import { GENRE_LABELS, type Genre } from '@/core/types'
+import { sortMemoriesForBrowsing } from '@/core/memories'
 
 const GENRES: Genre[] = ['sci-fi', 'mystery', 'suspense', 'social-science', 'hybrid', 'light-novel']
+
+const MAX_SELECTED_MEMORIES = 5
+
+const MEMORY_TYPE_LABELS: Record<string, string> = {
+  publish: '📘 出版', review: '👀 审稿', rejection: '✗ 退稿',
+  author: '✍️ 作者', random: '🎲 偶遇', decision: '⚖ 抉择', milestone: '🏆 里程碑',
+}
 
 const TIER_OPTIONS = [
   { cost: 5,  label: '速写', desc: '~15 min · 12K 字 · 品质 40-50' },
@@ -25,9 +33,25 @@ export function DreamPanel({ onClose: _onClose }: { onClose: () => void }) {
   const editorLevel = useGameStore(s => s.editorLevel)
   const inspirationDailyGained = useGameStore(s => s.inspirationDailyGained)
 
+  const memories = useGameStore(s => s.memories ?? { current: [], heirloom: [] })
+  const allMemories = useMemo(() => sortMemoriesForBrowsing([...memories.current, ...memories.heirloom]), [memories])
+
   const [title, setTitle] = useState('')
   const [selectedGenre, setSelectedGenre] = useState<Genre>('hybrid')
   const [selectedTier, setSelectedTier] = useState(10)
+  const [selectedMemIds, setSelectedMemIds] = useState<Set<string>>(new Set())
+
+  const toggleMem = (id: string) => {
+    setSelectedMemIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else if (next.size < MAX_SELECTED_MEMORIES) {
+        next.add(id)
+      }
+      return next
+    })
+  }
 
   if (activeDream) {
     const pct = Math.min(100, Math.round((activeDream.progressTicks / activeDream.totalTicks) * 100))
@@ -155,13 +179,66 @@ export function DreamPanel({ onClose: _onClose }: { onClose: () => void }) {
         </div>
       </div>
 
+      {/* 灵感来源（玩家记忆选择） */}
+      {allMemories.length > 0 && (
+        <div>
+          <div className="text-[11px] font-mono mb-1 flex justify-between" style={{ color: '#b8a48a' }}>
+            <span>灵感来源（可选，最多 {MAX_SELECTED_MEMORIES} 条）</span>
+            <span style={{ color: selectedMemIds.size > 0 ? '#f5d878' : '#5a4a38' }}>
+              已选 {selectedMemIds.size}/{MAX_SELECTED_MEMORIES}
+            </span>
+          </div>
+          <div
+            className="max-h-32 overflow-y-auto border-2 p-1.5 space-y-1"
+            style={{ background: '#1a0e08', borderColor: '#5c3a1f' }}
+          >
+            {allMemories.map(m => {
+              const checked = selectedMemIds.has(m.id)
+              const disabled = !checked && selectedMemIds.size >= MAX_SELECTED_MEMORIES
+              const isHeirloom = memories.heirloom.some(h => h.id === m.id)
+              return (
+                <label
+                  key={m.id}
+                  className="flex items-start gap-1.5 text-[11px] font-mono leading-snug cursor-pointer"
+                  style={{
+                    opacity: disabled ? 0.4 : 1,
+                    cursor: disabled ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    disabled={disabled}
+                    onChange={() => toggleMem(m.id)}
+                    className="mt-0.5 accent-amber-400 shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div style={{ color: checked ? '#f5d878' : '#ede0c8' }}>{m.text}</div>
+                    <div className="text-[10px] mt-0.5" style={{ color: isHeirloom ? '#b8763b' : '#8a7a5a' }}>
+                      {MEMORY_TYPE_LABELS[m.type] ?? m.type} · 第{m.capturedYear}年
+                      {isHeirloom && ` · 历世传家`}
+                      {' · 重要度 '}{m.importance}
+                    </div>
+                  </div>
+                </label>
+              )
+            })}
+          </div>
+          {selectedMemIds.size === 0 && (
+            <div className="text-[10px] font-mono mt-1 italic" style={{ color: '#8a7a5a' }}>
+              （不选则任由梦境自由展开。选了的记忆会被 LLM 编织进书的简介）
+            </div>
+          )}
+        </div>
+      )}
+
       {/* 启动按钮 */}
       <div className="pt-2 border-t" style={{ borderColor: '#5c3a1f' }}>
         <PixelTextButton
           variant="primary"
           size="md"
           disabled={!canAfford}
-          onClick={() => startDream(title, selectedGenre, selectedTier)}
+          onClick={() => startDream(title, selectedGenre, selectedTier, Array.from(selectedMemIds))}
         >
           {canAfford ? `进入梦境（消耗 ${selectedTier} ✨）` : '灵感不足'}
         </PixelTextButton>

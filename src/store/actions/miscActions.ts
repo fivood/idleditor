@@ -568,7 +568,7 @@ export const createMiscActions = (
   toggleAcceptMortalSubmissions: () => set(draft => { draft.acceptMortalSubmissions = !draft.acceptMortalSubmissions }),
 
   // v2.2.3 梦境创作
-  startDream: (title: string, genre: import('@/core/types').Genre, inspirationCost: number): boolean => {
+  startDream: (title: string, genre: import('@/core/types').Genre, inspirationCost: number, memoryIds: string[] = []): boolean => {
     const state = get()
     if (state.activeDream) return false
     if (state.currencies.inspiration < inspirationCost) return false
@@ -587,6 +587,12 @@ export const createMiscActions = (
     const { createDream } = require('@/core/dream/dreamFactory')
     set(draft => {
       const dream = createDream(draft as never, { title, genre, inspiration: inspirationCost })
+      dream.inspirationMemoryIds = memoryIds.slice(0, 5)
+      dream.tier = inspirationCost <= 5 ? 'sketch'
+        : inspirationCost <= 10 ? 'short'
+        : inspirationCost <= 20 ? 'novella'
+        : inspirationCost <= 30 ? 'novel'
+        : 'magnum'
       draft.currencies.inspiration -= inspirationCost
       draft.activeDream = dream
     })
