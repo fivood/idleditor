@@ -79,7 +79,26 @@ public/ui/panel-notice.png     ← 待画
 
 ---
 
-## 5. 题材标签（genre）· 8 个 · 可选
+## 5. 顶栏货币 / 状态图标（currency）· 8 个 · 可选
+
+文件命名：`currency-{name}.png`。**画师自由尺寸**——代码按渲染端 `size` 缩放。缺图自动 fallback 到内置 SVG。
+
+| 文件 | 用途 | 在顶栏的位置 |
+|------|------|-------------|
+| `currency-rp.png`          | 修订点 RP（鹅毛笔） | 左侧第 1 |
+| `currency-prestige.png`    | 声望（桂冠） | 左侧第 2 |
+| `currency-royalty.png`     | 版税（金币堆） | 左侧第 3 |
+| `currency-inspiration.png` | 灵感（月牙）· 仅 inspiration > 0 时显示 | 左侧第 4（条件显示） |
+| `currency-statue.png`      | 铜像（雕像）· 仅 statues > 0 时显示 | 左侧第 5（条件显示） |
+| `currency-quota.png`       | 本月出版额度（卷轴） | 左侧第 6 |
+| `currency-trend.png`       | 市场风向（上升图表）· 有 trend 时显示 | 左侧第 7（条件显示） |
+| `currency-cloud.png`       | 云存档同步（云）· 设过云存档码时显示 | 右侧（条件显示） |
+
+**画布建议**：16×16 源 PNG（与原 SVG 同分辨率），代码侧渲染 24×24（pixelated 1.5× 放大）。如果想更"颗粒"，画 8×8 源，渲染时 3× 放大；如果想更精细，画 32×32 源，渲染时 0.75× 不变。
+
+---
+
+## 6. 题材标签（genre）· 8 个 · 可选
 
 文件命名：`genre-{genre}.png`。**画师自由设计尺寸 / 比例**——代码按源 PNG 原生尺寸渲染（上限 48×48）。可以做长方形标签贴纸（如 32×16）、方形徽章（24×24）、任意你想要的形状。
 

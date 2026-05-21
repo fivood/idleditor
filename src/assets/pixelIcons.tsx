@@ -16,6 +16,7 @@
  * 通过 color prop 可整体染色（替换 currentColor）。
  */
 import type { CSSProperties } from 'react'
+import { useEffect, useState } from 'react'
 
 interface IconProps {
   size?: number
@@ -23,6 +24,53 @@ interface IconProps {
   style?: CSSProperties
   color?: string         // 覆盖 currentColor
   title?: string         // 鼠标 hover 提示
+}
+
+// v0.11: 像素 PNG 接管层 ────────────────────────────────────────
+// 画师在 public/ui/ 放 `{pngKey}.png` → 自动接管 SVG fallback。
+// 每个 pngKey 探测一次，缓存到 module-level Map 避免每张图标重测。
+const iconPngAvailability = new Map<string, boolean>()
+function useIconPng(pngKey: string): boolean {
+  const cached = iconPngAvailability.get(pngKey)
+  const [available, setAvailable] = useState<boolean>(cached ?? false)
+  useEffect(() => {
+    if (iconPngAvailability.has(pngKey)) return
+    const img = new Image()
+    img.onload = () => { iconPngAvailability.set(pngKey, true); setAvailable(true) }
+    img.onerror = () => { iconPngAvailability.set(pngKey, false); setAvailable(false) }
+    img.src = `/ui/${pngKey}.png`
+  }, [pngKey])
+  return available
+}
+
+/** 用 pngKey 包装 SVG 图标：PNG 存在用 PNG，否则 fallback 到原 SVG。 */
+function IconWithPng({ pngKey, svgFallback, size = 16, className, style, title }: IconProps & {
+  pngKey: string
+  svgFallback: React.ReactNode
+}) {
+  const hasPng = useIconPng(pngKey)
+  if (hasPng) {
+    return (
+      <img
+        src={`/ui/${pngKey}.png`}
+        alt={title ?? ''}
+        title={title}
+        width={size}
+        height={size}
+        draggable={false}
+        className={className}
+        style={{
+          imageRendering: 'pixelated',
+          display: 'inline-block',
+          verticalAlign: 'middle',
+          pointerEvents: 'none',
+          userSelect: 'none',
+          ...style,
+        }}
+      />
+    )
+  }
+  return <>{svgFallback}</>
 }
 
 function Icon({ children, size = 16, className, style, title, color }: IconProps & { children: React.ReactNode }) {
@@ -155,73 +203,81 @@ export const IconArchive = (p: IconProps) => (
 
 /** RP / 修订点 — 红色羽毛笔尖 */
 export const IconRP = (p: IconProps) => (
-  <Icon {...p}>
-    <rect x="11" y="3" width="2" height="1" fill="#d4c8b0" />
-    <rect x="10" y="4" width="2" height="2" fill="#f0e8d8" />
-    <rect x="8" y="6" width="2" height="2" fill="#f0e8d8" />
-    <rect x="6" y="8" width="2" height="2" fill="#e8dec8" />
-    <rect x="4" y="10" width="2" height="2" fill="#a89072" />
-    {/* 红色墨点 */}
-    <rect x="3" y="12" width="2" height="2" fill="#8b1f1f" />
-    <rect x="2" y="13" width="1" height="1" fill="#8b1f1f" opacity="0.7" />
-  </Icon>
+  <IconWithPng {...p} pngKey="currency-rp" svgFallback={
+    <Icon {...p}>
+      <rect x="11" y="3" width="2" height="1" fill="#d4c8b0" />
+      <rect x="10" y="4" width="2" height="2" fill="#f0e8d8" />
+      <rect x="8" y="6" width="2" height="2" fill="#f0e8d8" />
+      <rect x="6" y="8" width="2" height="2" fill="#e8dec8" />
+      <rect x="4" y="10" width="2" height="2" fill="#a89072" />
+      {/* 红色墨点 */}
+      <rect x="3" y="12" width="2" height="2" fill="#8b1f1f" />
+      <rect x="2" y="13" width="1" height="1" fill="#8b1f1f" opacity="0.7" />
+    </Icon>
+  } />
 )
 
 /** 声望 — 桂冠 */
 export const IconPrestige = (p: IconProps) => (
-  <Icon {...p}>
-    {/* 上半叶 */}
-    <rect x="3" y="3" width="2" height="3" fill="#78a45a" />
-    <rect x="11" y="3" width="2" height="3" fill="#78a45a" />
-    <rect x="4" y="2" width="1" height="1" fill="#a4d478" />
-    <rect x="11" y="2" width="1" height="1" fill="#a4d478" />
-    {/* 中间叶 */}
-    <rect x="2" y="6" width="2" height="3" fill="#5a8a3a" />
-    <rect x="12" y="6" width="2" height="3" fill="#5a8a3a" />
-    {/* 下半叶 */}
-    <rect x="3" y="9" width="2" height="3" fill="#78a45a" />
-    <rect x="11" y="9" width="2" height="3" fill="#78a45a" />
-    {/* 中央铜星 */}
-    <rect x="7" y="6" width="2" height="2" fill="#f5d878" />
-    <rect x="6" y="7" width="4" height="2" fill="#f5d878" />
-    <rect x="7" y="9" width="2" height="2" fill="#f5d878" />
-    {/* 底部丝带 */}
-    <rect x="5" y="12" width="6" height="1" fill="#8b1f1f" />
-    <rect x="6" y="13" width="2" height="1" fill="#8b1f1f" />
-    <rect x="9" y="13" width="2" height="1" fill="#8b1f1f" />
-  </Icon>
+  <IconWithPng {...p} pngKey="currency-prestige" svgFallback={
+    <Icon {...p}>
+      {/* 上半叶 */}
+      <rect x="3" y="3" width="2" height="3" fill="#78a45a" />
+      <rect x="11" y="3" width="2" height="3" fill="#78a45a" />
+      <rect x="4" y="2" width="1" height="1" fill="#a4d478" />
+      <rect x="11" y="2" width="1" height="1" fill="#a4d478" />
+      {/* 中间叶 */}
+      <rect x="2" y="6" width="2" height="3" fill="#5a8a3a" />
+      <rect x="12" y="6" width="2" height="3" fill="#5a8a3a" />
+      {/* 下半叶 */}
+      <rect x="3" y="9" width="2" height="3" fill="#78a45a" />
+      <rect x="11" y="9" width="2" height="3" fill="#78a45a" />
+      {/* 中央铜星 */}
+      <rect x="7" y="6" width="2" height="2" fill="#f5d878" />
+      <rect x="6" y="7" width="4" height="2" fill="#f5d878" />
+      <rect x="7" y="9" width="2" height="2" fill="#f5d878" />
+      {/* 底部丝带 */}
+      <rect x="5" y="12" width="6" height="1" fill="#8b1f1f" />
+      <rect x="6" y="13" width="2" height="1" fill="#8b1f1f" />
+      <rect x="9" y="13" width="2" height="1" fill="#8b1f1f" />
+    </Icon>
+  } />
 )
 
 /** 版税 / 金币 — 一摞金币 */
 export const IconRoyalty = (p: IconProps) => (
-  <Icon {...p}>
-    {/* 三层金币 */}
-    <ellipse cx="8" cy="13" rx="6" ry="2" fill="#8a5828" />
-    <ellipse cx="8" cy="11" rx="6" ry="2" fill="#b8763b" />
-    <ellipse cx="8" cy="9" rx="6" ry="2" fill="#d49a5b" />
-    <ellipse cx="8" cy="7" rx="6" ry="2" fill="#f5d878" />
-    <ellipse cx="8" cy="6" rx="6" ry="1.5" fill="#fff0a8" />
-    {/* 顶部纹路 */}
-    <rect x="7" y="5" width="2" height="1" fill="#b8763b" />
-  </Icon>
+  <IconWithPng {...p} pngKey="currency-royalty" svgFallback={
+    <Icon {...p}>
+      {/* 三层金币 */}
+      <ellipse cx="8" cy="13" rx="6" ry="2" fill="#8a5828" />
+      <ellipse cx="8" cy="11" rx="6" ry="2" fill="#b8763b" />
+      <ellipse cx="8" cy="9" rx="6" ry="2" fill="#d49a5b" />
+      <ellipse cx="8" cy="7" rx="6" ry="2" fill="#f5d878" />
+      <ellipse cx="8" cy="6" rx="6" ry="1.5" fill="#fff0a8" />
+      {/* 顶部纹路 */}
+      <rect x="7" y="5" width="2" height="1" fill="#b8763b" />
+    </Icon>
+  } />
 )
 
 /** 铜像 — 小奖杯/雕像 */
 export const IconStatue = (p: IconProps) => (
-  <Icon {...p}>
-    {/* 头 */}
-    <rect x="6" y="2" width="4" height="3" fill="#b8763b" />
-    <rect x="6" y="2" width="4" height="1" fill="#d49a5b" />
-    {/* 身体（袍） */}
-    <rect x="5" y="5" width="6" height="5" fill="#8a5828" />
-    <rect x="5" y="5" width="6" height="1" fill="#b8763b" />
-    {/* 手柄/把手 */}
-    <rect x="3" y="6" width="2" height="3" fill="#8a5828" />
-    <rect x="11" y="6" width="2" height="3" fill="#8a5828" />
-    {/* 基座 */}
-    <rect x="3" y="10" width="10" height="2" fill="#5c3a1f" />
-    <rect x="2" y="12" width="12" height="2" fill="#3d2614" />
-  </Icon>
+  <IconWithPng {...p} pngKey="currency-statue" svgFallback={
+    <Icon {...p}>
+      {/* 头 */}
+      <rect x="6" y="2" width="4" height="3" fill="#b8763b" />
+      <rect x="6" y="2" width="4" height="1" fill="#d49a5b" />
+      {/* 身体（袍） */}
+      <rect x="5" y="5" width="6" height="5" fill="#8a5828" />
+      <rect x="5" y="5" width="6" height="1" fill="#b8763b" />
+      {/* 手柄/把手 */}
+      <rect x="3" y="6" width="2" height="3" fill="#8a5828" />
+      <rect x="11" y="6" width="2" height="3" fill="#8a5828" />
+      {/* 基座 */}
+      <rect x="3" y="10" width="10" height="2" fill="#5c3a1f" />
+      <rect x="2" y="12" width="12" height="2" fill="#3d2614" />
+    </Icon>
+  } />
 )
 
 // ─── 桌面热区图标 ───
@@ -333,12 +389,14 @@ export const IconNotice = (p: IconProps) => (
 
 /** 月亮 — 月牙 */
 export const IconMoon = (p: IconProps) => (
-  <Icon {...p}>
-    <rect x="5" y="3" width="6" height="2" fill="#f5e6a0" />
-    <rect x="3" y="5" width="3" height="6" fill="#f5e6a0" />
-    <rect x="6" y="5" width="3" height="6" fill="#0e1240" />
-    <rect x="5" y="11" width="6" height="2" fill="#f5e6a0" />
-  </Icon>
+  <IconWithPng {...p} pngKey="currency-inspiration" svgFallback={
+    <Icon {...p}>
+      <rect x="5" y="3" width="6" height="2" fill="#f5e6a0" />
+      <rect x="3" y="5" width="3" height="6" fill="#f5e6a0" />
+      <rect x="6" y="5" width="3" height="6" fill="#0e1240" />
+      <rect x="5" y="11" width="6" height="2" fill="#f5e6a0" />
+    </Icon>
+  } />
 )
 
 /** 门 — 拱顶木门 */
@@ -358,28 +416,32 @@ export const IconDoor = (p: IconProps) => (
 
 /** 云存档 — 一朵云 */
 export const IconCloud = (p: IconProps) => (
-  <Icon {...p}>
-    <rect x="5" y="5" width="6" height="4" fill="#e8e0d0" />
-    <rect x="4" y="6" width="8" height="4" fill="#e8e0d0" />
-    <rect x="3" y="7" width="10" height="3" fill="#e8e0d0" />
-    <rect x="2" y="8" width="12" height="2" fill="#e8e0d0" />
-    <rect x="3" y="10" width="10" height="1" fill="#a89072" />
-    {/* 高光 */}
-    <rect x="5" y="6" width="2" height="1" fill="#f5edd8" />
-  </Icon>
+  <IconWithPng {...p} pngKey="currency-cloud" svgFallback={
+    <Icon {...p}>
+      <rect x="5" y="5" width="6" height="4" fill="#e8e0d0" />
+      <rect x="4" y="6" width="8" height="4" fill="#e8e0d0" />
+      <rect x="3" y="7" width="10" height="3" fill="#e8e0d0" />
+      <rect x="2" y="8" width="12" height="2" fill="#e8e0d0" />
+      <rect x="3" y="10" width="10" height="1" fill="#a89072" />
+      {/* 高光 */}
+      <rect x="5" y="6" width="2" height="1" fill="#f5edd8" />
+    </Icon>
+  } />
 )
 
 /** 趋势 — 上升箭头 + 图表 */
 export const IconTrend = (p: IconProps) => (
-  <Icon {...p}>
-    <rect x="2" y="11" width="2" height="2" fill="#5a78a4" />
-    <rect x="5" y="9" width="2" height="4" fill="#5a78a4" />
-    <rect x="8" y="7" width="2" height="6" fill="#78a45a" />
-    <rect x="11" y="4" width="2" height="9" fill="#a45a78" />
-    {/* 箭头 */}
-    <rect x="12" y="3" width="3" height="1" fill="#f5d878" />
-    <rect x="13" y="2" width="2" height="1" fill="#f5d878" />
-  </Icon>
+  <IconWithPng {...p} pngKey="currency-trend" svgFallback={
+    <Icon {...p}>
+      <rect x="2" y="11" width="2" height="2" fill="#5a78a4" />
+      <rect x="5" y="9" width="2" height="4" fill="#5a78a4" />
+      <rect x="8" y="7" width="2" height="6" fill="#78a45a" />
+      <rect x="11" y="4" width="2" height="9" fill="#a45a78" />
+      {/* 箭头 */}
+      <rect x="12" y="3" width="3" height="1" fill="#f5d878" />
+      <rect x="13" y="2" width="2" height="1" fill="#f5d878" />
+    </Icon>
+  } />
 )
 
 /** 棺木 / 纪元 */
@@ -572,18 +634,20 @@ export const IconBolt = (p: IconProps) => (
 
 /** 卷轴 / 出版额度 */
 export const IconScroll = (p: IconProps) => (
-  <Icon {...p}>
-    {/* 上轴 */}
-    <rect x="1" y="3" width="14" height="1" fill="#5c3a1f" />
-    <rect x="1" y="4" width="14" height="1" fill="#3d2614" />
-    {/* 卷轴主体 */}
-    <rect x="2" y="5" width="12" height="6" fill="#e8d8b0" />
-    {/* 文字线 */}
-    <rect x="3" y="6" width="6" height="1" fill="#5a4a38" />
-    <rect x="3" y="8" width="8" height="1" fill="#5a4a38" />
-    <rect x="3" y="10" width="5" height="1" fill="#5a4a38" />
-    {/* 下轴 */}
-    <rect x="1" y="11" width="14" height="1" fill="#3d2614" />
-    <rect x="1" y="12" width="14" height="1" fill="#5c3a1f" />
-  </Icon>
+  <IconWithPng {...p} pngKey="currency-quota" svgFallback={
+    <Icon {...p}>
+      {/* 上轴 */}
+      <rect x="1" y="3" width="14" height="1" fill="#5c3a1f" />
+      <rect x="1" y="4" width="14" height="1" fill="#3d2614" />
+      {/* 卷轴主体 */}
+      <rect x="2" y="5" width="12" height="6" fill="#e8d8b0" />
+      {/* 文字线 */}
+      <rect x="3" y="6" width="6" height="1" fill="#5a4a38" />
+      <rect x="3" y="8" width="8" height="1" fill="#5a4a38" />
+      <rect x="3" y="10" width="5" height="1" fill="#5a4a38" />
+      {/* 下轴 */}
+      <rect x="1" y="11" width="14" height="1" fill="#3d2614" />
+      <rect x="1" y="12" width="14" height="1" fill="#5c3a1f" />
+    </Icon>
+  } />
 )
