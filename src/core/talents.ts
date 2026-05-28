@@ -21,7 +21,7 @@ export interface Talent {
 export const TALENTS: Talent[] = [
   // Tier 1 — unlocked at editor Lv.3
   { id: 'speed-read', tier: 1, label: '速读', desc: '两百年足够让你学会在一杯茶的时间里翻完一本稿子。', effects: { flipSpeed: 0.2 } },
-  { id: 'quick-pen', tier: 1, label: '快笔', desc: '你的红笔比别人的快。不是因为墨水，而是因为果断。', effects: { editSpeed: 0.15 } },
+  { id: 'quick-pen', tier: 1, label: '快笔', desc: '你的红笔比别人的快。果断写就的字才有力道。', effects: { editSpeed: 0.15 } },
   { id: 'gentle-critique', tier: 1, label: '温和批评', desc: '退稿信写得比情书还温柔——作者们反而更愧疚。', effects: { affectionGain: 0.1 } },
 
   // Tier 2 — unlocked at Lv.6

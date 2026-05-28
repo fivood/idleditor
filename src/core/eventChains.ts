@@ -157,7 +157,7 @@ export const EVENT_CHAINS: EventChain[] = [
           {
             label: '给她一些补偿，友好解决',
             description: '金钱和平比法院判决更优雅。毕竟她失去了一位亲人，几本书也算不了什么。',
-            effects: { royalties: -150, prestige: 15, toastText: '你给了她五百版税的补偿和三本珍本作为纪念。她走的时候哭了——不是因为钱，而是因为你在扉页上写了一行字："你的叔父是一位伟大的读者。永夜会记住他。"' }
+            effects: { royalties: -150, prestige: 15, toastText: '你给了她五百版税的补偿和三本珍本作为纪念。她走的时候哭了——你在扉页上写了一行字："你的叔父是一位伟大的读者。永夜会记住他。"' }
           }
         ]
       },
