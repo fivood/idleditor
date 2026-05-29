@@ -146,6 +146,24 @@ export function rollRandomEvent(world: GameWorldState): string | null {
       ]
       return pick(newsItems)
     },
+
+    // ── Cat events (only when cat is present) ──
+    () => {
+      if (!world.catState || !world.catState.alive) return null
+      const cat = world.catState
+      return pick([
+        `🐱 ${cat.name}在投稿池上打了个盹，醒来后用爪子在两份稿子上各踩了一个印。你后来发现那两份是同一作者的。`,
+        `📜 ${cat.name}把一份退稿信从桌边推了下去。你捡起来看了看——是那份你犹豫了三天还没退的。也许它替你做了决定。`,
+        `🐈 ${cat.name}叼着一支笔放到了你手边。你看了一眼笔尖——已经被咬烂了。但你还是用它批了三页稿子。`,
+        `😸 ${cat.name}跳到书架顶上，居高临下地看着你审稿。偶尔发出一声意味不明的叫声。你决定把它当作鼓励。`,
+        `☕ ${cat.name}趁你不注意，把尾巴伸进了茶杯。你没换茶，因为你觉得这样泡出来的味道——更柔和了一点。`,
+        `🌙 夜晚，${cat.name}对着窗外的满月叫了三声。你没有纠正它。月亮和猫的关系不属于编辑部管辖范围。`,
+        `📬 邮差来送信时被${cat.name}堵在门口。邮差说那只猫盯着他看了整整五秒。你回信：它只是在判断你有没有带零食。`,
+        `🖊️ 你审完最后一本稿子，${cat.name}立刻坐了上去。你决定让它多坐一会儿——反正那个作者不会更着急了。`,
+        `📉 ${cat.name}把一本畅销书从桌上推了下去。你把它捡起来，翻了翻，觉得书确实一般。但你怎么能听猫的意见呢？`,
+        `🕊️ 窗外飞来一只鸽子，${cat.name}立刻进入了狩猎模式。鸽子飞走了。${cat.name}看着窗外，尾巴尖缓缓摆动，仿佛在说："下次。"`,
+      ])
+    },
   ]
   const fn = pick(pool)
   return fn()
