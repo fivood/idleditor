@@ -211,7 +211,7 @@ export function DeskView() {
       {modalMs && modalMs.status === 'cover_select' && (
         <CoverSelectModal
           manuscript={modalMs}
-          onConfirm={() => { confirmCover(modalMs.id); setCoverModalId(null) }}
+          onConfirm={style => { confirmCover(modalMs.id, style); setCoverModalId(null) }}
           onReject={() => { rejectManuscript(modalMs.id); setCoverModalId(null) }}
           onCancel={() => setCoverModalId(null)}
         />

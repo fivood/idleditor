@@ -10,6 +10,8 @@ export const INK = {
   redDark: '#321d2c', red: '#572b3b', rose: '#81424a', redLight: '#a95e60',
   greenDark: '#203832', green: '#365044', leaf: '#557455', leafLight: '#82916a',
   teal: '#335957', plum: '#594965', bookBlue: '#435a77', amber: '#ba824c',
+  wall: '#262639', wallLight: '#2f2f47', wallDot: '#3d3c58',
+  skin: '#d1a487', pale: '#e6dfda', peach: '#efd0b8', paleShade: '#b9aaa6', skinShade: '#a4735f', silver: '#a9a7b2', ember: '#c9552e', fire: '#ee8c3a',
 } as const
 
 const packed = new Map<string, number>()
@@ -105,11 +107,12 @@ export class Pixels {
         const r = littleEndian ? source & 255 : source >>> 24
         const g = littleEndian ? source >>> 8 & 255 : source >>> 16 & 255
         const b = littleEndian ? source >>> 16 & 255 : source >>> 8 & 255
-        ramp = new Uint32Array(5)
-        for (let k = 0; k < 5; k++) {
-          const factor = [.5, .72, 1, 1.08, 1.18][k]
-          const warm = [0, 0, 0, 6, 13][k]
-          const rgb = [Math.min(255, Math.round(r * factor + warm)), Math.min(255, Math.round(g * factor + warm * .45)), Math.min(255, Math.round(b * factor))]
+        ramp = new Uint32Array(6)
+        for (let k = 0; k < 6; k++) {
+          const factor = [.5, .72, 1, 1.08, 1.18, 1.8][k]
+          const warm = [0, 0, 0, 6, 13, 0][k]
+          const cool = k === 5 ? 40 : 0 // level 5 is a lightning flash
+          const rgb = [Math.min(255, Math.round(r * factor + warm)), Math.min(255, Math.round(g * factor + warm * .45 + cool * .6)), Math.min(255, Math.round(b * factor + cool))]
           ramp[k] = color('#' + rgb.map(v => v.toString(16).padStart(2, '0')).join(''))
         }
         grades.set(source, ramp)

@@ -1,6 +1,7 @@
 import { getDeptEfficiency, getDeptLevel } from '@/core/helpers'
 import { rangeInt, pick } from '@/utils/random'
 import { nanoid } from '@/utils/id'
+import { recommendCoverStyle } from '@/core/coverStyle'
 import { DEPARTMENT_COST_MULTIPLIER, AUTO_REVIEW_DEPT_LEVEL, AUTO_COVER_PRESTIGE, AUTO_REJECT_PRESTIGE, MILESTONES } from '@/core/constants'
 import { GENRES, type Genre } from '@/core/types'
 import { SHELVED_RESUBMISSION_NOTES } from '@/core/data/editorNotes'
@@ -58,6 +59,7 @@ export function processAutomationPhase(world: GameWorldState, { ct }: TickContex
         ms.status = 'publishing'
         ms.editingProgress = 0
         ms.coverDesigned = true  // v2.6: 走到 cover_select 自动出版的，必然来自有设计部的产线
+        ms.coverStyle = recommendCoverStyle(ms).style
         count++
       }
       if (count > 0) {

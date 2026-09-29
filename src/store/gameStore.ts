@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { enableMapSet } from 'immer'
 import { immer } from 'zustand/middleware/immer'
 import { createMiscActions } from './actions/miscActions'
-import type { Department, EditorTrait, Manuscript, Bookstore, CatState, PermanentBonuses, ToastMessage, Genre } from '@/core/types'
+import type { Department, EditorTrait, Manuscript, Bookstore, CatState, PermanentBonuses, ToastMessage, Genre, CoverStyle } from '@/core/types'
 import { GENRE_PREFERENCE_THRESHOLDS } from '@/core/constants'
 import type { Decision } from '@/core/decisions'
 import { createInitialWorld } from '@/core/gameLoop'
@@ -361,7 +361,7 @@ export interface GameStore extends GameWorldState {
   rejectManuscript: (id: string) => void
   shelveManuscript: (id: string) => void
   meticulousEdit: (id: string, level: 'light' | 'deep' | 'extreme') => void
-  confirmCover: (id: string) => void
+  confirmCover: (id: string, style?: CoverStyle) => void
   getSubmittedManuscripts: () => Manuscript[]
   getPublishedBooks: () => Manuscript[]
   getInProgressManuscripts: () => Manuscript[]

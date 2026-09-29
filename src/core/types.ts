@@ -147,7 +147,11 @@ export interface Manuscript {
   isPlayerCreated?: boolean
   // v2.6: 是否经过设计部完成封面设计。false → 出版时显示灰阶兜底封面。
   coverDesigned?: boolean
+  // 封面取向：决定生成的封面版本与销量曲线。未设置按 'safe'。
+  coverStyle?: CoverStyle
 }
+
+export type CoverStyle = 'safe' | 'bold' | 'weird'
 
 // 梦境创作项目（玩家进入梦境正在写的一本书）
 export interface DreamProject {

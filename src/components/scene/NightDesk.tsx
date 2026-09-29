@@ -2,6 +2,8 @@ import { useState } from 'react'
 import type { CSSProperties } from 'react'
 import { DESK_OBJECTS } from '@/art/rooms'
 import { PixelStage } from './PixelStage'
+import { useGameStore } from '@/store/gameStore'
+import { weatherFor, WEATHER_LINES } from '@/core/weather'
 import './night-desk.css'
 
 export type DeskPanel = 'submissions' | 'pipeline' | 'log' | 'cat' | 'solicit' | 'dream'
@@ -16,6 +18,7 @@ interface NightDeskProps {
 }
 
 export function NightDesk({ submitted, working, catName, activePanel, onSelect }: NightDeskProps) {
+  const line = useGameStore(s => WEATHER_LINES[weatherFor(s.calendar.totalDays)])
   const [showHints, setShowHints] = useState(false)
   const [motion, setMotion] = useState(true)
   const objects = DESK_OBJECTS.filter(object => object.key !== 'cat' || catName !== null)
@@ -36,7 +39,7 @@ export function NightDesk({ submitted, working, catName, activePanel, onSelect }
       </PixelStage>
       <div className="night-desk-heading">
         <span>ETERNAL NIGHT · EDITOR'S ROOM</span>
-        <h2>雨落在第两百一十七年的窗前</h2>
+        <h2>{line}</h2>
         <p>{submitted ? `${submitted} 份来稿等你拆阅` : '暂时没有新来稿，夜还很长。'}<span> · </span>{working ? `${working} 本书正在诞生` : '灯亮着，故事就还没结束。'}</p>
       </div>
       <div className="night-desk-controls" aria-label="场景设置">

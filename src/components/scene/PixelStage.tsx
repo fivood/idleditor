@@ -3,6 +3,8 @@ import type { ReactNode } from 'react'
 import { pixelLayout } from '@/art/layout'
 import { useGameStore } from '@/store/gameStore'
 import { PixelRoomCanvas } from './PixelRoomCanvas'
+import { AudioToggle } from './AudioToggle'
+import { weatherFor } from '@/core/weather'
 import type { RoomKind, RoomState } from '@/art/rooms'
 import './pixel-stage.css'
 
@@ -11,6 +13,7 @@ export function PixelStage({ room, state, animate = true, children }: {
   room: RoomKind; state?: Partial<RoomState>; animate?: boolean; children?: ReactNode
 }) {
   const active = useGameStore(s => s.activeTab === room)
+  const weather = useGameStore(s => weatherFor(s.calendar.totalDays))
   const rootRef = useRef<HTMLDivElement>(null)
   const stageRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -30,8 +33,9 @@ export function PixelStage({ room, state, animate = true, children }: {
     return () => { observer.disconnect(); window.removeEventListener('resize', resize) }
   }, [])
   return <div className="pixel-room-viewport" ref={rootRef}>
+    <AudioToggle />
     <div className="pixel-room-stage" ref={stageRef}>
-      <PixelRoomCanvas room={room} state={state} animate={animate} active={active} />
+      <PixelRoomCanvas room={room} state={state} animate={animate} active={active} weather={weather} />
       {children}
     </div>
   </div>

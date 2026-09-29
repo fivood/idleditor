@@ -44,7 +44,7 @@ export function OfficeRoom() {
         <Hotspot
           key={dept}
           label={DEPT_LABELS[dept] + (Array.from(departments.values()).some(d => d.type === dept) ? ' (已雇佣)' : ' (未雇佣)')}
-          style={{ left: `${4.5 + i * 21.7}%`, top: '28%', width: '16%', height: '26%' }}
+          style={{ left: `${4.5 + i * 21.7}%`, top: '28%', width: '16%', height: '44%' }}
           onClick={() => setOpenPanel('departments')}
         />
       ))}
@@ -52,7 +52,7 @@ export function OfficeRoom() {
       {/* 茶水间热区 */}
       <Hotspot
         label="🍷 茶水间 · 版税消费"
-        style={{ right: '2%', bottom: '8%', width: '20%', height: '32%' }}
+        style={{ right: '2%', bottom: '8%', width: '20%', height: '58%' }}
         onClick={() => setOpenPanel('tearoom')}
       />
 

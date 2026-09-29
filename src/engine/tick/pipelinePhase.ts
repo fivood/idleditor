@@ -1,5 +1,6 @@
 import { getDeptEfficiency, getDeptLevel } from '@/core/helpers'
 import { reviewTicks, rpPerReview, editingTicks, rpPerEdit, proofingTicks, rpPerProof, publishingTicks, rpPerPublish, coverDesigningTicks } from '@/core/formulas'
+import { recommendCoverStyle } from '@/core/coverStyle'
 import { gainInspiration } from '@/core/dream/inspiration'
 import { generateToast } from '@/core/humor/generator'
 import { generatePublishNote, generateLevelUpToast } from '@/core/data/editorNotes'
@@ -74,6 +75,7 @@ export function processPipelinePhase(world: GameWorldState, { ct, effSpeedBonus,
           m.status = 'publishing'
           m.editingProgress = 0
           m.coverDesigned = hasDesignDept
+          if (hasDesignDept) m.coverStyle = recommendCoverStyle(m).style
           thresholdSkips++
           result.toasts.push(ct(`🤖 全自动流水线跳过封面审核：《${m.title}》（品质${m.quality}，门槛${world.qualityThreshold}）`, 'info'))
         } else if (!hasDesignDept) {

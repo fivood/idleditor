@@ -59,9 +59,13 @@ describe('pixel scene lifecycle', () => {
     expect(cancel).toHaveBeenCalledWith(1)
     expect(mediaListeners.size).toBe(0)
   })
-  it('renders a static room once without starting a needless animation loop', () => {
-    render(<PixelRoomCanvas room="shelf" />)
+  it('renders a windowless room once without starting a needless animation loop', () => {
+    render(<PixelRoomCanvas room="authors" />)
     expect(put).toHaveBeenCalledOnce()
     expect(request).not.toHaveBeenCalled()
+  })
+  it('animates any room with a window, so its weather moves', () => {
+    render(<PixelRoomCanvas room="shelf" weather="snow" />)
+    expect(request).toHaveBeenCalledOnce()
   })
 })

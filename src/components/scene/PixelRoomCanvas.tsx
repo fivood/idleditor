@@ -2,15 +2,27 @@ import { useEffect, useRef, useState } from 'react'
 import { animateRoom, EMPTY_ROOM, renderRoom } from '@/art/rooms'
 import type { RoomKind, RoomState } from '@/art/rooms'
 import { HEIGHT, WIDTH } from '@/art/pixels'
+import { lightning, WINDOWS } from '@/art/weather'
+import { armAudio, setScene, thunder } from '@/audio/ambience'
+import { thunderDelay } from '@/audio/mix'
+import type { Weather } from '@/core/weather'
 
-const NAMES: Record<RoomKind, string> = { desk: '雨夜主编室', office: '出版社办公室', shelf: '藏书阁', authors: '作者接待室', study: '壁炉书房', stats: '出版档案室' }
+const NAMES: Record<RoomKind, string> = { desk: '夜间主编室', office: '出版社办公室', shelf: '藏书阁', authors: '作者接待室', study: '壁炉书房', stats: '出版档案室' }
 
 /** All six scenes are rasterized from code on one 480 × 270 grid. */
-export function PixelRoomCanvas({ room, state = {}, animate = true, active = true }: {
-  room: RoomKind; state?: Partial<RoomState>; animate?: boolean; active?: boolean
+export function PixelRoomCanvas({ room, state = {}, animate = true, active = true, weather = 'clear' }: {
+  room: RoomKind; state?: Partial<RoomState>; animate?: boolean; active?: boolean; weather?: Weather
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [unavailable, setUnavailable] = useState(false)
+  // Weather changes hourly at most; it must not rebuild the cached static layer.
+  const weatherRef = useRef(weather)
+  useEffect(() => { weatherRef.current = weather }, [weather])
+  // Sound follows the room you are standing in; browsers only let it start after a first click or key press.
+  useEffect(() => {
+    armAudio()
+    if (active) setScene({ weather, room, working: (state.working ?? 0) > 0 })
+  }, [active, weather, room, state.working])
   const { submitted, working, hasCat, books, authors, departments } = { ...EMPTY_ROOM, ...state }
 
   useEffect(() => {
@@ -26,14 +38,21 @@ export function PixelRoomCanvas({ room, state = {}, animate = true, active = tru
     const base = renderRoom(room, current, false)
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)')
     let tick = 0, last = -Infinity, request = 0, disposed = false
-    const dynamic = room === 'desk' || room === 'study'
+    const dynamic = room === 'desk' || room === 'study' || room in WINDOWS
+    let shown = weatherRef.current, since = -Infinity
     const paint = (now: number) => {
       if (disposed) return
       const moving = animate && dynamic && !reduced.matches && !document.hidden
       if (now - last >= 100 || !moving) {
         last = now
         // The still frame also contains fire. Disabling animation never extinguishes it.
-        const pixels = animateRoom(base, room, current, moving ? tick++ : 0)
+        if (weatherRef.current !== shown) { shown = weatherRef.current; since = tick } // new weather fades in over 3 s
+        const frame = moving ? tick++ : 0
+        if (moving && shown === 'storm' && room in WINDOWS && frame % 14 === 0) {
+          const flash = lightning(frame)
+          if (flash.level === 2) thunder(thunderDelay(flash.slot))
+        }
+        const pixels = animateRoom(base, room, current, frame, shown, Math.min(1, (tick - since) / 30))
         context.putImageData(pixels.imageData(), 0, 0)
       }
       if (moving) request = requestAnimationFrame(paint)
