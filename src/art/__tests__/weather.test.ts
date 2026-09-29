@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { animateRoom, EMPTY_ROOM, renderRoom } from '../rooms'
 import { lightning, WINDOWS } from '../weather'
-import { WIDTH } from '../pixels'
+import { UNIT, WIDTH } from '../pixels'
 import { DAYS_PER_SPELL, weatherFor } from '@/core/weather'
 import type { Weather } from '@/core/weather'
 
@@ -40,7 +40,7 @@ describe('window weather', () => {
       const other = animateRoom(base, 'office', EMPTY_ROOM, 30, kind)
       for (let i = 0; i < clear.data.length; i++) {
         if (clear.data[i] === other.data[i]) continue
-        const x = i % WIDTH, y = Math.floor(i / WIDTH)
+        const x = Math.floor(i % WIDTH / UNIT), y = Math.floor(i / WIDTH / UNIT)
         expect(x >= wx - 6 && x <= wx + ww + 6 && y >= wy && y <= wy + wh + 3).toBe(true)
       }
     }

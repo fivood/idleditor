@@ -1,4 +1,4 @@
-import { INK as C, noise, Pixels, WIDTH } from './pixels'
+import { INK as C, noise, Pixels } from './pixels'
 import type { RoomKind } from './rooms'
 import type { Weather } from '@/core/weather'
 
@@ -28,14 +28,20 @@ export function drawWeather(p: Pixels, [x, y, w, h]: Rect, kind: Weather, tick: 
     const x0 = Math.max(x, bx), y0 = Math.max(y, by), x1 = Math.min(x + w, bx + bw), y1 = Math.min(y + h, by + bh)
     if (x1 > x0 && y1 > y0) p.rect(x0, y0, x1 - x0, y1 - y0, c)
   }
+  // Native-resolution box, clipped to the glass: rain, snow and drops use it for finer strokes.
+  const U = p.s, FX = x * U, FY = y * U, FW = w * U, FH = h * U
+  const fbox = (bx: number, by: number, bw: number, bh: number, c: string) => {
+    const x0 = Math.max(FX, bx), y0 = Math.max(FY, by), x1 = Math.min(FX + FW, bx + bw), y1 = Math.min(FY + FH, by + bh)
+    if (x1 > x0 && y1 > y0) p.fine(() => p.rect(x0, y0, x1 - x0, y1 - y0, c))
+  }
   const wrap = (v: number, m: number) => ((v % m) + m) % m
   const scale = Math.max(w / 199, .4) // particle counts follow glass area
 
   const rain = (count: number, speed: number, slant: number, length: number, colors: string[]) => {
-    for (let i = 0; i < count * scale * ramp; i++) {
+    for (let i = 0; i < count * 1.4 * scale * ramp; i++) {
       const fall = wrap(i * 37 + tick * (speed + i % 3), h + length)
       const px = x + wrap(i * 61 - Math.floor(fall * slant), w)
-      for (let k = 0; k < length; k++) box(px + Math.floor(k * slant), y + fall - length + k, 1, 1, colors[i % colors.length])
+      for (let k = 0; k < length * U; k++) fbox(px * U + Math.floor(k * slant), (y + fall - length) * U + k, 1, 1, colors[i % colors.length])
     }
   }
   // Beaded drops act as tiny lenses: the city behind them appears upside down, magnified, and a few drops slide.
@@ -46,16 +52,16 @@ export function drawWeather(p: Pixels, [x, y, w, h]: Rect, kind: Weather, tick: 
       const rx = 3 + (i % 2), ry = 4 + (i % 2)
       const cx = x + 8 + Math.floor(noise(i, 7, 33) * (w - 16)), top = y + 8 + Math.floor(noise(i, 8, 33) * Math.max(1, h - 44))
       const cy = top + Math.floor(slide * 1.1)
-      if (trails && slide > 0) for (let k = 0; k < slide * 1.1; k += 2) box(cx, top + k, 1, 1, C.blueLight)
-      for (let dy = -ry - 1; dy <= ry + 1; dy++) for (let dx = -rx - 1; dx <= rx + 1; dx++) {
-        if ((dx / (rx + .5)) ** 2 + (dy / (ry + .5)) ** 2 > 1) continue
-        const px = cx + dx, py = cy + dy
-        if (px < x || px >= x + w || py < y || py >= y + h) continue
-        if ((dx / rx) ** 2 + (dy / ry) ** 2 > 1) { box(px, py, 1, 1, dx + dy < 0 ? C.steel : C.black); continue } // rim: lit upper left, shadowed lower right
-        const sx = Math.min(x + w - 1, Math.max(x, cx - Math.round(dx * 3))), sy = Math.min(y + h - 1, Math.max(y, cy - Math.round(dy * 3)))
-        p.data[py * WIDTH + px] = source[sy * WIDTH + sx]
+      const Cx = (cx + .5) * U, Cy = (cy + .5) * U, Rx = (rx + .5) * U, Ry = (ry + .5) * U, W = p.width
+      if (trails && slide > 0) for (let k = 0; k < slide * 1.1 * U; k += 3) fbox(Math.floor(Cx), (top + .5) * U + k, 1, 2, C.blueLight)
+      for (let fy = Math.floor(Cy - Ry); fy <= Math.ceil(Cy + Ry); fy++) for (let fx = Math.floor(Cx - Rx); fx <= Math.ceil(Cx + Rx); fx++) {
+        const dx = fx + .5 - Cx, dy = fy + .5 - Cy
+        if ((dx / Rx) ** 2 + (dy / Ry) ** 2 > 1 || fx < FX || fx >= FX + FW || fy < FY || fy >= FY + FH) continue
+        if ((dx / (Rx - 1.3)) ** 2 + (dy / (Ry - 1.3)) ** 2 > 1) { fbox(fx, fy, 1, 1, dx + dy < 0 ? C.steel : C.black); continue } // rim: lit upper left, shadowed lower right
+        const sx = Math.min(FX + FW - 1, Math.max(FX, Math.round(Cx - dx * 3))), sy = Math.min(FY + FH - 1, Math.max(FY, Math.round(Cy - dy * 3)))
+        p.data[fy * W + fx] = source[sy * W + sx]
       }
-      box(cx - rx + 2, cy - ry + 2, 1, 2, C.moon)   // specular highlight
+      fbox(Math.round(Cx - Rx * .45), Math.round(Cy - Ry * .55), 1, 2, C.moon)   // specular highlight
     }
   }
   const drips = () => {
@@ -84,7 +90,7 @@ export function drawWeather(p: Pixels, [x, y, w, h]: Rect, kind: Weather, tick: 
       const near = i % 3 === 0
       const py = y + wrap(i * 29 + Math.floor(tick * (near ? .6 : .35)), h)
       const px = x + wrap(i * 53 + Math.round(Math.sin(tick / 9 + i) * 3), w)
-      box(px, py, near ? 2 : 1, near ? 2 : 1, near ? C.cream : C.steel)
+      fbox(px * U, py * U, near ? 3 : 2, near ? 3 : 2, near ? C.cream : C.steel)
     }
     // Snow settles on the outside sill.
     p.rect(x - 5, y + h + 2, w + 10, 2, C.moon); p.rect(x - 3, y + h + 1, w + 6, 1, C.cream)

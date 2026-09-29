@@ -27,23 +27,23 @@ for (const room of ['desk', 'office', 'shelf', 'authors', 'study', 'stats']) {
   let frame
   for (let i = 0; i < 20; i++) frame = animateRoom(base, room, state, i)
   timing.push({ room, averageFrameMs: +((performance.now() - start) / 20).toFixed(2) })
-  fs.writeFileSync(path.join(output, `${room}.png`), png(frame))
+  fs.writeFileSync(path.join(output, `${room}.png`), png(frame, 1))
 }
 const empty = renderRoom('desk', EMPTY_ROOM, false)
-fs.writeFileSync(path.join(output, 'desk-empty.png'), png(animateRoom(empty, 'desk', EMPTY_ROOM, 0)))
+fs.writeFileSync(path.join(output, 'desk-empty.png'), png(animateRoom(empty, 'desk', EMPTY_ROOM, 0), 1))
 fs.writeFileSync(path.join(output, 'timing.json'), JSON.stringify(timing, null, 2))
 console.log(JSON.stringify({ output, timing }, null, 2))
 
 // Weather sheet: the desk-room window in each weather (storm caught mid-strike).
 const { lightning } = require(path.join(runtime, 'weather.js'))
 const kinds = ['clear', 'drizzle', 'storm', 'snow', 'fog', 'wind']
-const crop = [140, 22, 214, 140], sheet = new (require(path.join(runtime, 'pixels.js')).Pixels)(crop[2] * 3 + 8, crop[3] * 2 + 6)
+const crop = [280, 44, 428, 280], sheet = new (require(path.join(runtime, 'pixels.js')).Pixels)(crop[2] * 3 + 8, crop[3] * 2 + 6)
 const deskBase = renderRoom('desk', EMPTY_ROOM, false)
 kinds.forEach((kind, i) => {
   let tick = 40
   if (kind === 'storm') while (lightning(tick).level !== 2) tick++
   const frame = animateRoom(deskBase, 'desk', EMPTY_ROOM, tick, kind)
   const ox = 2 + (i % 3) * (crop[2] + 2), oy = 2 + Math.floor(i / 3) * (crop[3] + 2)
-  for (let y = 0; y < crop[3]; y++) for (let x = 0; x < crop[2]; x++) sheet.data[(oy + y) * sheet.width + ox + x] = frame.data[(crop[1] + y) * 480 + crop[0] + x]
+  for (let y = 0; y < crop[3]; y++) for (let x = 0; x < crop[2]; x++) sheet.data[(oy + y) * sheet.width + ox + x] = frame.data[(crop[1] + y) * frame.width + crop[0] + x]
 })
-fs.writeFileSync(path.join(output, 'weather.png'), png(sheet, 2))
+fs.writeFileSync(path.join(output, 'weather.png'), png(sheet, 1))

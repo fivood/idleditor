@@ -24,31 +24,37 @@ export function ShelfRoom() {
       <PixelStage room="shelf" state={{ books: published }}>
         <Hotspot
           label={`📚 左侧书架 (${published} 卷已出版)`}
+          object="shelfLeft"
           style={{ left: '2%', top: '47%', width: '21%', height: '46%' }}
           onClick={() => setOpenPanel('library')}
         />
         <Hotspot
           label="📚 取书梯旁的书架"
+          object="shelfLadder"
           style={{ left: '24%', top: '16%', width: '17%', height: '44%' }}
           onClick={() => setOpenPanel('library')}
         />
         <Hotspot
           label="📚 后排藏书"
+          object="shelfBack"
           style={{ left: '60%', top: '15%', width: '23%', height: '30%' }}
           onClick={() => setOpenPanel('library')}
         />
         <Hotspot
           label="📚 右侧书架"
+          object="shelfRight"
           style={{ left: '84%', top: '34%', width: '16%', height: '63%' }}
           onClick={() => setOpenPanel('library')}
         />
         <Hotspot
           label={`📕 新书展台 (${published} 卷已出版)`}
+          object="display"
           style={{ left: '65%', top: '46%', width: '14%', height: '21%' }}
           onClick={() => setOpenPanel('library')}
         />
         <Hotspot
           label="📖 长桌阅览"
+          object="table"
           style={{ left: '39%', top: '64%', width: '34%', height: '25%' }}
           onClick={() => setOpenPanel('library')}
         />
