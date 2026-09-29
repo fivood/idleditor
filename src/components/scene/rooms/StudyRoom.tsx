@@ -34,7 +34,7 @@ export function StudyRoom() {
       {/* 壁炉 → 同一面板（暖意） */}
       <Hotspot
         label="🔥 壁炉边"
-        style={{ left: '38%', top: '20%', width: '24%', height: '38%' }}
+        style={{ left: '38%', top: '8%', width: '24%', height: '62%' }}
         onClick={() => setOpenPanel('library')}
       />
 

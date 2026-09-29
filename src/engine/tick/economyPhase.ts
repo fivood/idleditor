@@ -2,6 +2,7 @@ import { getDeptEfficiency, getCollectionBoost } from '@/core/helpers'
 import { royaltyPerTick, salesPerTick } from '@/core/formulas'
 import { generateToast } from '@/core/humor/generator'
 import { BESTSELLER_SALES, GENRE_PREFERENCE_SALES_BONUS } from '@/core/constants'
+import { coverSalesMult } from '@/core/coverStyle'
 import { personaPassiveFor } from '@/core/data/personaPassives'
 import type { GameWorldState } from '@/core/gameLoop'
 import type { TickResult } from '@/core/types'
@@ -46,7 +47,7 @@ export function processEconomyPhase(world: GameWorldState, { ct, talentBonuses, 
       if (store.decorated) bookstoreMult *= 1.3
       if (store.signingUntil && world.playTicks < store.signingUntil) bookstoreMult *= 2
     }
-    m.salesCount += salesPerTick(marketingEfficiency, m.quality) * (hasGenreBuff ? salesMult : 1) * trendBuff * prefSalesBonus * reissueBoost * collectionBoost * talentSalesMult * bookstoreMult
+    m.salesCount += salesPerTick(marketingEfficiency, m.quality) * (hasGenreBuff ? salesMult : 1) * trendBuff * prefSalesBonus * reissueBoost * collectionBoost * talentSalesMult * bookstoreMult * coverSalesMult(m.coverStyle, world.playTicks - (m.publishTime ?? world.playTicks))
 
     if (Math.random() < 0.01 && m.salesCount > 1000) {
       const author = world.authors.get(m.authorId)

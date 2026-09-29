@@ -11,6 +11,7 @@ import { PixelProgressBar } from '@/components/shared/PixelProgressBar'
 import { PixelTextButton } from '@/components/shared/PixelTextButton'
 import { IconReview, IconEdit, IconMagnifier, IconPalette, IconPrinter, IconEnvelope, IconTarget, IconBolt } from '@/assets/pixelIcons'
 import type { Manuscript } from '@/core/types'
+import { coverDesigningTicks } from '@/core/formulas'
 import type { FC } from 'react'
 
 interface PixelIconProps { size?: number }
@@ -21,13 +22,14 @@ const STAGE_PIXEL: Record<string, FC<PixelIconProps>> = {
   reviewing: IconReview,
   editing: IconEdit,
   proofing: IconMagnifier,
+  cover_designing: IconPalette,
   cover_select: IconPalette,
   publishing: IconPrinter,
 }
 
 const STAGE_LABELS: Record<string, string> = {
   reviewing: '审稿', editing: '编辑', proofing: '校对',
-  cover_select: '待选封面', publishing: '付印',
+  cover_designing: '设计封面', cover_select: '待选封面', publishing: '付印',
 }
 
 /**
@@ -62,7 +64,7 @@ export function DeskRoom() {
   const all = useMemo(() => [...manuscripts.values()], [manuscripts])
   const submitted = useMemo(() => all.filter(m => m.status === 'submitted'), [all])
   const inProgress = useMemo(() => {
-    const list = all.filter(m => ['reviewing', 'editing', 'proofing', 'cover_select', 'publishing'].includes(m.status))
+    const list = all.filter(m => ['reviewing', 'editing', 'proofing', 'cover_designing', 'cover_select', 'publishing'].includes(m.status))
     return list.sort((a, b) => {
       if (a.status === 'cover_select' && b.status !== 'cover_select') return -1
       if (a.status !== 'cover_select' && b.status === 'cover_select') return 1
@@ -192,7 +194,7 @@ export function DeskRoom() {
       {modalMs && modalMs.status === 'cover_select' && (
         <CoverSelectModal
           manuscript={modalMs}
-          onConfirm={() => { confirmCover(modalMs.id); setCoverModalId(null) }}
+          onConfirm={style => { confirmCover(modalMs.id, style); setCoverModalId(null) }}
           onReject={() => { rejectManuscript(modalMs.id); setCoverModalId(null) }}
           onCancel={() => setCoverModalId(null)}
         />
@@ -296,6 +298,9 @@ function PipelineCard({ manuscript: ms, onSelectCover }: { manuscript: Manuscrip
   const pct = Math.min(100, Math.round(ms.editingProgress * 100))
   const isActionable = stage === 'cover_select'
   const StageIcon = STAGE_PIXEL[stage]
+  const designLevel = useGameStore(st => [...st.departments.values()].find(d => d.type === 'design')?.level ?? 0)
+  // 1 tick = 1 秒；未计入加速，仅作大致提示
+  const remaining = stage === 'cover_designing' ? Math.ceil((1 - ms.editingProgress) * coverDesigningTicks(designLevel)) : 0
   return (
     <div className="border-2 p-2 flex gap-2 items-center" style={{ background: '#2a1810', borderColor: '#0a0806', color: '#ede0c8' }}>
       <div className="w-12 text-center">
@@ -303,7 +308,7 @@ function PipelineCard({ manuscript: ms, onSelectCover }: { manuscript: Manuscrip
         <div className="text-[10px] font-mono mt-0.5" style={{ color: '#b8a48a' }}>{STAGE_LABELS[stage]}</div>
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-xs font-bold truncate font-mono" style={{ color: '#f5e8d0' }}>{ms.title}</div>
+        <div className="text-xs font-bold truncate font-mono" style={{ color: '#f5e8d0' }}>{ms.title}{remaining > 0 && <span className="ml-2 font-normal" style={{ color: '#b8a48a' }}>设计部作画中 · 约 {remaining} 秒</span>}</div>
         <div className="mt-1">
           <PixelProgressBar value={pct} height={8} />
         </div>

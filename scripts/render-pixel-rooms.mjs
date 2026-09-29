@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
-import { deflateSync } from 'node:zlib'
+import { png } from './_png.mjs'
 import ts from 'typescript'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
@@ -11,7 +11,7 @@ const output = path.join(root, '.dream-loop', 'procedural')
 const runtime = path.join(output, 'runtime')
 fs.mkdirSync(runtime, { recursive: true })
 fs.writeFileSync(path.join(runtime, 'package.json'), '{"type":"commonjs"}')
-for (const file of ['pixels', 'rooms']) {
+for (const file of ['pixels', 'weather', 'rooms']) {
   const source = fs.readFileSync(path.join(root, 'src', 'art', `${file}.ts`), 'utf8')
   const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2023 } })
   fs.writeFileSync(path.join(runtime, `${file}.js`), compiled.outputText)
@@ -19,33 +19,6 @@ for (const file of ['pixels', 'rooms']) {
 const require = createRequire(import.meta.url)
 const { renderRoom, animateRoom, EMPTY_ROOM } = require(path.join(runtime, 'rooms.js'))
 
-function crc32(buffer) {
-  let crc = 0xffffffff
-  for (const byte of buffer) {
-    crc ^= byte
-    for (let bit = 0; bit < 8; bit++) crc = crc >>> 1 ^ (crc & 1 ? 0xedb88320 : 0)
-  }
-  return (crc ^ 0xffffffff) >>> 0
-}
-function chunk(type, data) {
-  const name = Buffer.from(type), size = Buffer.alloc(4), crc = Buffer.alloc(4)
-  size.writeUInt32BE(data.length)
-  crc.writeUInt32BE(crc32(Buffer.concat([name, data])))
-  return Buffer.concat([size, name, data, crc])
-}
-function png(pixels, scale = 3) {
-  const width = pixels.width * scale, height = pixels.height * scale
-  const rgba = new Uint8Array(pixels.data.buffer)
-  const raw = Buffer.alloc((width * 4 + 1) * height)
-  for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
-    const src = (Math.floor(y / scale) * pixels.width + Math.floor(x / scale)) * 4
-    const dst = y * (width * 4 + 1) + 1 + x * 4
-    for (let k = 0; k < 4; k++) raw[dst + k] = rgba[src + k]
-  }
-  const header = Buffer.alloc(13)
-  header.writeUInt32BE(width); header.writeUInt32BE(height, 4); header[8] = 8; header[9] = 6
-  return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', header), chunk('IDAT', deflateSync(raw)), chunk('IEND', Buffer.alloc(0))])
-}
 const state = { ...EMPTY_ROOM, submitted: 8, working: 2, hasCat: true, books: 23, authors: 3, departments: 2 }
 const timing = []
 for (const room of ['desk', 'office', 'shelf', 'authors', 'study', 'stats']) {
@@ -60,3 +33,17 @@ const empty = renderRoom('desk', EMPTY_ROOM, false)
 fs.writeFileSync(path.join(output, 'desk-empty.png'), png(animateRoom(empty, 'desk', EMPTY_ROOM, 0)))
 fs.writeFileSync(path.join(output, 'timing.json'), JSON.stringify(timing, null, 2))
 console.log(JSON.stringify({ output, timing }, null, 2))
+
+// Weather sheet: the desk-room window in each weather (storm caught mid-strike).
+const { lightning } = require(path.join(runtime, 'weather.js'))
+const kinds = ['clear', 'drizzle', 'storm', 'snow', 'fog', 'wind']
+const crop = [140, 22, 214, 140], sheet = new (require(path.join(runtime, 'pixels.js')).Pixels)(crop[2] * 3 + 8, crop[3] * 2 + 6)
+const deskBase = renderRoom('desk', EMPTY_ROOM, false)
+kinds.forEach((kind, i) => {
+  let tick = 40
+  if (kind === 'storm') while (lightning(tick).level !== 2) tick++
+  const frame = animateRoom(deskBase, 'desk', EMPTY_ROOM, tick, kind)
+  const ox = 2 + (i % 3) * (crop[2] + 2), oy = 2 + Math.floor(i / 3) * (crop[3] + 2)
+  for (let y = 0; y < crop[3]; y++) for (let x = 0; x < crop[2]; x++) sheet.data[(oy + y) * sheet.width + ox + x] = frame.data[(crop[1] + y) * 480 + crop[0] + x]
+})
+fs.writeFileSync(path.join(output, 'weather.png'), png(sheet, 2))

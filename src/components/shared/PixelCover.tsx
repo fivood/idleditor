@@ -1,5 +1,7 @@
 import type { CSSProperties } from 'react'
-import type { Manuscript } from '@/core/types'
+import type { CoverStyle, Manuscript } from '@/core/types'
+import { coverDataUrl } from '@/art/covers'
+import { getBaseTitle } from '@/core/titlePools'
 
 /**
  * 像素书封显示组件。
@@ -13,7 +15,7 @@ import type { Manuscript } from '@/core/types'
  *  - 默认 size="md"    → 160 × 224（4×）  封面预览
  *  - 大图 size="lg"    → 200 × 280（5×）  CoverSelectModal
  *
- * 找不到封面图时显示题材色 + 题材图标的占位封面（与原 Manuscript.cover.placeholder 兼容）。
+ * 封面由 src/art/covers.ts 按书名 + 题材用代码绘制（手绘封面已内嵌为代码数据），不再加载 PNG。
  */
 
 const SIZE_PRESETS = {
@@ -28,17 +30,17 @@ interface PixelCoverProps {
   size?: keyof typeof SIZE_PRESETS
   /** 自定义宽度（覆盖 size preset）。高度按 5:7 推算 */
   width?: number
+  /** 覆盖 manuscript.coverStyle，用于选封面时预览各版本 */
+  coverStyle?: CoverStyle
   className?: string
   style?: CSSProperties
 }
 
-export function PixelCover({ manuscript, size = 'md', width, className = '', style = {} }: PixelCoverProps) {
+export function PixelCover({ manuscript, size = 'md', width, coverStyle, className = '', style = {} }: PixelCoverProps) {
   const preset = SIZE_PRESETS[size]
   const w = width ?? preset.width
   const h = width ? Math.round(width * 7 / 5) : preset.height
 
-  const cover = manuscript.cover
-  const placeholder = cover?.placeholder
   // v2.6: coverDesigned === false → 灰阶兜底封面（没建设计部、或还在设计中）。
   //       注意 undefined 视为"老存档默认"，按已设计处理，避免老书在 UI 上突然变灰。
   const isRaw = manuscript.coverDesigned === false
@@ -50,7 +52,7 @@ export function PixelCover({ manuscript, size = 'md', width, className = '', sty
         width: w,
         height: h,
         borderColor: isRaw ? '#3a3530' : '#0a0806',
-        background: isRaw ? '#2a2724' : (placeholder?.bgColor ?? '#2a1810'),
+        background: isRaw ? '#2a2724' : '#2a1810',
         imageRendering: 'pixelated',
         // 灰阶 + 略压低饱和度，让"未经设计部加工"一眼可辨
         filter: isRaw ? 'grayscale(1) brightness(0.78) contrast(0.92)' : undefined,
@@ -58,49 +60,15 @@ export function PixelCover({ manuscript, size = 'md', width, className = '', sty
       }}
       title={isRaw ? '未经设计部加工的灰阶兜底封面（雇佣设计部以解锁专属封面设计）' : undefined}
     >
-      {cover?.src ? (
-        <img
-          src={cover.src}
-          alt={manuscript.title}
-          width={w}
-          height={h}
-          draggable={false}
-          className="w-full h-full pointer-events-none select-none block"
-          style={{ imageRendering: 'pixelated', objectFit: 'fill' }}
-          onError={e => { (e.currentTarget as HTMLElement).style.display = 'none' }}
-        />
-      ) : null}
-      {/* 占位层（src 加载失败也会通过 onError 显式 hide img，露出此层）*/}
-      {(!cover?.src || cover?.type !== 'uploaded') && (
-        <div
-          className="absolute inset-0 flex flex-col items-center justify-center gap-1 pointer-events-none"
-          style={{
-            background: placeholder?.bgColor ?? '#2a1810',
-            color: '#ede0c8',
-          }}
-        >
-          {placeholder?.icon && (
-            <img
-              src={placeholder.icon}
-              alt=""
-              width={Math.round(w * 0.3)}
-              height={Math.round(w * 0.3)}
-              style={{ imageRendering: 'pixelated', opacity: 0.6 }}
-            />
-          )}
-          <div
-            className="text-center px-1 font-mono font-bold leading-tight"
-            style={{
-              fontSize: Math.max(8, Math.round(w / 14)),
-              color: '#ede0c8',
-              textShadow: '1px 1px 0 #0a0806',
-              maxWidth: '90%',
-            }}
-          >
-            {manuscript.title}
-          </div>
-        </div>
-      )}
+      <img
+        src={coverDataUrl(getBaseTitle(manuscript.title), manuscript.genre, coverStyle ?? manuscript.coverStyle)}
+        alt={manuscript.title}
+        width={w}
+        height={h}
+        draggable={false}
+        className="w-full h-full pointer-events-none select-none block"
+        style={{ imageRendering: 'pixelated', objectFit: 'fill' }}
+      />
     </div>
   )
 }

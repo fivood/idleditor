@@ -1,4 +1,5 @@
 import { nanoid } from '@/utils/id'
+import { recommendCoverStyle } from '@/core/coverStyle'
 import { pushToastDraft } from '@/utils/toastArchive'
 import type { GameStore } from '../gameStore'
 import { createManuscript } from '@/core/factories/manuscriptFactory'
@@ -380,7 +381,7 @@ export const createMiscActions = (
     })
   },
 
-  confirmCover: (id: string) => {
+  confirmCover: (id: string, style) => {
     set(draft => {
       const ms = draft.manuscripts.get(id)
       if (!ms || ms.status !== 'cover_select') return
@@ -396,6 +397,7 @@ export const createMiscActions = (
       ms.status = 'publishing'
       ms.editingProgress = 0
       ms.coverDesigned = true  // v2.6: 玩家手动确认即视为设计完成
+      ms.coverStyle = style ?? recommendCoverStyle(ms).style
     })
   },
 

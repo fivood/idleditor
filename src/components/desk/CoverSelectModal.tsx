@@ -1,11 +1,14 @@
-﻿import type { Manuscript } from '@/core/types'
+﻿import type { CoverStyle, Manuscript } from '@/core/types'
+import { COVER_STYLES, recommendCoverStyle } from '@/core/coverStyle'
+import { coverTraits } from '@/art/covers'
+import { getBaseTitle } from '@/core/titlePools'
 import { useGameStore } from '@/store/gameStore'
 import { useState } from 'react'
 import { PixelCover } from '@/components/shared/PixelCover'
 
 interface Props {
   manuscript: Manuscript
-  onConfirm: () => void
+  onConfirm: (style: CoverStyle) => void
   onReject: () => void
   onCancel: () => void
 }
@@ -22,6 +25,11 @@ export function CoverSelectModal({ manuscript, onConfirm, onReject, onCancel }: 
     return d?.level ?? 0
   })
 
+  const recommended = recommendCoverStyle(manuscript)
+  const [style, setStyle] = useState<CoverStyle>(recommended.style)
+  const chosen = COVER_STYLES.find(x => x.id === style)!
+  const traits = coverTraits(getBaseTitle(manuscript.title), manuscript.genre, style)
+  const tags = traits.handDrawn ? ['手绘特装：三种取向共用同一幅画'] : [`主体：${traits.subject}`, `对比：${traits.contrast}`, traits.warm ? '暖色调' : '冷色调', ...(traits.prop ? [`附赠：${traits.prop}`] : [])]
   const pubPrestige = manuscript.isUnsuitable ? -10 : 10
   const marketLabel = manuscript.marketPotential >= 75 ? '极高' : manuscript.marketPotential >= 50 ? '良好' : manuscript.marketPotential >= 30 ? '一般' : '较低'
   const [noteInput, setNoteInput] = useState(manuscript.editorNote || '')
@@ -50,11 +58,32 @@ export function CoverSelectModal({ manuscript, onConfirm, onReject, onCancel }: 
           <div className="flex flex-col sm:flex-row gap-4 md:gap-5 mb-4">
             {/* Cover — 40×56 像素源 × 5 = 200×280 显示 */}
             <div className="shrink-0 mx-auto sm:mx-0">
-              <PixelCover manuscript={manuscript} size="lg" />
+              <PixelCover manuscript={manuscript} size="lg" coverStyle={style} />
+              <div className="flex gap-1.5 mt-2 justify-center">
+                {COVER_STYLES.map(opt => (
+                  <button key={opt.id} onClick={() => setStyle(opt.id)} title={opt.blurb}
+                    className="cursor-pointer p-0.5 border-2 font-mono text-[12px]"
+                    style={{ borderColor: opt.id === style ? '#f5d878' : '#0a0806', background: '#1a0e08', color: opt.id === style ? '#f5d878' : '#b8a48a' }}>
+                    <PixelCover manuscript={manuscript} width={50} coverStyle={opt.id} style={{ border: 'none' }} />
+                    <div>{opt.label}{opt.id === recommended.style ? ' ★' : ''}</div>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Right panel: synopsis + stats */}
             <div className="flex-1 min-w-0 space-y-3 md:space-y-4">
+              {/* Cover direction */}
+              <div className="bg-card-inset border-2 border-border-dark p-2 md:p-3">
+                <p className="text-[14px] text-muted font-mono mb-0.5">封面取向 · {chosen.label}</p>
+                <p className="text-[13px] md:text-xs text-ink leading-relaxed font-mono">{chosen.blurb}</p>
+                <p className="text-[12px] text-muted font-mono mt-1">{tags.join(' · ')}</p>
+                <p className="text-[12px] font-mono mt-1" style={{ color: '#d4a85a' }}>
+                  ★ 设计部推荐「{COVER_STYLES.find(x => x.id === recommended.style)!.label}」：{recommended.reason}
+                </p>
+                <p className="text-[12px] text-muted font-mono">不听劝也不扣分，设计部只是下班晚一点。</p>
+              </div>
+
               {/* Synopsis */}
               <div className="bg-card-inset border-2 border-border-dark p-2 md:p-3">
                 <p className="text-[14px] text-muted font-mono mb-0.5">内容简介</p>
@@ -142,7 +171,7 @@ export function CoverSelectModal({ manuscript, onConfirm, onReject, onCancel }: 
 
           {/* Buttons */}
           <div className="flex gap-1.5 md:gap-2">
-            <button onClick={onConfirm} className="flex-1 text-[13px] md:text-xs px-3 md:px-4 py-1.5 md:py-2 bg-copper text-white border-2 border-border-dark font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all">
+            <button onClick={() => onConfirm(style)} className="flex-1 text-[13px] md:text-xs px-3 md:px-4 py-1.5 md:py-2 bg-copper text-white border-2 border-border-dark font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all">
               确认出版
             </button>
             <button onClick={onReject} className="text-[13px] md:text-xs px-3 md:px-4 py-1.5 md:py-2 border-2 border-border-dark bg-copper-dark text-white font-mono cursor-pointer shadow-[2px_2px_0_#4a3728] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all">
