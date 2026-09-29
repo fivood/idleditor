@@ -1,6 +1,7 @@
 import { INK as C, noise, Pixels, UNIT } from './pixels'
 import { PORTRAITS } from './portraitData'
 import type { PixelImage } from './portraitData'
+import { TYPEWRITER_SPRITE } from './typewriterSprite'
 
 /**
  * The editor's room, after the original bitmap scene: brick walls, a gothic city of spires behind a
@@ -374,37 +375,29 @@ export function inkAndQuill(p: Pixels, x: number, y: number) {
 }
 
 export const TYPEWRITER = { x: 200, y: 157 }
-/** Teal portable typewriter; the carriage slides and keys light while books are in production. */
-export function typewriterFine(p: Pixels, working: boolean, tick = 0) {
-  const b = brush(p, TYPEWRITER.x, TYPEWRITER.y)
-  const shift = working ? (Math.floor(tick / 6) % 4) * 3 : 0
-  b.ell(62, 80, 64, 5, C.clothDark); b.ell(62, 79, 56, 3, C.black)
-  // Sheet rising from the platen.
-  b.r(30 + shift, 0, 62, 34, C.keyCap)
-  b.r(30 + shift, 0, 2, 34, '#fff4dc'); b.r(90 + shift, 0, 2, 34, C.keyShade)
-  for (let k = 0; k < 5; k++) b.r(36 + shift, 6 + k * 4, 44 - (k * 13) % 22, 1, C.keyShade)
-  // Platen, knobs and carriage.
-  b.r(8 + shift, 30, 108, 9, C.lash); b.r(8 + shift, 32, 108, 1, C.slate); b.r(8 + shift, 31, 108, 1, C.steel)
-  for (const kx of [2, 118]) { b.ell(kx + shift, 34, 5, 5, C.lash); b.ell(kx + shift, 34, 3, 3, C.typeBody); b.d(kx - 1 + shift, 32, C.typeLight) }
-  b.line(8 + shift, 30, -4 + shift, 22, C.steel); b.line(-4 + shift, 22, -6 + shift, 22, C.steel)
-  // Body with rim light on the candle side.
-  b.poly([[14, 40], [110, 40], [120, 58], [4, 58]], C.typeBody)
-  b.r(14, 40, 96, 1, C.typeLight); b.line(110, 40, 120, 58, C.honey)
-  b.ell(62, 45, 24, 6, C.typeDark); b.ell(62, 46, 22, 4, C.lash)
-  for (let k = -5; k <= 5; k++) b.line(62, 50, 62 + k * 4, 43, C.slate)
-  b.ell(40, 46, 4, 2, C.clothLight); b.ell(84, 46, 4, 2, C.clothLight); b.d(39, 45, C.clothShine); b.d(83, 45, C.clothShine)
-  // Keyboard deck.
-  b.poly([[4, 58], [120, 58], [126, 74], [-2, 74]], C.typeDark)
-  const lit = working ? (tick * 3) % 40 : -1
-  for (let row = 0; row < 3; row++) for (let k = 0; k < 13 - row; k++) {
-    const kx = 10 + row * 4 + k * 8, ky = 60 + row * 5
-    const on = row * 13 + k === lit
-    b.r(kx, ky, 6, 4, C.lash); b.r(kx, ky, 6, 3, on ? C.flame : C.keyCap); b.r(kx, ky + 2, 6, 1, on ? C.fire : C.keyShade)
+const typewriterFrames = new Map<number, Uint8Array>()
+function typewriterFrame(i: number) {
+  let px = typewriterFrames.get(i)
+  if (!px) {
+    const bin = atob(TYPEWRITER_SPRITE.frames[i])
+    px = new Uint8Array(TYPEWRITER_SPRITE.width * TYPEWRITER_SPRITE.height)
+    for (let k = 0, pos = 0; k < bin.length; k += 2) { const n = bin.charCodeAt(k + 1); px.fill(bin.charCodeAt(k), pos, pos + n); pos += n }
+    typewriterFrames.set(i, px)
   }
-  b.r(38, 75, 48, 3, C.lash); b.r(38, 75, 48, 2, C.keyCap)
-  b.r(-2, 74, 128, 6, C.typeBody); b.r(-2, 74, 128, 1, C.typeLight); b.r(-2, 79, 128, 1, C.lash)
-  b.r(52, 76, 20, 3, C.brass); b.r(52, 76, 20, 1, C.brassLight)
-  b.r(125, 58, 1, 21, C.honey)
+  return px
+}
+/** The kinotype typewriter, baked to pixels: idle, or striking keys as the carriage steps along. */
+export function typewriterFine(p: Pixels, working: boolean, tick = 0) {
+  const b = brush(p, TYPEWRITER.x, TYPEWRITER.y), { width: W, height: H, palette } = TYPEWRITER_SPRITE
+  b.ell(61, H - 2, 60, 4, C.clothDark)
+  const px = typewriterFrame(working ? 1 + Math.floor(tick / 3) % 4 : 0)
+  for (let y = 0; y < H; y++) for (let x = 0; x < W;) {
+    const v = px[y * W + x]
+    let n = 1
+    while (x + n < W && px[y * W + x + n] === v) n++
+    if (v) b.r(x, y, n, 1, palette[v])
+    x += n
+  }
 }
 
 export const JOURNAL = { x: 274, y: 182 }

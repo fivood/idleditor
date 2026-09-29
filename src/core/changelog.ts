@@ -7,6 +7,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: 'v2.12',
+    date: '2026-09-29',
+    title: '桌上换了一台真正的打字机',
+    items: [
+      '主编室的打字机换成了一台黑漆老式打字机：镍银饰边、铜铭牌、一排排带镍圈的圆键，先做成三维模型，再按烛光下的角度渲染成像素。',
+      '有稿件在流水线上时，滑架会一格格右移，字锤抬起敲向滚筒。',
+    ],
+  },
+  {
     version: 'v2.11',
     date: '2026-09-29',
     title: '画面铺满屏幕 · 窗外看得更远',

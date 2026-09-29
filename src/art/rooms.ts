@@ -28,7 +28,7 @@ export const EMPTY_ROOM: RoomState = { submitted: 0, working: 0, hasCat: false, 
 export const DESK_OBJECTS = [
   { key: 'solicit', label: '征稿信箱', x: 26, y: 106, w: 50, h: 49 },
   { key: 'submissions', label: '待审稿件', x: 116, y: 175, w: 49, h: 22 },
-  { key: 'pipeline', label: '编辑流水线', x: 198, y: 157, w: 66, h: 42 },
+  { key: 'pipeline', label: '编辑流水线', x: 199, y: 157, w: 63, h: 46 },
   { key: 'log', label: '出版日志', x: 274, y: 183, w: 52, h: 24 },
   { key: 'dream', label: '梦境创作', x: 364, y: 182, w: 24, h: 17 },
   { key: 'cat', label: '黑猫', x: 350, y: 122, w: 50, h: 26 },
@@ -785,6 +785,27 @@ export function renderRoom(room: RoomKind, state: RoomState = EMPTY_ROOM, includ
   return p
 }
 
+/** Baked objects carry their own shading; they take one light level so the room's dither doesn't streak across them. */
+const FLAT_OBJECTS: Partial<Record<RoomKind, ObjectKey[]>> = { desk: ['pipeline'] }
+const flattened = new WeakMap<Pixels, Uint8Array>()
+function objectLight(base: Pixels, room: RoomKind, f: Frame) {
+  const keys = FLAT_OBJECTS[room]
+  if (!keys || !base.tags) return lightMask(room, f)
+  let mask = flattened.get(base)
+  if (!mask) {
+    mask = lightMask(room, f).slice()
+    for (const key of keys) {
+      const id = OBJECTS.indexOf(key) + 1
+      let sum = 0, n = 0
+      for (let i = 0; i < mask.length; i++) if (base.tags[i] === id) { sum += mask[i]; n++ }
+      const level = Math.round(sum / Math.max(1, n))
+      for (let i = 0; i < mask.length; i++) if (base.tags[i] === id) mask[i] = level
+    }
+    flattened.set(base, mask)
+  }
+  return mask
+}
+
 /** Lightning: the room jumps one grade brighter and the glass goes to the flash grade. */
 function flashMask(room: RoomKind, level: 1 | 2, f: Frame) {
   const mask = lightMask(room, f).slice(), win = windowFor(room, f)
@@ -813,6 +834,6 @@ export function animateRoom(base: Pixels, room: RoomKind, state: RoomState, tick
     flames(p, tick)
   }
   const flash = win && weather === 'storm' ? lightning(tick).level : 0
-  p.shade(flash ? flashMask(room, flash as 1 | 2, f) : lightMask(room, f))
+  p.shade(flash ? flashMask(room, flash as 1 | 2, f) : objectLight(base, room, f))
   return p
 }

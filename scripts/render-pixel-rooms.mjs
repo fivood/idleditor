@@ -11,7 +11,7 @@ const output = path.join(root, '.dream-loop', 'procedural')
 const runtime = path.join(output, 'runtime')
 fs.mkdirSync(runtime, { recursive: true })
 fs.writeFileSync(path.join(runtime, 'package.json'), '{"type":"commonjs"}')
-for (const file of ['pixels', 'portraitData', 'weather', 'editorRoom', 'rooms']) {
+for (const file of ['pixels', 'portraitData', 'typewriterSprite', 'weather', 'editorRoom', 'rooms']) {
   const source = fs.readFileSync(path.join(root, 'src', 'art', `${file}.ts`), 'utf8')
   const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2023 } })
   fs.writeFileSync(path.join(runtime, `${file}.js`), compiled.outputText)
