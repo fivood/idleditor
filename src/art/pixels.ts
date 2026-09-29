@@ -19,6 +19,14 @@ export const INK = {
   hairDark: '#3a2c2c', hair: '#5e4a46', hairLight: '#8c7670', hairShine: '#b09a90',
   lilac: '#6e6c8c', lilacLight: '#9a98b8', navy: '#20243e', plaid: '#2e2e3a', plaidLight: '#4a4a5c',
   brow: '#4a3a2a', bangs: '#6a4630', bangsLight: '#946848', lash: '#120c10',
+  // Editor's room, after the original bitmap scene: brick, red cloth, brass, gothic night.
+  brick: '#3b2622', brickLight: '#533530', brickDark: '#2a1a1a', mortar: '#1a1115',
+  cloth: '#62161e', clothLight: '#7e2226', clothDark: '#3c0e16', clothShine: '#a8403a',
+  brass: '#b8863a', brassLight: '#ecc576', brassDark: '#6a4622',
+  skyDeep: '#10163a', skyMid: '#1b2656', skyLight: '#2c3d7a', spire: '#0b0d22', spireMid: '#141a3e', spireFar: '#1f2958', castle: '#1a0c10',
+  typeBody: '#1f4c4a', typeLight: '#3e7c76', typeDark: '#10292a', keyCap: '#efe2c4', keyShade: '#b3a386',
+  flame: '#ffd27a', flameCore: '#fff6d6', glow: '#6e3e2c', catFur: '#15121a', catRim: '#56669a',
+  terracotta: '#9a4a32', terracottaLight: '#c26a44', terracottaDark: '#5e2a20', tea: '#6a3418',
   hat: '#101116', hatSheen: '#2c3140', bow: '#ece6dc', bowShade: '#b2aca4', eyeRed: '#c42a2a', tealLight: '#4f8f86', charcoal: '#2a2a2e',
 } as const
 
@@ -167,7 +175,8 @@ export class Pixels {
           const factor = [.5, .72, 1, 1.08, 1.18, 1.8][k]
           const warm = [0, 0, 0, 6, 13, 0][k]
           const cool = k === 5 ? 40 : 0 // level 5 is a lightning flash
-          const rgb = [Math.min(255, Math.round(r * factor + warm)), Math.min(255, Math.round(g * factor + warm * .45 + cool * .6)), Math.min(255, Math.round(b * factor + cool))]
+          const violet = [10, 5, 0, 0, 0, 0][k] // shadows lean violet, lamplight leans amber
+          const rgb = [Math.min(255, Math.round(r * factor + warm + violet * .3)), Math.min(255, Math.round(g * factor + warm * .45 + cool * .6)), Math.min(255, Math.round(b * factor + cool + violet))]
           ramp[k] = color('#' + rgb.map(v => v.toString(16).padStart(2, '0')).join(''))
         }
         grades.set(source, ramp)

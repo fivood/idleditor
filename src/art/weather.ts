@@ -5,7 +5,7 @@ import type { Weather } from '@/core/weather'
 /** Glass area of each room's night window: [x, y, w, h]. */
 export type Rect = readonly [number, number, number, number]
 export const WINDOWS: Partial<Record<RoomKind, Rect>> = {
-  desk: [147, 29, 199, 123], shelf: [25, 43, 64, 65], study: [27, 39, 116, 88], office: [165, 24, 150, 42],
+  desk: [132, 28, 196, 128], shelf: [25, 43, 64, 65], study: [27, 39, 116, 88], office: [165, 24, 150, 42],
 }
 
 /** Mullions and transom, drawn last so weather always passes behind the frame. */
@@ -23,7 +23,7 @@ export function lightning(tick: number) {
 }
 
 /** `source` is the untouched cached frame: drops on the glass refract it, never the rain itself. */
-export function drawWeather(p: Pixels, [x, y, w, h]: Rect, kind: Weather, tick: number, ramp = 1, source: Uint32Array = p.data) {
+export function drawWeather(p: Pixels, [x, y, w, h]: Rect, kind: Weather, tick: number, ramp = 1, source: Uint32Array = p.data, bars = windowBars) {
   const box = (bx: number, by: number, bw: number, bh: number, c: string) => {
     const x0 = Math.max(x, bx), y0 = Math.max(y, by), x1 = Math.min(x + w, bx + bw), y1 = Math.min(y + h, by + bh)
     if (x1 > x0 && y1 > y0) p.rect(x0, y0, x1 - x0, y1 - y0, c)
@@ -119,7 +119,7 @@ export function drawWeather(p: Pixels, [x, y, w, h]: Rect, kind: Weather, tick: 
       box(x + w - gust, y + 8 + (i * 17) % Math.max(1, h - 16), 4 + i % 3 * 2, 1, C.steel)
     }
   }
-  windowBars(p, x, y, w, h)
+  bars(p, x, y, w, h)
   if (kind === 'storm') {
     const strike = lightning(tick)
     if (strike.level === 2) {
