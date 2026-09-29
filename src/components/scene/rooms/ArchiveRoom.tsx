@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useGameStore } from '@/store/gameStore'
-import { ArchiveScene } from '@/assets/scenes/ArchiveScene'
+import { PixelStage } from '@/components/scene/PixelStage'
 import { Hotspot } from '@/components/scene/Hotspot'
 import { ScenePanel } from '@/components/scene/ScenePanel'
 import { CorridorDoor } from '@/components/scene/CorridorDoor'
@@ -25,10 +25,8 @@ export function ArchiveRoom() {
   const [openPanel, setOpenPanel] = useState<PanelKey>(null)
 
   return (
-    <div className="relative w-full h-full overflow-hidden bg-[#0a0806]">
-      <div className="absolute inset-0">
-        <ArchiveScene totalPublished={totalPublished} />
-      </div>
+    <div className="pixel-scene-room relative w-full h-full overflow-hidden bg-[#100f19]">
+      <PixelStage room="stats" state={{ books: totalPublished }}>
 
       {/* 文件柜墙 */}
       <Hotspot
@@ -55,6 +53,7 @@ export function ArchiveRoom() {
         onClick={() => setOpenPanel('awards')}
       />
 
+      </PixelStage>
       <CorridorDoor to="office" side="left" label="通往走廊" />
 
       {openPanel === 'logs' && (

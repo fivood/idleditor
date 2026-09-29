@@ -1,7 +1,7 @@
 {
   "name": "idleditor",
   "private": true,
-  "version": "2.1.0",
+  "version": "2.7.0",
   "type": "module",
   "scripts": {
     "dev": "concurrently \"vite\" \"node server/index.js\"",
@@ -9,7 +9,8 @@
     "dev:server": "node server/index.js",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "art:render": "node scripts/render-pixel-rooms.mjs"
   },
   "dependencies": {
     "cors": "^2.8.6",

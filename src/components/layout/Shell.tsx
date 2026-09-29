@@ -67,8 +67,8 @@ export function Shell() {
   const isInSceneRoom = SCENE_ROOMS.has(activeTab)
 
   return (
-    <div className="w-full h-dvh overflow-hidden bg-[#1a1410] md:p-2 lg:p-4">
-      <div className="w-full h-full flex flex-col bg-cream md:border-2 md:border-border-dark md:shadow-[6px_6px_0_#4a3728] overflow-hidden relative">
+    <div className={`w-full h-dvh overflow-hidden bg-[#1a1410] ${activeTab === 'desk' ? '' : 'md:p-2 lg:p-4'}`}>
+      <div className={`w-full h-full flex flex-col bg-cream overflow-hidden relative ${activeTab === 'desk' ? '' : 'md:border-2 md:border-border-dark md:shadow-[6px_6px_0_#4a3728]'}`}>
         <TopBar />
         <TickerBar />
         <main className="flex-1 overflow-hidden flex flex-col min-h-0 relative">

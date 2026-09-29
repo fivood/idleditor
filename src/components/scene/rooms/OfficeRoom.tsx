@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useGameStore } from '@/store/gameStore'
-import { OfficeScene } from '@/assets/scenes/OfficeScene'
+import { PixelStage } from '@/components/scene/PixelStage'
 import { Hotspot } from '@/components/scene/Hotspot'
 import { ScenePanel } from '@/components/scene/ScenePanel'
 import { CorridorDoor } from '@/components/scene/CorridorDoor'
@@ -35,11 +35,9 @@ export function OfficeRoom() {
   const activeDepts = [...departments.values()].length
 
   return (
-    <div className="relative w-full h-full overflow-hidden bg-[#0a0806]">
+    <div className="pixel-scene-room relative w-full h-full overflow-hidden bg-[#100f19]">
       {/* 场景背景 */}
-      <div className="absolute inset-0">
-        <OfficeScene activeDepts={activeDepts as 0 | 1 | 2 | 3 | 4} />
-      </div>
+      <PixelStage room="office" state={{ departments: activeDepts }}>
 
       {/* ─── 4 部门工位热区（顶部一字排开）─── */}
       {DEPT_KEYS.map((dept, i) => (
@@ -67,8 +65,10 @@ export function OfficeRoom() {
 
       {/* ─── 6 房间的走廊链接（mini doors on edges）─── */}
       {/* 左门 → 桌面 */}
+      </PixelStage>
       <CorridorDoor to="desk" side="left" label="你的办公室" />
       {/* 右门 → 档案 */}
+
       <CorridorDoor to="stats" side="right" label="档案室" />
       {/* 顶部链接到书架/作者/书房（用小图标按钮）*/}
       <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30 flex gap-1.5">

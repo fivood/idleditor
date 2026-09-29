@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useGameStore } from '@/store/gameStore'
-import { AuthorsScene } from '@/assets/scenes/AuthorsScene'
+import { PixelStage } from '@/components/scene/PixelStage'
 import { Hotspot } from '@/components/scene/Hotspot'
 import { ScenePanel } from '@/components/scene/ScenePanel'
 import { CorridorDoor } from '@/components/scene/CorridorDoor'
@@ -19,10 +19,8 @@ export function AuthorsRoom() {
   const signed = [...authors.values()].filter(a => a.tier !== 'new' && !a.terminated && !a.poached).length
 
   return (
-    <div className="relative w-full h-full overflow-hidden bg-[#0a0806]">
-      <div className="absolute inset-0">
-        <AuthorsScene signedCount={Math.min(4, signed)} />
-      </div>
+    <div className="pixel-scene-room relative w-full h-full overflow-hidden bg-[#100f19]">
+      <PixelStage room="authors" state={{ authors: signed }}>
 
       {/* 肖像墙（后墙 4 幅）→ 作者面板 */}
       <Hotspot
@@ -37,6 +35,7 @@ export function AuthorsRoom() {
         onClick={() => setOpenPanel('roster')}
       />
 
+      </PixelStage>
       <CorridorDoor to="office" side="left" label="通往走廊" />
 
       {openPanel === 'roster' && (

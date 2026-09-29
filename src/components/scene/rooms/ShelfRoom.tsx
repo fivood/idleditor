@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useGameStore } from '@/store/gameStore'
-import { ShelfScene } from '@/assets/scenes/ShelfScene'
+import { PixelStage } from '@/components/scene/PixelStage'
 import { Hotspot } from '@/components/scene/Hotspot'
 import { ScenePanel } from '@/components/scene/ScenePanel'
 import { CorridorDoor } from '@/components/scene/CorridorDoor'
@@ -20,30 +20,39 @@ export function ShelfRoom() {
   const published = [...manuscripts.values()].filter(m => m.status === 'published').length
 
   return (
-    <div className="relative w-full h-full overflow-hidden bg-[#0a0806]">
-      <div className="absolute inset-0">
-        <ShelfScene bookCount={published} />
-      </div>
-
-      {/* 左书架 → 藏书清单 */}
-      <Hotspot
-        label={`📚 藏书阁 (${published} 卷已出版)`}
-        style={{ left: '2%', top: '20%', width: '28%', height: '65%' }}
-        onClick={() => setOpenPanel('library')}
-      />
-      {/* 右书架 → 同一 panel（也算"藏书"区域）*/}
-      <Hotspot
-        label={`📚 藏书阁 (${published} 卷已出版)`}
-        style={{ right: '2%', top: '20%', width: '28%', height: '65%' }}
-        onClick={() => setOpenPanel('library')}
-      />
-      {/* 阅读桌（中央前景）也开同一面板 */}
-      <Hotspot
-        label="📖 翻阅藏书"
-        style={{ left: '38%', top: '76%', width: '24%', height: '12%' }}
-        onClick={() => setOpenPanel('library')}
-      />
-
+    <div className="pixel-scene-room relative w-full h-full overflow-hidden bg-[#100f19]">
+      <PixelStage room="shelf" state={{ books: published }}>
+        <Hotspot
+          label={`📚 左侧书架 (${published} 卷已出版)`}
+          style={{ left: '2%', top: '47%', width: '21%', height: '46%' }}
+          onClick={() => setOpenPanel('library')}
+        />
+        <Hotspot
+          label="📚 取书梯旁的书架"
+          style={{ left: '24%', top: '16%', width: '17%', height: '44%' }}
+          onClick={() => setOpenPanel('library')}
+        />
+        <Hotspot
+          label="📚 后排藏书"
+          style={{ left: '60%', top: '15%', width: '23%', height: '30%' }}
+          onClick={() => setOpenPanel('library')}
+        />
+        <Hotspot
+          label="📚 右侧书架"
+          style={{ left: '84%', top: '34%', width: '16%', height: '63%' }}
+          onClick={() => setOpenPanel('library')}
+        />
+        <Hotspot
+          label={`📕 新书展台 (${published} 卷已出版)`}
+          style={{ left: '65%', top: '46%', width: '14%', height: '21%' }}
+          onClick={() => setOpenPanel('library')}
+        />
+        <Hotspot
+          label="📖 长桌阅览"
+          style={{ left: '39%', top: '64%', width: '34%', height: '25%' }}
+          onClick={() => setOpenPanel('library')}
+        />
+      </PixelStage>
       <CorridorDoor to="office" side="left" label="通往走廊" />
 
       {openPanel === 'library' && (

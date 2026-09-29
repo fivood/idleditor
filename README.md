@@ -33,17 +33,18 @@
 .
 ├── public/
 │   ├── covers/     # 书封 40×56 PNG（按书名命名 + manifest.json 索引）
-│   ├── scenes/     # 房间背景 + 物件按钮 PNG（hover 变体配 -hover.png）
+│   ├── scenes/     # 历史 PNG 场景资源（当前房间不加载）
 │   ├── icons/      # 旧版 emoji 风 SVG 图标（兼容保留）
 │   ├── authors/    # AI 预生成的作者名池
 │   ├── synopses/   # AI 预生成的简介池（v2.2.1 起仅 loading 不参与生成）
 │   └── fonts/      # 像素字体（Fusion Pixel 12px 等）
 │
 ├── src/
+│   ├── art/          # 480×270 代码像素绘制、六个房间、物理像素缩放
 │   ├── assets/
 │   │   ├── pixelIcons.tsx    # 25 个 16×16 像素 SVG 图标
 │   │   ├── paperTextures.ts  # 做旧纸/羊皮/木纹 SVG data-URI
-│   │   └── scenes/           # 6 个房间的 SVG 占位场景（PNG 渲染失败兜底）
+│   │   └── scenes/           # 历史 SVG 占位场景
 │   │
 │   ├── components/
 │   │   ├── layout/   # Shell / TopBar / WelcomeView / 各种 Modal
@@ -85,13 +86,15 @@
 
 ## 技术栈
 
-React 19 + TypeScript + Vite + Tailwind v4 · Zustand (Slice Pattern + Immer) · Dexie.js · Cloudflare Pages + Functions + KV · 全部场景与图标 inline SVG / pixel PNG
+React 19 + TypeScript + Vite + Tailwind v4 · Zustand (Slice Pattern + Immer) · Dexie.js · Cloudflare Pages + Functions + KV · 房间场景采用 480×270 Canvas 代码像素绘制，图标使用 inline SVG，书封使用 PNG
 
 ## 本地开发
 
 ```bash
 npm install && npm run dev
 ```
+
+代码美术说明见 [像素场景](docs/pixel-workbench.md)，后续工作见 [开发清单](docs/next-steps.md)。运行 `npm run art:render` 可导出六个房间预览。
 
 ## 环境变量（Cloudflare Pages）
 
