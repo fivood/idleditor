@@ -24,6 +24,8 @@ export function useRoomNav() {
       // 忽略输入框中的按键
       const target = e.target as HTMLElement
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return
+      // An open panel owns Escape; it should close before room navigation runs.
+      if (e.key === 'Escape' && [...document.querySelectorAll('[role="dialog"]')].some(dialog => dialog.getClientRects().length > 0)) return
 
       const room = KEY_TO_ROOM[e.key]
       if (room) {

@@ -25,6 +25,7 @@ import {
   ROYALTY_BASE_RATE,
 } from './constants'
 import { clamp, rangeInt } from '../utils/random'
+import { PUBLISHING_RHYTHM } from './data/personaData'
 
 // ──── Manuscript generation ────
 
@@ -70,14 +71,11 @@ export function rollAuthorReliability(): number {
  * 配合长间隔形成"内容有限但游戏时长 200+ 小时"的体验。
  */
 export function manuscriptSpawnInterval(author: Author): number {
-  // 动态 import 避免循环依赖（personaData 也可能 import formulas）
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { PUBLISHING_RHYTHM } = require('./data/personaData') as { PUBLISHING_RHYTHM: { fast: readonly string[]; medium: readonly string[]; slow: readonly string[] } }
   const persona = author.persona as string
   let base: number
-  if (PUBLISHING_RHYTHM.fast.includes(persona)) {
+  if (PUBLISHING_RHYTHM.fast.some(value => value === persona)) {
     base = 360       // ~6 min
-  } else if (PUBLISHING_RHYTHM.slow.includes(persona)) {
+  } else if (PUBLISHING_RHYTHM.slow.some(value => value === persona)) {
     base = 3600      // ~60 min
   } else {
     base = 1200      // ~20 min

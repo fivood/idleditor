@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { StudyScene } from '@/assets/scenes/StudyScene'
+import { PixelStage } from '@/components/scene/PixelStage'
 import { Hotspot } from '@/components/scene/Hotspot'
 import { ScenePanel } from '@/components/scene/ScenePanel'
 import { CorridorDoor } from '@/components/scene/CorridorDoor'
@@ -16,10 +16,8 @@ export function StudyRoom() {
   const [openPanel, setOpenPanel] = useState<PanelKey>(null)
 
   return (
-    <div className="relative w-full h-full overflow-hidden bg-[#0a0806]">
-      <div className="absolute inset-0">
-        <StudyScene fireBurning={true} />
-      </div>
+    <div className="pixel-scene-room relative w-full h-full overflow-hidden bg-[#100f19]">
+      <PixelStage room="study" >
 
       {/* 个人书架（右侧） */}
       <Hotspot
@@ -40,6 +38,7 @@ export function StudyRoom() {
         onClick={() => setOpenPanel('library')}
       />
 
+      </PixelStage>
       <CorridorDoor to="office" side="left" label="通往走廊" />
 
       {openPanel === 'library' && (

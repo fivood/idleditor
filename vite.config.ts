@@ -26,6 +26,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // Legacy scene PNGs remain in source history; all live rooms draw from code.
+        globIgnores: ['**/scenes/*.png'],
       },
     }),
   ],

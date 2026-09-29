@@ -1,10 +1,8 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { useGameStore } from '@/store/gameStore'
-import { DeskScene } from '@/assets/scenes/DeskScene'
-import { PixelBackground, PixelButton } from '@/components/scene/PixelBackground'
-import { Hotspot } from '@/components/scene/Hotspot'
+import { NightDesk } from '@/components/scene/NightDesk'
+import type { DeskPanel } from '@/components/scene/NightDesk'
 import { ScenePanel } from '@/components/scene/ScenePanel'
-import { CorridorDoor } from '@/components/scene/CorridorDoor'
 import { ManuscriptCard } from '@/components/desk/ManuscriptCard'
 import { CoverSelectModal } from '@/components/desk/CoverSelectModal'
 import { DreamPanel } from '@/components/desk/DreamPanel'
@@ -17,7 +15,7 @@ import type { FC } from 'react'
 
 interface PixelIconProps { size?: number }
 
-type PanelKey = null | 'submissions' | 'pipeline' | 'log' | 'cat' | 'solicit' | 'dream'
+type PanelKey = null | DeskPanel
 
 const STAGE_PIXEL: Record<string, FC<PixelIconProps>> = {
   reviewing: IconReview,
@@ -38,9 +36,9 @@ const STAGE_LABELS: Record<string, string> = {
  * 场景全屏作为背景，UI 元素通过点击场景内热区弹出。
  * - 稿件堆 → 投稿池 panel
  * - 桌面中央 → 编辑流水线 panel
- * - 油灯/笔 → 出版日志 panel
+ * - 打开的日记 → 出版日志 panel
  * - 黑猫 → 猫互动 panel
- * - 右侧门 → 走向办公室枢纽
+ * - 底部房间导航 → 出版社其他房间
  */
 export function DeskRoom() {
   const manuscripts = useGameStore(s => s.manuscripts)
@@ -72,128 +70,18 @@ export function DeskRoom() {
     })
   }, [all])
 
-  const stackSize: 0 | 1 | 2 | 3 =
-    submitted.length === 0 ? 0 :
-    submitted.length <= 2 ? 1 :
-    submitted.length <= 4 ? 2 : 3
-
   const togglePanel = (key: PanelKey) => setOpenPanel(prev => (prev === key ? null : key))
   const modalMs = coverModalId ? manuscripts.get(coverModalId) : null
 
-  // 如果存在 public/scenes/desk-bg.png 就用 PNG 像素图，否则降级到 SVG DeskScene
-  const [hasPngBg, setHasPngBg] = useState(false)
-  useEffect(() => {
-    const img = new Image()
-    img.onload = () => setHasPngBg(true)
-    img.onerror = () => setHasPngBg(false)
-    img.src = '/scenes/desk-bg.png'
-  }, [])
-
   return (
-    <div className="relative w-full h-full overflow-hidden bg-[#0a0806]">
-      {/* 场景背景全屏（PNG 像素图优先，缺则用 SVG 兜底）*/}
-      {hasPngBg ? (
-        <PixelBackground src="/scenes/desk-bg.png" alt="桌面房间" />
-      ) : (
-        <div className="absolute inset-0">
-          <DeskScene manuscriptStackSize={stackSize} showCat={!!catState} />
-        </div>
-      )}
-
-      {/* ─── 桌面 PNG 按钮层 ─── */}
-      {/* 视觉层级：打字机作为中心主体（最大），其余物件围绕分布
-          从左到右：征稿 / 投稿池 / 【打字机·中心】 / 梦境写作 / 出版日志 / 猫 */}
-      {hasPngBg ? (
-        <>
-          <PixelButton
-            src="/scenes/desk-quill.png"
-            hoverSrc="/scenes/desk-quill-hover.png"
-            outlineColor={null}
-            label="📬 征稿"
-            position={{ left: '4%', bottom: '6%', width: '12%', height: '28%' }}
-            onClick={() => togglePanel('solicit')}
-          />
-          <PixelButton
-            src={submitted.length === 0 ? '/scenes/desk-inbox-empty.png' : '/scenes/desk-inbox.png'}
-            hoverSrc={submitted.length === 0 ? '/scenes/desk-inbox-empty-hover.png' : '/scenes/desk-inbox-hover.png'}
-            outlineColor={null}
-            label={submitted.length > 0 ? `📥 投稿池 (${submitted.length} 份待审)` : '📥 投稿池 (暂无新稿)'}
-            position={{ left: '17%', bottom: '6%', width: '12%', height: '28%' }}
-            onClick={() => togglePanel('submissions')}
-          />
-          {/* 打字机：视觉中心，最大 */}
-          <PixelButton
-            src="/scenes/desk-typewriter.png"
-            hoverSrc="/scenes/desk-typewriter-hover.png"
-            outlineColor={null}
-            label={inProgress.length > 0 ? `⚙️ 编辑流水线 (${inProgress.length} 件)` : '⚙️ 编辑流水线 (空闲)'}
-            position={{ left: '37%', bottom: '4%', width: '22%', height: '46%' }}
-            onClick={() => togglePanel('pipeline')}
-          />
-          <PixelButton
-            src="/scenes/desk-tea.png"
-            hoverSrc="/scenes/desk-tea-hover.png"
-            outlineColor={null}
-            label="🌙 梦境创作（白班睡梦写作）"
-            position={{ left: '62%', bottom: '6%', width: '9%', height: '22%' }}
-            onClick={() => togglePanel('dream')}
-          />
-          {catState && (
-            <PixelButton
-              src="/scenes/desk-cat.png"
-              hoverSrc="/scenes/desk-cat-hover.png"
-              outlineColor={null}
-              label={`🐈 ${catState.name || '黑猫'} (好感 ${catState.affection})`}
-              position={{ left: '72%', bottom: '4%', width: '14%', height: '34%' }}
-              onClick={() => togglePanel('cat')}
-            />
-          )}
-          <PixelButton
-            src="/scenes/desk-lamp.png"
-            hoverSrc="/scenes/desk-lamp-hover.png"
-            outlineColor={null}
-            label="📋 出版日志"
-            position={{ left: '87%', bottom: '6%', width: '11%', height: '30%' }}
-            onClick={() => togglePanel('log')}
-          />
-        </>
-      ) : (
-        // SVG 兜底模式（无 PNG bg 时）：用旧的透明热区
-        <>
-          <Hotspot
-            label={submitted.length > 0 ? `📥 投稿池 (${submitted.length} 份待审)` : '📥 投稿池 (暂无新稿)'}
-            style={{ left: '5%', top: '49%', width: '14%', height: '22%' }}
-            onClick={() => togglePanel('submissions')}
-            unseen={submitted.length > 0 && openPanel !== 'submissions'}
-          />
-          <Hotspot
-            label={inProgress.length > 0 ? `⚙️ 编辑流水线 (${inProgress.length} 件)` : '⚙️ 编辑流水线 (空闲)'}
-            style={{ left: '28%', top: '58%', width: '38%', height: '12%' }}
-            onClick={() => togglePanel('pipeline')}
-          />
-          <Hotspot
-            label="📋 出版日志"
-            style={{ left: '67%', top: '50%', width: '12%', height: '18%' }}
-            onClick={() => togglePanel('log')}
-          />
-          {catState && (
-            <Hotspot
-              label={`🐈 ${catState.name || '黑猫'} (好感 ${catState.affection})`}
-              style={{ left: '82%', top: '60%', width: '14%', height: '16%' }}
-              onClick={() => togglePanel('cat')}
-            />
-          )}
-          <Hotspot
-            label="📬 征稿"
-            style={{ right: '2%', top: '4%', width: '11%', height: '8%' }}
-            onClick={() => togglePanel('solicit')}
-          />
-        </>
-      )}
-
-      {/* 右侧走廊门 → 办公室枢纽 */}
-      <CorridorDoor to="office" side="right" label="通往走廊" />
-
+    <div className="night-desk-room relative w-full h-full overflow-hidden bg-[#100e15]">
+      <NightDesk
+        submitted={submitted.length}
+        working={inProgress.length}
+        catName={catState ? catState.name || '黑猫' : null}
+        activePanel={openPanel}
+        onSelect={togglePanel}
+      />
       {/* ─── 弹出面板 ─── */}
       {openPanel === 'submissions' && (
         <ScenePanel variant="inbox" title={`📥 投稿池 · ${submitted.length} 份待审`} onClose={() => setOpenPanel(null)} position="top-12 left-4 md:top-16 md:left-16" width={620}>
@@ -325,7 +213,8 @@ function EmptyInboxIllustration() {
     '编辑部三号窗户的灰尘开始在阳光下跳舞——你不喜欢这个比喻，因为这里没有阳光。',
     '考虑去公告板贴张征稿启事？',
   ]
-  const quip = lines[Math.floor(Math.random() * lines.length)]
+  const [quipIndex] = useState(() => Math.floor(Math.random() * lines.length))
+  const quip = lines[quipIndex]
   return (
     <div className="flex flex-col items-center py-6 text-center">
       <svg viewBox="0 0 120 80" width="160" height="106" shapeRendering="crispEdges" style={{ imageRendering: 'pixelated' }}>

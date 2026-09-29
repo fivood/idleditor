@@ -1,0 +1,10 @@
+.pixel-room-viewport { position: absolute; inset: 0; overflow: clip; background: #100f19; }
+.pixel-room-stage { position: absolute; width: 480px; height: 270px; }
+.pixel-room-art { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+.pixel-room-fallback { position: absolute; inset: 35% 10% auto; color: #f5deb0; text-align: center; font-size: 14px; }
+.pixel-room-stage button:focus-visible { outline: 2px dashed #e1b772 !important; outline-offset: -2px; }
+.pixel-room-stage button:focus-visible > span { opacity: 1; }
+.pixel-scene-room [role=dialog] { z-index: 60; }
+@media (max-width: 767px) {
+  .pixel-scene-room [role=dialog] { top: 12px; bottom: auto; left: 12px; right: 12px; transform: none; max-width: none !important; }
+}
