@@ -66,7 +66,7 @@ describe('procedural rooms', () => {
       for (const o of DESK_OBJECTS) {
         const cx = Math.floor((o.x + o.w / 2) * UNIT), cy = Math.floor((o.y + o.h / 2) * UNIT)
         let hit = false
-        for (let dy = -8; dy <= 8 && !hit; dy++) for (let dx = -8; dx <= 8 && !hit; dx++) hit = objectAt(tags, cx + dx, cy + dy) === o.key
+        for (let dy = -8; dy <= 8 && !hit; dy++) for (let dx = -8; dx <= 8 && !hit; dx++) hit = objectAt(tags, WIDTH, cx + dx, cy + dy) === o.key
         expect(hit, o.key).toBe(true)
       }
     }
@@ -100,28 +100,48 @@ describe('procedural rooms', () => {
 })
 
 describe('physical pixel layout', () => {
-  it.each([1, 1.25, 1.5, 2])('preserves square integer physical pixels at DPR %s', dpr => {
-    const layout = pixelLayout(1273, 643, dpr, false)
-    expect(layout.width * dpr / WIDTH).toBeCloseTo(layout.scale)
-    expect(layout.height * dpr / HEIGHT).toBeCloseTo(layout.scale)
-    expect(Number.isInteger(layout.scale)).toBe(true)
-    // Either fills the viewport cropping at most 15%, or shows the whole room.
-    const covers = layout.width >= 1273 && layout.height >= 643
-    const contains = layout.width <= 1273 && layout.height <= 643
-    expect(covers || contains).toBe(true)
-    if (covers) expect(Math.min(1273 / layout.width, 643 / layout.height)).toBeGreaterThanOrEqual(.85)
-    expect(layout.left * dpr).toBeCloseTo(Math.round(layout.left * dpr))
+  const screens: [number, number, number][] = [[1273, 643, 1], [1273, 643, 1.25], [1809, 1750, 1], [1440, 900, 2], [1920, 1080, 1], [2560, 1080, 1]]
+  it.each(screens)('%s×%s @%s: integer square pixels, canvas covers the viewport, core mostly visible', (w, h, dpr) => {
+    const { scale, frame, canvas, stage } = pixelLayout(w, h, dpr, false)
+    expect(Number.isInteger(scale)).toBe(true)
+    expect(canvas.width * dpr).toBeCloseTo(frame.width * scale)
+    expect(stage.width * dpr).toBeCloseTo(WIDTH * scale)
+    if (frame.width < WIDTH * 2) expect(canvas.width).toBeGreaterThanOrEqual(w - 1 / dpr)
+    if (frame.height < HEIGHT * 2) expect(canvas.height).toBeGreaterThanOrEqual(h - 1 / dpr)
+    expect(Math.min(w, stage.left + stage.width) - Math.max(0, stage.left)).toBeGreaterThanOrEqual(stage.width * .88 - 1)
+    expect(Math.min(h, stage.top + stage.height) - Math.max(0, stage.top)).toBeGreaterThanOrEqual(stage.height * .88 - 1)
+    expect(stage.left - canvas.left).toBeCloseTo(frame.ox * scale / dpr)
   })
-  it('fills a 1080p screen exactly', () => {
-    expect(pixelLayout(1920, 1080, 1, false)).toMatchObject({ scale: 2, width: 1920, height: 1080 })
-  })
-  it('does not crop away the room on a narrow high-DPI phone', () => {
-    const layout = pixelLayout(390, 670, 3, true)
-    expect(layout.width).toBeLessThanOrEqual(390)
-    expect(layout.height).toBeLessThan(670)
-    expect(layout.scale).toBe(1)
-  })
-  it('ignores floating point noise around a device scale boundary', () => {
+  it('fills a 1080p screen with exactly the core room', () => {
+    expect(pixelLayout(1920, 1080, 1, false)).toMatchObject({ scale: 2, frame: { width: 960, height: 540, ox: 0, oy: 0 } })
     expect(pixelLayout(1920, 1080, 1.0000000298, false).scale).toBe(2)
+  })
+  it('shows the full width of the room on a phone', () => {
+    const { stage } = pixelLayout(390, 670, 3, true)
+    expect(stage.left).toBeGreaterThanOrEqual(0)
+    expect(stage.left + stage.width).toBeLessThanOrEqual(390)
+  })
+})
+
+describe('extended frames', () => {
+  const tall = { width: 900, height: 880, ox: -30, oy: 238 }
+  it('fills every pixel of a larger canvas and keeps the core unchanged in place', () => {
+    for (const kind of kinds) {
+      const big = renderRoom(kind, EMPTY_ROOM, true, tall), core = renderRoom(kind)
+      const bg = new Pixels(1, 1).data[0]
+      let empty = 0
+      for (const v of big.data) if (v === bg) empty++
+      expect(empty / big.data.length, kind).toBeLessThan(.02)
+      // A pixel well inside the core, away from anything that depends on the frame.
+      const [x, y] = [470, 300]
+      if (kind !== 'desk') expect(big.data[(y + tall.oy) * tall.width + x + tall.ox]).toBe(core.data[y * WIDTH + x])
+    }
+  })
+  it('grows the editor window upward on tall screens, and animates on any frame', () => {
+    const base = renderRoom('desk', { ...EMPTY_ROOM, hasCat: true }, false, tall)
+    const frame = animateRoom(base, 'desk', EMPTY_ROOM, 3, 'storm')
+    expect(frame.width).toBe(tall.width)
+    expect(frame.height).toBe(tall.height)
+    expect(objectAt(base.tags!, tall.width, Math.round(231 * UNIT + tall.ox), Math.round(178 * UNIT + tall.oy))).toBe('pipeline')
   })
 })

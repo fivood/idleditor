@@ -41,40 +41,44 @@ const glowAt = (b: Brush, cx: number, cy: number, r: number, c: string, strength
 
 // ──── walls, floor, window ────
 
+/** Running-bond brick over a layout-grid rectangle; the bond is anchored to the room, so it never slides on resize. */
 export function brickWall(p: Pixels, x: number, y: number, w: number, h: number) {
-  const b = brush(p, x, y), W = w * UNIT, H = h * UNIT
-  b.r(0, 0, W, H, C.mortar)
-  for (let row = 0; row * 14 < H; row++) {
-    const top = row * 14, hh = Math.min(12, H - top)
-    for (let bx = row % 2 ? -13 : 0; bx < W; bx += 27) {
-      const n = noise(Math.floor((b.X + bx + 40) / 27), row + Math.floor(b.Y / 14), 71)
+  const b = brush(p, 0, 0), X0 = Math.round(x * UNIT), Y0 = Math.round(y * UNIT), X1 = Math.round((x + w) * UNIT), Y1 = Math.round((y + h) * UNIT)
+  b.r(X0, Y0, X1 - X0, Y1 - Y0, C.mortar)
+  for (let row = Math.floor(Y0 / 14); row * 14 < Y1; row++) {
+    const top = Math.max(Y0, row * 14), bottom = Math.min(Y1, row * 14 + 12)
+    if (bottom <= top) continue
+    const off = (row & 1) ? 13 : 0
+    for (let bx = Math.floor((X0 - off) / 27) * 27 + off; bx < X1; bx += 27) {
+      const n = noise(Math.floor(bx / 27) + 40, row, 71)
       const col = n < .22 ? C.brickDark : n > .82 ? C.brickLight : C.brick
-      const x0 = Math.max(0, bx), x1 = Math.min(W, bx + 25)
+      const x0 = Math.max(X0, bx), x1 = Math.min(X1, bx + 25)
       if (x1 <= x0) continue
-      b.r(x0, top, x1 - x0, hh, col)
-      b.r(x0, top, x1 - x0, 1, col === C.brickDark ? C.brick : C.brickLight)
-      if (hh === 12) b.r(x0, top + 11, x1 - x0, 1, C.brickDark)
-      b.dith(x0, top + 1, x1 - x0, hh - 2, C.brickDark, (i, j) => noise(b.X + x0 + i, b.Y + top + j, 5) < .5 ? .18 : 0)
-      if (n > .5 && n < .56) b.r(x0 + 4, top + 5, 3, 2, C.mortar) // chipped corner
+      b.r(x0, top, x1 - x0, bottom - top, col)
+      if (top === row * 14) b.r(x0, top, x1 - x0, 1, col === C.brickDark ? C.brick : C.brickLight)
+      if (bottom === row * 14 + 12) b.r(x0, bottom - 1, x1 - x0, 1, C.brickDark)
+      b.dith(x0, top + 1, x1 - x0, Math.max(0, bottom - top - 2), C.brickDark, (i, j) => noise(x0 + i, top + 1 + j, 5) < .5 ? .18 : 0)
+      if (n > .5 && n < .56 && x1 - x0 > 8 && bottom - top > 7) b.r(x0 + 4, top + 5, 3, 2, C.mortar) // chipped corner
     }
   }
 }
 
-export function deskFloor(p: Pixels, y: number) {
-  const b = brush(p, 0, y), H = (270 - y) * UNIT
-  b.r(0, 0, 960, H, C.darkWood)
-  for (let row = 0; row * 16 < H; row++) {
-    const top = row * 16
-    b.r(0, top, 960, 1, C.black); b.r(0, top + 1, 960, 1, C.wood)
-    for (let x = (row * 97) % 180; x < 960; x += 180) b.r(x, top + 1, 1, 15, C.black)
-    b.dith(0, top + 2, 960, 14, C.wood, (i, j) => noise(i >> 3, row * 16 + j, 13) < .35 ? .25 : 0)
+/** Plank floor from layout row `y` to `b`, spanning `l`..`r`; joints are anchored to the room. */
+export function deskFloor(p: Pixels, l: number, y: number, r: number, bottom: number) {
+  const b = brush(p, 0, 0), X0 = Math.round(l * UNIT), X1 = Math.round(r * UNIT), Y0 = y * UNIT, Y1 = Math.round(bottom * UNIT)
+  b.r(X0, Y0, X1 - X0, Y1 - Y0, C.darkWood)
+  for (let row = 0; Y0 + row * 16 < Y1; row++) {
+    const top = Y0 + row * 16
+    b.r(X0, top, X1 - X0, 1, C.black); b.r(X0, top + 1, X1 - X0, 1, C.wood)
+    for (let x = Math.floor((X0 - (row * 97) % 180) / 180) * 180 + (row * 97) % 180; x < X1; x += 180) if (x >= X0) b.r(x, top + 1, 1, 15, C.black)
+    b.dith(X0, top + 2, X1 - X0, 14, C.wood, (i, j) => noise((X0 + i) >> 3, row * 16 + j, 13) < .35 ? .25 : 0)
   }
-  b.r(0, 0, 960, 4, C.black); b.r(0, 4, 960, 2, C.brickDark) // skirting shadow
+  b.r(X0, Y0, X1 - X0, 4, C.black); b.r(X0, Y0 + 4, X1 - X0, 2, C.brickDark) // skirting shadow
 }
 
 /** Gothic skyline: three depths of spires, turrets and crenellations with scattered lit windows. */
 export function gothicCity(p: Pixels, x: number, y: number, w: number, h: number) {
-  const b = brush(p, x, y), W = w * UNIT, H = h * UNIT
+  const b = brush(p, x, y), W = w * UNIT, H = h * UNIT, H0 = 256 // skyline is sized for 128 layout rows of glass
   b.r(0, 0, W, H, C.skyDeep)
   b.dith(0, 0, W, H, C.skyMid, (_, j) => Math.min(1, Math.max(0, (j / H - .1) * 2)))
   b.dith(0, 0, W, H, C.skyLight, (_, j) => Math.max(0, (j / H - .45) * 2.2))
@@ -93,7 +97,7 @@ export function gothicCity(p: Pixels, x: number, y: number, w: number, h: number
     let cx = -6
     while (cx < W) {
       const bw = 12 + Math.floor(noise(cx, seed, 1) * 18)
-      const top = Math.round(base - noise(cx, seed, 2) * H * reach)
+      const top = Math.round(base - noise(cx, seed, 2) * H0 * reach)
       b.r(cx, top, bw, H - top, col)
       b.r(cx, top, 1, H - top, edge)
       const kind = Math.floor(noise(cx, seed, 3) * 4), mid = cx + bw / 2
@@ -107,16 +111,16 @@ export function gothicCity(p: Pixels, x: number, y: number, w: number, h: number
       cx += bw + (noise(cx, seed, 4) < .3 ? 3 : 0)
     }
   }
-  layer(H * .6, C.spireFar, C.skyLight, .015, 11, .32)
+  layer(H - H0 * .4, C.spireFar, C.skyLight, .015, 11, .32)
   // A cathedral in the middle distance with a rose window.
-  const cc = Math.round(W * .42), ct = Math.round(H * .35)
+  const cc = Math.round(W * .42), ct = Math.round(H - H0 * .65)
   b.r(cc - 14, ct, 28, H - ct, C.spireMid)
   b.poly([[cc - 15, ct], [cc, ct - 58], [cc + 15, ct]], C.spireMid)
   b.line(cc, ct - 68, cc, ct - 58, C.spireMid); b.r(cc - 3, ct - 64, 7, 1, C.spireMid)
   b.ell(cc, ct + 14, 5, 5, C.ember); b.ell(cc, ct + 14, 3, 3, C.fire); b.d(cc, ct + 14, C.cream)
   for (const s of [-1, 1]) { b.r(cc + s * 20 - 5, ct + 12, 10, H - ct - 12, C.spireMid); b.poly([[cc + s * 20 - 6, ct + 12], [cc + s * 20, ct - 14], [cc + s * 20 + 6, ct + 12]], C.spireMid) }
-  layer(H * .74, C.spireMid, C.spireFar, .03, 23, .42)
-  layer(H * .92, C.spire, C.spireMid, .06, 37, .55, true)
+  layer(H - H0 * .26, C.spireMid, C.spireFar, .03, 23, .42)
+  layer(H - H0 * .08, C.spire, C.spireMid, .06, 37, .55, true)
 }
 
 /** Three-pane casement with deep wood frame and a sill; glass is at (x, y, w, h) on the layout grid. */
@@ -139,7 +143,7 @@ export function deskWindow(p: Pixels, x: number, y: number, w: number, h: number
 export function deskBars(p: Pixels, x: number, y: number, w: number, h: number) {
   const b = brush(p, x, y), W = w * UNIT, H = h * UNIT
   for (const bx of [0, Math.round(W / 3) - 3, Math.round(W * 2 / 3) - 3, W - 6]) { b.r(bx, 0, 6, H, C.darkWood); b.r(bx, 0, 1, H, C.wood); b.r(bx + 5, 0, 1, H, C.black) }
-  const mid = Math.round(H * .45)
+  const mid = H - 141 // transom stays at the same height above the sill however tall the glass
   b.r(0, mid, W, 6, C.darkWood); b.r(0, mid, W, 1, C.wood); b.r(0, mid + 5, W, 1, C.black)
   b.r(0, 0, W, 4, C.darkWood); b.r(0, H - 4, W, 4, C.darkWood)
 }
@@ -277,7 +281,7 @@ function flame(b: Brush, a: number, c: number, tick: number, seed: number) {
   b.spr(a, c, FLAME[Math.floor(noise(Math.floor(tick / 2), seed, 9) * 3)], FLAME_PAL)
 }
 
-export const CANDELABRA = { x: 339, y: 150 }
+export const CANDELABRA = { x: 343, y: 150 }
 /** Brass candelabra with three candles; `candelabraFlames` animates it. */
 export function candelabra(p: Pixels) {
   const b = brush(p, CANDELABRA.x, CANDELABRA.y)
@@ -321,18 +325,18 @@ export function clothDesk(p: Pixels) {
   b.line(L + 6, T + 4, BL + 10, S - 5, C.brass); b.line(R - 6, T + 4, BR - 10, S - 5, C.brass)
   b.r(BL, S, BR - BL, 2, C.clothShine)
   // Front drape with soft vertical folds.
-  b.r(BL, S + 2, BR - BL, 86, C.cloth)
+  b.r(BL, S + 2, BR - BL, 52, C.cloth)
   for (let fx = BL + 20; fx < BR; fx += 44) {
-    b.dith(fx - 10, S + 2, 20, 86, C.clothLight, (i) => Math.max(0, 1 - Math.abs(i - 10) / 10) * .6)
-    b.dith(fx + 12, S + 2, 12, 86, C.clothDark, (i) => Math.max(0, 1 - Math.abs(i - 6) / 6) * .6)
+    b.dith(fx - 10, S + 2, 20, 52, C.clothLight, (i) => Math.max(0, 1 - Math.abs(i - 10) / 10) * .6)
+    b.dith(fx + 12, S + 2, 12, 52, C.clothDark, (i) => Math.max(0, 1 - Math.abs(i - 6) / 6) * .6)
   }
   // Embroidered band and pointed hem.
-  b.r(BL, S + 62, BR - BL, 2, C.brass)
-  for (let fx = BL + 8; fx < BR - 6; fx += 16) { b.poly([[fx, S + 70], [fx + 4, S + 66], [fx + 8, S + 70], [fx + 4, S + 74]], C.brass); b.d(fx + 4, S + 70, C.brassLight) }
-  b.r(BL, S + 78, BR - BL, 2, C.brass)
-  for (let fx = BL; fx < BR; fx += 24) b.poly([[fx, S + 88], [fx + 24, S + 88], [fx + 12, S + 102]], C.clothDark)
-  for (let fx = BL; fx < BR; fx += 24) { b.line(fx, S + 88, fx + 12, S + 102, C.brass); b.line(fx + 24, S + 88, fx + 12, S + 102, C.brass); b.d(fx + 12, S + 103, C.brassLight) }
-  b.dith(BL, S + 104, BR - BL, 12, C.black, (_, j) => .6 - j * .05)
+  b.r(BL, S + 30, BR - BL, 2, C.brass)
+  for (let fx = BL + 8; fx < BR - 6; fx += 16) { b.poly([[fx, S + 38], [fx + 4, S + 34], [fx + 8, S + 38], [fx + 4, S + 42]], C.brass); b.d(fx + 4, S + 38, C.brassLight) }
+  b.r(BL, S + 46, BR - BL, 2, C.brass)
+  for (let fx = BL; fx < BR; fx += 24) b.poly([[fx, S + 54], [fx + 24, S + 54], [fx + 12, S + 68]], C.clothDark)
+  for (let fx = BL; fx < BR; fx += 24) { b.line(fx, S + 54, fx + 12, S + 68, C.brass); b.line(fx + 24, S + 54, fx + 12, S + 68, C.brass); b.d(fx + 12, S + 69, C.brassLight) }
+  b.dith(BL, S + 70, BR - BL, 12, C.black, (_, j) => .6 - j * .05)
 }
 
 export const INBOX = { x: 116, y: 170 }

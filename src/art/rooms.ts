@@ -8,7 +8,19 @@ import {
 import type { Weather } from '@/core/weather'
 
 /** Layout grid: rooms are composed on 480×270 and rasterised at UNIT× so shapes and portraits get finer detail. */
-const WIDTH = FINE_W / UNIT, HEIGHT = FINE_H / UNIT
+const WIDTH = FINE_W / UNIT
+
+/**
+ * The canvas can be larger or smaller than the 960×540 core room: extra space extends walls and floor
+ * (and the editor's window), so the scene fills screens of any shape at an integer scale.
+ * `ox`/`oy` place the core on the canvas, in native pixels.
+ */
+export interface Frame { width: number; height: number; ox: number; oy: number }
+export const CORE: Frame = { width: FINE_W, height: FINE_H, ox: 0, oy: 0 }
+/** Canvas bounds on the layout grid (core room is 0..480 × 0..270). */
+interface Extent { L: number; R: number; T: number; B: number }
+const extent = (f: Frame): Extent => ({ L: -f.ox / UNIT, R: (f.width - f.ox) / UNIT, T: -f.oy / UNIT, B: (f.height - f.oy) / UNIT })
+const frameOf = (p: Pixels): Frame => ({ width: p.width, height: p.height, ox: p.OX, oy: p.OY })
 
 export type RoomKind = 'desk' | 'office' | 'shelf' | 'authors' | 'study' | 'stats'
 export interface RoomState { submitted: number; working: number; hasCat: boolean; books: number; authors: number; departments: number }
@@ -37,10 +49,10 @@ function tagged(p: Pixels, key: ObjectKey, draw: () => void) {
   draw()
   p.tag = prev
 }
-/** Object under native pixel (x, y), if any. */
-export function objectAt(tags: Uint8Array, x: number, y: number): ObjectKey | null {
-  if (x < 0 || y < 0 || x >= FINE_W || y >= FINE_H) return null
-  const t = tags[y * FINE_W + x]
+/** Object under canvas pixel (x, y) of a `width`-wide tag map, if any. */
+export function objectAt(tags: Uint8Array, width: number, x: number, y: number): ObjectKey | null {
+  if (x < 0 || y < 0 || x >= width || y >= tags.length / width) return null
+  const t = tags[y * width + x]
   return t ? OBJECTS[t - 1] : null
 }
 
@@ -107,39 +119,44 @@ function rug(p: Pixels, x: number, y: number, w: number, h: number) {
   }
 }
 
-function shell(p: Pixels) {
-  p.rect(0, 0, WIDTH, HEIGHT, C.black)
+function shell(p: Pixels, { L, R, T, B }: Extent) {
+  p.rect(L, T, R - L, B - T, C.black)
   // Striped, damask-dotted wallpaper in cool indigo so warm wood and lamplight read against it.
-  p.rect(0, 14, WIDTH, 186, C.wall)
-  for (let x = 8; x < 472; x += 24) {
-    p.rect(x, 14, 12, 154, C.wallLight)
-    for (let y = 26; y < 166; y += 14) { p.dot(x + 5, y, C.wallDot); p.dot(x + 6, y, C.wallDot); p.dot(x + 5, y + 1, C.wallDot); p.dot(x + 6, y - 1, C.wallDot) }
+  p.rect(L, T + 14, R - L, 186 - T, C.wall)
+  for (let x = 8 + Math.floor((L - 8) / 24) * 24; x < R; x += 24) {
+    p.rect(x, T + 14, 12, 154 - T, C.wallLight)
+    for (let y = 26 - Math.ceil(-T / 14) * 14; y < 166; y += 14) {
+      if (y < T + 20) continue
+      p.dot(x + 5, y, C.wallDot); p.dot(x + 6, y, C.wallDot); p.dot(x + 5, y + 1, C.wallDot); p.dot(x + 6, y - 1, C.wallDot)
+    }
   }
   // Crown moulding with dentils.
-  p.rect(0, 0, WIDTH, 13, C.black)
-  p.rect(0, 13, WIDTH, 3, C.warmWood); p.rect(0, 13, WIDTH, 1, C.honey)
-  for (let x = 0; x < WIDTH; x += 6) p.rect(x, 16, 3, 3, C.darkWood)
-  p.rect(0, 19, WIDTH, 1, C.black)
-  for (let x = 40; x < WIDTH; x += 120) { p.rect(x, 0, 8, 13, C.darkWood); p.rect(x, 0, 1, 13, C.copper) }
+  p.rect(L, T, R - L, 13, C.black)
+  p.rect(L, T + 13, R - L, 3, C.warmWood); p.rect(L, T + 13, R - L, 1, C.honey)
+  for (let x = Math.floor(L / 6) * 6; x < R; x += 6) p.rect(x, T + 16, 3, 3, C.darkWood)
+  p.rect(L, T + 19, R - L, 1, C.black)
+  for (let x = 40 + Math.floor((L - 40) / 120) * 120; x < R; x += 120) { p.rect(x, T, 8, 13, C.darkWood); p.rect(x, T, 1, 13, C.copper) }
   // Wall pilasters frame the room.
-  for (const x of [0, 472]) { p.rect(x, 14, 8, 186, C.darkWood); p.rect(x + (x ? 0 : 7), 14, 1, 186, C.copper) }
+  for (const x of [0, 472]) { p.rect(x, T + 14, 8, 186 - T, C.darkWood); p.rect(x + (x ? 0 : 7), T + 14, 1, 186 - T, C.copper) }
   // Wainscot: chair rail over inset panels, then a heavy skirting board.
-  p.rect(8, 166, 464, 3, C.warmWood); p.rect(8, 166, 464, 1, C.honey); p.rect(8, 169, 464, 1, C.black)
-  p.rect(8, 170, 464, 27, C.wood)
-  for (let x = 14; x < 466; x += 46) {
+  p.rect(L, 166, R - L, 3, C.warmWood); p.rect(L, 166, R - L, 1, C.honey); p.rect(L, 169, R - L, 1, C.black)
+  p.rect(L, 170, R - L, 27, C.wood)
+  for (let x = 14 + Math.floor((L - 14) / 46) * 46; x < R; x += 46) {
     p.rect(x, 174, 38, 19, C.darkWood)
     p.rect(x, 174, 38, 1, C.black); p.rect(x, 174, 1, 19, C.black)
     p.rect(x + 1, 192, 37, 1, C.warmWood); p.rect(x + 37, 175, 1, 18, C.warmWood)
   }
-  p.rect(8, 197, 464, 4, C.black); p.rect(8, 197, 464, 1, C.copper)
+  p.rect(L, 197, R - L, 4, C.black); p.rect(L, 197, R - L, 1, C.copper)
   // Floor: long boards, staggered butt joints and a little grain.
-  p.rect(0, 201, WIDTH, 69, C.wood)
-  for (let row = 0, y = 201; y < HEIGHT; row++, y += 8) {
-    p.rect(0, y, WIDTH, 1, C.black)
-    p.rect(0, y + 1, WIDTH, 1, C.warmWood)
-    if (row % 2) p.rect(0, y + 2, WIDTH, 6, C.darkWood)
-    for (let x = (row * 47) % 120; x < WIDTH; x += 120) p.rect(x, y + 1, 1, 7, C.black)
-    for (let k = 0; k < 6; k++) p.rect(Math.floor(noise(k, row, 3) * WIDTH), y + 3 + k % 3 * 2, 5 + k % 4 * 3, 1, C.grain)
+  p.rect(L, 201, R - L, B - 201, C.wood)
+  for (let row = 0, y = 201; y < B; row++, y += 8) {
+    p.rect(L, y, R - L, 1, C.black)
+    p.rect(L, y + 1, R - L, 1, C.warmWood)
+    if (row % 2) p.rect(L, y + 2, R - L, 6, C.darkWood)
+    for (let x = (row * 47) % 120 + Math.floor(L / 120) * 120; x < R; x += 120) p.rect(x, y + 1, 1, 7, C.black)
+    for (let span = Math.floor(L / 480) * 480; span < R; span += 480) {
+      for (let k = 0; k < 6; k++) p.rect(span + Math.floor(noise(k + span, row, 3) * 480), y + 3 + k % 3 * 2, 5 + k % 4 * 3, 1, C.grain)
+    }
   }
 }
 
@@ -271,15 +288,14 @@ function typewriter(p: Pixels, x: number, y: number, working: boolean, tick = 0)
 }
 
 /** The editor's room: see editorRoom.ts. Positions are on the layout grid. */
-const DESK_WINDOW = WINDOWS.desk!
-function deskRoom(p: Pixels, state: RoomState, includeLiveObjects: boolean) {
-  brickWall(p, 0, 12, WIDTH, 188)
-  // Ceiling beam and a dark frieze.
-  const top = brush(p, 0, 0)
-  top.r(0, 0, FINE_W, 24, C.black); top.r(0, 24, FINE_W, 6, C.darkWood); top.r(0, 24, FINE_W, 1, C.wood); top.r(0, 30, FINE_W, 2, C.black)
-  for (let x = 60; x < FINE_W; x += 220) { top.r(x, 0, 18, 24, C.darkWood); top.r(x, 0, 1, 24, C.wood) }
-  deskFloor(p, 200)
-  deskWindow(p, ...DESK_WINDOW)
+function deskRoom(p: Pixels, state: RoomState, includeLiveObjects: boolean, e: Extent) {
+  brickWall(p, e.L, e.T + 12, e.R - e.L, 200 - e.T - 12)
+  // Ceiling beam and a dark frieze along the top of the canvas.
+  const top = brush(p, e.L, e.T), W = (e.R - e.L) * UNIT
+  top.r(0, 0, W, 24, C.black); top.r(0, 24, W, 6, C.darkWood); top.r(0, 24, W, 1, C.wood); top.r(0, 30, W, 2, C.black)
+  for (let x = 60 + Math.floor((e.L * UNIT - 60) / 220) * 220; x < e.R * UNIT; x += 220) { const beam = brush(p, 0, e.T); beam.r(x, 0, 18, 24, C.darkWood); beam.r(x, 0, 1, 24, C.wood) }
+  deskFloor(p, e.L, 200, e.R, e.B)
+  deskWindow(p, ...deskGlass(e.T))
   castlePainting(p, 30, 32)
   refPortrait(p, 84, 32, 'count'); refPortrait(p, 84, 72, 'editor')
   wallClock(p, 352, 30)
@@ -301,22 +317,33 @@ function deskRoom(p: Pixels, state: RoomState, includeLiveObjects: boolean) {
   p.ghost = false
 }
 
-const lighting = new Map<RoomKind, Uint8Array>()
+/** Window glass on the layout grid. On tall screens the editor's window grows upward: more sky, more city. */
+export function windowFor(room: RoomKind, f: Frame = CORE): readonly [number, number, number, number] | undefined {
+  return room === 'desk' ? deskGlass(extent(f).T) : WINDOWS[room]
+}
+function deskGlass(canvasTop: number): [number, number, number, number] {
+  const top = 28 + Math.max(canvasTop, -100)
+  return [120, top, 220, 156 - top]
+}
+
+const lighting = new Map<string, Uint8Array>()
 /** Painted faces take one flat light level: dithering across them reads as a screen door. */
 const FLAT_LIGHT: Partial<Record<RoomKind, [number, number, number, number][]>> = {
   desk: [[79, 27, 32, 76]],
   study: [[207, 41, 70, 32]],
   authors: [0, 1, 2, 3].map(i => [49 + i * 108, 51, 62, 73]),
 }
-function lightMask(room: RoomKind) {
-  const cached = lighting.get(room)
+function lightMask(room: RoomKind, f: Frame) {
+  const key = `${room}|${f.width}x${f.height}|${f.ox},${f.oy}`
+  const cached = lighting.get(key)
   if (cached) return cached
-  const mask = new Uint8Array(FINE_W * FINE_H)
+  if (lighting.size > 24) lighting.clear() // resizing produces many frames; keep only recent ones
+  const mask = new Uint8Array(f.width * f.height)
   const source = room === 'desk' ? [349, 152] : room === 'study' ? [240, 127 + HEARTH_DY] : room === 'shelf' ? [260, 181] : [240, 186]
-  const win = WINDOWS[room], flat = FLAT_LIGHT[room] ?? []
+  const win = windowFor(room, f), flat = FLAT_LIGHT[room] ?? []
   const light = (x: number, y: number) => {
     const pool = Math.max(0, 1 - Math.hypot((x - source[0]) / 135, (y - source[1]) / 110))
-    const edge = Math.max(0, (Math.abs(x - 240) - 125) / 180) + Math.max(0, (y - 226) / 140)
+    const edge = Math.min(1, Math.max(0, (Math.abs(x - 240) - 125) / 180) + Math.max(0, (y - 226) / 140))
     if (room === 'desk') {
       // Candlelit: dark brick, a warm pool round the candelabra, a smaller one at the wall candle.
       const wall = Math.max(0, 1 - Math.hypot((x - 396) / 60, (y - 112) / 50))
@@ -325,10 +352,11 @@ function lightMask(room: RoomKind) {
     return Math.max(0, Math.min(4, 2 + pool * 1.5 - edge * 1.1))
   }
   const inside = (r: readonly number[], lx: number, ly: number) => lx >= r[0] && lx < r[0] + r[2] && ly >= r[1] && ly < r[1] + r[3]
-  for (let fy = 0; fy < FINE_H; fy++) for (let fx = 0; fx < FINE_W; fx++) {
-    const x = (fx + .5) / UNIT - .5, y = (fy + .5) / UNIT - .5
+  for (let fy = 0; fy < f.height; fy++) for (let fx = 0; fx < f.width; fx++) {
+    const cx = fx - f.ox, cy = fy - f.oy
+    const x = (cx + .5) / UNIT - .5, y = (cy + .5) / UNIT - .5
     let value = light(x, y)
-    const lx = Math.floor(fx / UNIT), ly = Math.floor(fy / UNIT)
+    const lx = Math.floor(cx / UNIT), ly = Math.floor(cy / UNIT)
     const face = flat.find(r => inside(r, lx, ly))
     if (face) value = Math.round(light(face[0] + face[2] / 2, face[1] + face[3] / 2))
     if (win && inside(win, lx, ly)) value = 2
@@ -336,9 +364,9 @@ function lightMask(room: RoomKind) {
     // 2x2 ordered dither at native resolution: gradients read as texture, not bands.
     // The candlelit room keeps surfaces clean: dither only in a narrow band where levels meet.
     const t = room === 'desk' ? (fraction < .38 ? 0 : fraction > .62 ? 1 : (fraction - .38) / .24) : fraction
-    mask[fy * FINE_W + fx] = Math.min(4, level + (t > [.125, .625, .875, .375][(fy & 1) * 2 + (fx & 1)] ? 1 : 0))
+    mask[fy * f.width + fx] = Math.min(4, level + (t > [.125, .625, .875, .375][(fy & 1) * 2 + (fx & 1)] ? 1 : 0))
   }
-  lighting.set(room, mask)
+  lighting.set(key, mask)
   return mask
 }
 
@@ -472,8 +500,10 @@ function flames(p: Pixels, tick: number) {
 }
 
 /** Deep reading hall: stone vault, distant stacks, side window and shared table. */
-function libraryRoom(p: Pixels, state: RoomState) {
-  p.rect(0, 0, WIDTH, HEIGHT, C.shadow)
+function libraryRoom(p: Pixels, state: RoomState, e: Extent) {
+  p.rect(e.L, e.T, e.R - e.L, e.B - e.T, C.shadow)
+  p.rect(e.L, 235, e.R - e.L, e.B - 235, C.warmWood)
+  for (let y = 246; y < e.B; y += 23) { p.line(e.L, y, e.R, y, C.darkWood); p.line(e.L, y + 1, e.R, y + 1, C.grain) }
   p.polygon([[0, 0], [110, 24], [110, 168], [0, 235]], C.darkWood)
   p.rect(110, 24, 334, 145, C.wood)
   p.polygon([[444, 24], [480, 0], [480, 238], [444, 169]], C.darkWood)
@@ -653,8 +683,8 @@ function awardsCase(p: Pixels, x: number, y: number) {
   p.rect(x + 42, y + 2, 1, 84, C.metal)
 }
 
-function otherRoom(p: Pixels, room: Exclude<RoomKind, 'desk' | 'shelf'>, state: RoomState) {
-  shell(p)
+function otherRoom(p: Pixels, room: Exclude<RoomKind, 'desk' | 'shelf'>, state: RoomState, e: Extent) {
+  shell(p, e)
   rug(p, 99, 220, 282, 49)
   if (room === 'office') {
     cityWindow(p, 165, 24, 150, 42)
@@ -745,28 +775,32 @@ function otherRoom(p: Pixels, room: Exclude<RoomKind, 'desk' | 'shelf'>, state: 
   }
 }
 
-export function renderRoom(room: RoomKind, state: RoomState = EMPTY_ROOM, includeLiveObjects = true) {
-  const p = new Pixels(FINE_W, FINE_H, undefined, true)
-  p.s = UNIT
-  if (room === 'desk') deskRoom(p, state, includeLiveObjects)
-  else if (room === 'shelf') libraryRoom(p, state)
-  else otherRoom(p, room, state)
+export function renderRoom(room: RoomKind, state: RoomState = EMPTY_ROOM, includeLiveObjects = true, frame: Frame = CORE) {
+  const p = new Pixels(frame.width, frame.height, undefined, true)
+  p.s = UNIT; p.OX = frame.ox; p.OY = frame.oy
+  const e = extent(frame)
+  if (room === 'desk') deskRoom(p, state, includeLiveObjects, e)
+  else if (room === 'shelf') libraryRoom(p, state, e)
+  else otherRoom(p, room, state, e)
   return p
 }
 
 /** Lightning: the room jumps one grade brighter and the glass goes to the flash grade. */
-function flashMask(room: RoomKind, level: 1 | 2) {
-  const mask = lightMask(room).slice(), win = WINDOWS[room]
+function flashMask(room: RoomKind, level: 1 | 2, f: Frame) {
+  const mask = lightMask(room, f).slice(), win = windowFor(room, f)
   for (let i = 0; i < mask.length; i++) mask[i] = Math.min(4, mask[i] + 1)
-  if (win) for (let y = win[1] * UNIT; y < (win[1] + win[3]) * UNIT; y++) mask.fill(level === 2 ? 5 : 4, y * FINE_W + win[0] * UNIT, y * FINE_W + (win[0] + win[2]) * UNIT)
+  if (win) for (let y = Math.max(0, win[1] * UNIT + f.oy); y < Math.min(f.height, (win[1] + win[3]) * UNIT + f.oy); y++) {
+    mask.fill(level === 2 ? 5 : 4, y * f.width + Math.max(0, win[0] * UNIT + f.ox), y * f.width + Math.min(f.width, (win[0] + win[2]) * UNIT + f.ox))
+  }
   return mask
 }
 
 export function animateRoom(base: Pixels, room: RoomKind, state: RoomState, tick: number, weather: Weather = 'clear', ramp = 1) {
-  const p = new Pixels(FINE_W, FINE_H, base.data)
-  p.s = UNIT
-  const win = WINDOWS[room]
-  if (room === 'desk') bats(p, ...DESK_WINDOW, tick)
+  const f = frameOf(base)
+  const p = new Pixels(base.width, base.height, base.data)
+  p.s = UNIT; p.OX = f.ox; p.OY = f.oy
+  const win = windowFor(room, f)
+  if (room === 'desk' && win) bats(p, ...win, tick)
   if (win) drawWeather(p, win, weather, tick, ramp, base.data, room === 'desk' ? deskBars : windowBars)
   if (room === 'desk') {
     clockPendulum(p, 352, 30, tick)
@@ -779,6 +813,6 @@ export function animateRoom(base: Pixels, room: RoomKind, state: RoomState, tick
     flames(p, tick)
   }
   const flash = win && weather === 'storm' ? lightning(tick).level : 0
-  p.shade(flash ? flashMask(room, flash as 1 | 2) : lightMask(room))
+  p.shade(flash ? flashMask(room, flash as 1 | 2, f) : lightMask(room, f))
   return p
 }

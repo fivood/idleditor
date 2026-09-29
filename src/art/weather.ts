@@ -5,7 +5,7 @@ import type { Weather } from '@/core/weather'
 /** Glass area of each room's night window: [x, y, w, h]. */
 export type Rect = readonly [number, number, number, number]
 export const WINDOWS: Partial<Record<RoomKind, Rect>> = {
-  desk: [132, 28, 196, 128], shelf: [25, 43, 64, 65], study: [27, 39, 116, 88], office: [165, 24, 150, 42],
+  desk: [120, 28, 220, 128], shelf: [25, 43, 64, 65], study: [27, 39, 116, 88], office: [165, 24, 150, 42],
 }
 
 /** Mullions and transom, drawn last so weather always passes behind the frame. */
@@ -59,7 +59,7 @@ export function drawWeather(p: Pixels, [x, y, w, h]: Rect, kind: Weather, tick: 
         if ((dx / Rx) ** 2 + (dy / Ry) ** 2 > 1 || fx < FX || fx >= FX + FW || fy < FY || fy >= FY + FH) continue
         if ((dx / (Rx - 1.3)) ** 2 + (dy / (Ry - 1.3)) ** 2 > 1) { fbox(fx, fy, 1, 1, dx + dy < 0 ? C.steel : C.black); continue } // rim: lit upper left, shadowed lower right
         const sx = Math.min(FX + FW - 1, Math.max(FX, Math.round(Cx - dx * 3))), sy = Math.min(FY + FH - 1, Math.max(FY, Math.round(Cy - dy * 3)))
-        p.data[fy * W + fx] = source[sy * W + sx]
+        p.data[(fy + p.OY) * W + fx + p.OX] = source[(sy + p.OY) * W + sx + p.OX]
       }
       fbox(Math.round(Cx - Rx * .45), Math.round(Cy - Ry * .55), 1, 2, C.moon)   // specular highlight
     }

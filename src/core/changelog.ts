@@ -7,6 +7,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: 'v2.11',
+    date: '2026-09-29',
+    title: '画面铺满屏幕 · 窗外看得更远',
+    items: [
+      '场景会铺满整个窗口，不再缩在中间留一大圈黑边：多出来的空间由墙壁和地板自然延伸补上，像素仍保持整数倍放大。',
+      '主编室的窗户更宽了；在较高的屏幕上，窗户会向上长高，露出更多夜空和哥特城市。书桌的桌布收短了，桌面不再占掉大半个画面。',
+    ],
+  },
+  {
     version: 'v2.10',
     date: '2026-09-29',
     title: '主编室回到了砖墙与烛光里',
