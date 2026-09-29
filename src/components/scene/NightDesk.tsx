@@ -31,6 +31,7 @@ export function NightDesk({ submitted, working, catName, activePanel, onSelect }
           {objects.map(object => <button
             key={object.key}
             className="night-desk-object"
+            data-object={object.key}
             style={{ left: `${object.x / 4.8}%`, top: `${object.y / 2.7}%`, width: `${object.w / 4.8}%`, height: `${object.h / 2.7}%` } as CSSProperties}
             aria-label={label(object.key, object.label)}
             aria-pressed={activePanel === object.key}

@@ -22,18 +22,21 @@ export function StudyRoom() {
       {/* 个人书架（右侧） */}
       <Hotspot
         label="📖 你的藏书"
+        object="bookcase"
         style={{ right: '2%', top: '46%', width: '24%', height: '42%' }}
         onClick={() => setOpenPanel('library')}
       />
       {/* 扶手椅 */}
       <Hotspot
         label="🛋️ 阅读椅"
+        object="armchair"
         style={{ left: '14%', top: '54%', width: '20%', height: '36%' }}
         onClick={() => setOpenPanel('library')}
       />
       {/* 壁炉 → 同一面板（暖意） */}
       <Hotspot
         label="🔥 壁炉边"
+        object="hearth"
         style={{ left: '38%', top: '8%', width: '24%', height: '62%' }}
         onClick={() => setOpenPanel('library')}
       />

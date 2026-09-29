@@ -1,6 +1,9 @@
-import { HEIGHT, INK as C, noise, Pixels, WIDTH } from './pixels'
+import { HEIGHT as FINE_H, INK as C, noise, Pixels, UNIT, WIDTH as FINE_W } from './pixels'
 import { drawWeather, lightning, WINDOWS, windowBars } from './weather'
 import type { Weather } from '@/core/weather'
+
+/** Layout grid: rooms are composed on 480×270 and rasterised at UNIT× so shapes and portraits get finer detail. */
+const WIDTH = FINE_W / UNIT, HEIGHT = FINE_H / UNIT
 
 export type RoomKind = 'desk' | 'office' | 'shelf' | 'authors' | 'study' | 'stats'
 export interface RoomState { submitted: number; working: number; hasCat: boolean; books: number; authors: number; departments: number }
@@ -13,6 +16,28 @@ export const DESK_OBJECTS = [
   { key: 'dream', label: '梦境创作', x: 347, y: 183, w: 24, h: 22 },
   { key: 'cat', label: '黑猫', x: 384, y: 151, w: 61, h: 25 },
 ] as const
+
+/** Clickable things in the rooms. A pixel's tag is the index + 1, so outlines and clicks follow real shapes. */
+export const OBJECTS = [
+  'solicit', 'submissions', 'pipeline', 'log', 'dream', 'cat',
+  'dept0', 'dept1', 'dept2', 'dept3', 'tearoom', 'settings',
+  'shelfLeft', 'shelfLadder', 'shelfBack', 'shelfRight', 'display', 'table',
+  'portraits', 'roundtable', 'bookcase', 'armchair', 'hearth',
+  'cabinet', 'logs', 'ledger', 'awards',
+] as const
+export type ObjectKey = typeof OBJECTS[number]
+function tagged(p: Pixels, key: ObjectKey, draw: () => void) {
+  const prev = p.tag
+  p.tag = OBJECTS.indexOf(key) + 1
+  draw()
+  p.tag = prev
+}
+/** Object under native pixel (x, y), if any. */
+export function objectAt(tags: Uint8Array, x: number, y: number): ObjectKey | null {
+  if (x < 0 || y < 0 || x >= FINE_W || y >= FINE_H) return null
+  const t = tags[y * FINE_W + x]
+  return t ? OBJECTS[t - 1] : null
+}
 
 const BOOKS = [C.red, C.teal, C.bookBlue, C.plum, C.grain, C.leaf, C.paperShade]
 
@@ -30,6 +55,13 @@ function bookRow(p: Pixels, x: number, y: number, width: number, seed: number, c
       p.rect(cursor + 2, y - h + 7, w - 4, 5, C.paperShade)
       p.rect(cursor + 3, y - h + 8, 1, 3, col)
     }
+    p.fine(() => {
+      const X = cursor * UNIT, Y = (y - h) * UNIT, W = w * UNIT, H = h * UNIT
+      p.rect(X + W - 1, Y, 1, H, C.black)
+      p.rect(X + 2, Y + 6, W - 3, 1, C.gold)
+      p.rect(X + 2, Y + H - 4, W - 3, 1, C.copper)
+      if (noise(i, 4, seed) < .5) p.rect(X + 2, Y + 1, W - 4, 1, C.paperShade)
+    })
     cursor += w + 1
   }
 }
@@ -271,19 +303,23 @@ function deskRoom(p: Pixels, state: RoomState, includeLiveObjects: boolean) {
   shell(p)
   cityWindow(p, 147, 29, 199, 123)
   shelf(p, 10, 40, 58, 168, 11)
-  p.rect(88, 78, 44, 64, C.black); p.rect(91, 81, 38, 58, C.grain)
-  p.texture(94, 84, 32, 51, C.warmWood, .18, 6)
-  for (let i = 0; i < 3; i++) {
-    const xx = 96 + i % 2 * 3, yy = 87 + i * 16
-    p.rect(xx, yy, 23, 13, C.paperShade); p.polygon([[xx, yy], [xx + 12, yy + 8], [xx + 23, yy]], C.paper)
-    p.rect(xx + 11, yy + 7, 3, 3, C.red)
-  }
+  tagged(p, 'solicit', () => {
+    p.rect(88, 78, 44, 64, C.black); p.rect(91, 81, 38, 58, C.grain)
+    p.texture(94, 84, 32, 51, C.warmWood, .18, 6)
+    for (let i = 0; i < 3; i++) {
+      const xx = 96 + i % 2 * 3, yy = 87 + i * 16
+      p.rect(xx, yy, 23, 13, C.paperShade); p.polygon([[xx, yy], [xx + 12, yy + 8], [xx + 23, yy]], C.paper)
+      p.rect(xx + 11, yy + 7, 3, 3, C.red)
+    }
+  })
   plant(p, 77, 20, 103, 2); plant(p, 358, 17, 96, 5)
   curtain(p, 445, 13, 32, 170)
-  p.rect(386, 169, 67, 12, C.warmWood); p.rect(390, 175, 5, 34, C.black); p.rect(444, 175, 5, 34, C.black)
-  p.rect(385, 169, 69, 5, C.red); p.frame(386, 168, 67, 7, C.rose)
-  p.rect(417, 135, 31, 33, C.redDark); p.frame(419, 137, 27, 28, C.rose)
-  p.polygon([[430, 142], [439, 151], [430, 161], [422, 151]], C.warmWood)
+  tagged(p, 'cat', () => {
+    p.rect(386, 169, 67, 12, C.warmWood); p.rect(390, 175, 5, 34, C.black); p.rect(444, 175, 5, 34, C.black)
+    p.rect(385, 169, 69, 5, C.red); p.frame(386, 168, 67, 7, C.rose)
+    p.rect(417, 135, 31, 33, C.redDark); p.frame(419, 137, 27, 28, C.rose)
+    p.polygon([[430, 142], [439, 151], [430, 161], [422, 151]], C.warmWood)
+  })
   p.rect(380, 123, 50, 4, C.grain); bookRow(p, 399, 123, 29, 8, 3); candle(p, 388, 109)
   rug(p, 81, 230, 340, 39)
   desk(p, 83, 199, 304)
@@ -292,35 +328,52 @@ function deskRoom(p: Pixels, state: RoomState, includeLiveObjects: boolean) {
   p.rect(168, 184, 10, 15, C.black); p.rect(169, 184, 8, 2, C.gold)
   p.line(174, 184, 177, 164, C.copper); p.line(174, 184, 169, 169, C.paperShade)
   p.rect(184, 191, 7, 8, C.greenDark); p.rect(185, 188, 5, 4, C.gold)
-  journal(p, 282, 184); teacup(p, 349, 186); lamp(p, 328, 158)
+  tagged(p, 'log', () => journal(p, 282, 184))
+  tagged(p, 'dream', () => teacup(p, 349, 186))
+  lamp(p, 328, 158)
   candle(p, 79, 131)
-  if (includeLiveObjects) {
-    inbox(p, state.submitted)
-    typewriter(p, 205, 165, state.working > 0)
-    if (state.hasCat) cat(p, 0)
-  }
   namedPortrait(p, 372, 40, 'count'); namedPortrait(p, 410, 40, 'editor')
   // An editor's seal, closed reference volumes and brass corner pieces.
   p.rect(151, 193, 13, 5, C.redDark); p.rect(151, 192, 13, 1, C.gold)
   p.rect(267, 196, 11, 3, C.darkWood); p.rect(270, 190, 5, 6, C.copper)
   for (const xx of [89, 374]) p.rect(xx, 204, 6, 2, C.honey)
+  // Painted every frame by animateRoom; here they only need to claim their pixels.
+  p.ghost = !includeLiveObjects
+  tagged(p, 'submissions', () => inbox(p, state.submitted))
+  tagged(p, 'pipeline', () => typewriter(p, 205, 165, state.working > 0))
+  if (state.hasCat) tagged(p, 'cat', () => cat(p, 0))
+  p.ghost = false
 }
 
 const lighting = new Map<RoomKind, Uint8Array>()
+/** Painted faces take one flat light level: dithering across them reads as a screen door. */
+const FLAT_LIGHT: Partial<Record<RoomKind, [number, number, number, number][]>> = {
+  desk: [[367, 35, 76, 55]],
+  study: [[203, 21, 78, 55]],
+  authors: [0, 1, 2, 3].map(i => [49 + i * 108, 51, 62, 73]),
+}
 function lightMask(room: RoomKind) {
   const cached = lighting.get(room)
   if (cached) return cached
-  const mask = new Uint8Array(WIDTH * HEIGHT)
+  const mask = new Uint8Array(FINE_W * FINE_H)
   const source = room === 'desk' ? [318, 188] : room === 'study' ? [240, 127 + HEARTH_DY] : room === 'shelf' ? [260, 181] : [240, 186]
-  const windowRect = WINDOWS[room]
-  for (let y = 0; y < HEIGHT; y++) for (let x = 0; x < WIDTH; x++) {
+  const win = WINDOWS[room], flat = FLAT_LIGHT[room] ?? []
+  const light = (x: number, y: number) => {
     const pool = Math.max(0, 1 - Math.hypot((x - source[0]) / 135, (y - source[1]) / 110))
     const edge = Math.max(0, (Math.abs(x - 240) - 125) / 180) + Math.max(0, (y - 226) / 140)
-    let value = Math.max(0, Math.min(4, 2 + pool * 1.5 - edge * 1.1))
-    if (windowRect && x >= windowRect[0] && x < windowRect[0] + windowRect[2] && y >= windowRect[1] && y < windowRect[1] + windowRect[3]) value = 2
+    return Math.max(0, Math.min(4, 2 + pool * 1.5 - edge * 1.1))
+  }
+  const inside = (r: readonly number[], lx: number, ly: number) => lx >= r[0] && lx < r[0] + r[2] && ly >= r[1] && ly < r[1] + r[3]
+  for (let fy = 0; fy < FINE_H; fy++) for (let fx = 0; fx < FINE_W; fx++) {
+    const x = (fx + .5) / UNIT - .5, y = (fy + .5) / UNIT - .5
+    let value = light(x, y)
+    const lx = Math.floor(fx / UNIT), ly = Math.floor(fy / UNIT)
+    const face = flat.find(r => inside(r, lx, ly))
+    if (face) value = Math.round(light(face[0] + face[2] / 2, face[1] + face[3] / 2))
+    if (win && inside(win, lx, ly)) value = 2
     const level = Math.floor(value), fraction = value - level
-    // 2x2 ordered dither across the whole gradient (no visible band edges on flat walls).
-    mask[y * WIDTH + x] = Math.min(4, level + (fraction > [.125, .625, .875, .375][(y & 1) * 2 + (x & 1)] ? 1 : 0))
+    // 2x2 ordered dither at native resolution: gradients read as texture, not bands.
+    mask[fy * FINE_W + fx] = Math.min(4, level + (fraction > [.125, .625, .875, .375][(fy & 1) * 2 + (fx & 1)] ? 1 : 0))
   }
   lighting.set(room, mask)
   return mask
@@ -361,64 +414,122 @@ function portrait(p: Pixels, x: number, y: number, w: number, h: number, seed: n
     else { p.ellipse(cx, hy - ry + 3, hr + 1, 4, hair); p.rect(cx - hr, hy - 3, 2, 4, hair) }
     if (style === 2) p.ellipse(cx, hy - ry - 1, 3, 3, hair)
     const ex = Math.max(2, Math.round(hr * .5)), ey = hy - 1
-    p.dot(cx - ex, ey, C.black); p.dot(cx + ex, ey, C.black)
+    p.fine(() => {
+      for (const side of [-1, 1]) {
+        const X = (cx + side * ex) * UNIT, Y = ey * UNIT
+        p.rect(X - 2, Y - 1, 5, 1, C.lash); p.rect(X - 1, Y, 3, 2, C.navy); p.rect(X, Y, 1, 1, C.bow)
+        p.rect(X - 1, Y - 4, 4, 1, hair)
+      }
+      p.rect(cx * UNIT, (hy + 1) * UNIT, 1, 2, C.skinShade)
+    })
     if (seed % 2 === 0) { p.frame(cx - ex - 2, ey - 2, 5, 4, C.gold); p.frame(cx + ex - 2, ey - 2, 5, 4, C.gold); p.dot(cx, ey - 1, C.gold) }
-    p.rect(cx - 1, hy + ry - 4, 3, 1, C.rose)
+    p.fine(() => { p.rect(cx * UNIT - 2, (hy + ry - 4) * UNIT, 5, 1, C.rose); p.rect(cx * UNIT - 1, (hy + ry - 4) * UNIT + 1, 3, 1, C.skinShade) })
   }
   gilt(p, x, y, w, h)
   if (plate && occupied) { p.rect(cx - 11, y + h + 7, 22, 6, C.black); p.rect(cx - 10, y + h + 8, 20, 4, C.honey); p.rect(cx - 7, y + h + 9, 14, 1, C.warmWood); p.rect(cx - 5, y + h + 11, 10, 1, C.warmWood) }
 }
 
 
-/** The Countess (founder) and the Editor-in-Chief, hand-placed on a 28x44 canvas. */
+/**
+ * The Countess (founder) and the Editor-in-Chief, painted in native pixels on a 56×88 canvas
+ * (a 28×44 frame on the layout grid), after the reference portraits.
+ */
 function namedPortrait(p: Pixels, x: number, y: number, who: 'count' | 'editor') {
-  const w = 28, h = 44, cx = x + 14
-  if (who === 'count') {
-    p.rect(x, y, w, h, C.red)
-    for (const sx of [0, 8, 20]) p.rect(x + sx, y, 3, h, C.redDark)
-    p.ellipse(cx, y + 14, 11, 13, C.wood)                                   // long hair, back
-    p.rect(cx - 12, y + 14, 4, h - 14, C.wood); p.rect(cx + 8, y + 14, 4, h - 20, C.wood)
-    p.rect(cx - 11, y + 20, 1, 20, C.warmWood); p.rect(cx + 10, y + 22, 1, 14, C.warmWood)
-    p.polygon([[x, y + h], [x + 1, y + 33], [cx - 9, y + 29], [cx + 9, y + 29], [x + w - 1, y + 33], [x + w, y + h]], C.shadow) // cloak
-    p.polygon([[x + 2, y + h], [x + 3, y + 35], [cx - 8, y + 31], [cx - 7, y + h]], C.slate)
-    p.polygon([[cx - 4, y + 33], [cx + 4, y + 33], [cx + 3, y + h], [cx - 3, y + h]], C.metal)   // cravat
-    for (let k = 0; k < 4; k++) { p.dot(cx - 2, y + 35 + k * 2, C.steel); p.dot(cx + 1, y + 36 + k * 2, C.steel) }
-    p.rect(cx - 6, y + 27, 12, 6, C.roof); p.rect(cx - 6, y + 27, 12, 1, C.stone)  // high collar
-    p.dot(cx + 2, y + 29, C.gold); p.dot(cx + 2, y + 32, C.gold)
-    p.rect(cx - 2, y + 24, 4, 4, C.paleShade)                                // neck
-    p.ellipse(cx, y + 17, 6, 8, C.pale)                                      // face
-    p.rect(cx + 5, y + 14, 1, 7, C.paleShade)
-    p.ellipse(cx, y + 8, 9, 5, C.wood); p.rect(cx - 8, y + 9, 3, 13, C.wood); p.rect(cx + 5, y + 9, 3, 13, C.wood) // swept fringe + side locks
-    p.line(cx - 8, y + 6, cx + 4, y + 3, C.warmWood)
-    p.rect(cx - 4, y + 16, 3, 1, C.black); p.rect(cx + 1, y + 16, 3, 1, C.black) // lashes
-    p.rect(cx - 3, y + 17, 2, 1, C.blueLight); p.rect(cx + 2, y + 17, 2, 1, C.blueLight)
-    p.rect(cx - 1, y + 22, 3, 1, C.paleShade); p.dot(cx + 8, y + 21, C.gold)
-  } else {
-    p.rect(x, y, w, h, C.shadow); p.rect(x, y + 34, w, 10, C.black)
-    p.ellipse(cx, y + 24, 10, 11, C.warmWood)                               // bob
-    p.rect(cx - 10, y + 24, 3, 9, C.warmWood); p.rect(cx + 7, y + 24, 3, 11, C.warmWood)
-    p.polygon([[x, y + h], [x + 1, y + 37], [cx - 9, y + 33], [cx + 9, y + 33], [x + w - 1, y + 37], [x + w, y + h]], C.black) // cape
-    p.dot(x + 3, y + 38, C.slate); p.dot(x + 7, y + 36, C.slate); p.dot(x + 22, y + 37, C.slate); p.dot(x + 25, y + 40, C.slate)
-    p.rect(cx - 2, y + 28, 4, 5, C.peach)
-    p.ellipse(cx, y + 22, 6, 7, C.peach)
-    p.rect(cx + 5, y + 19, 1, 6, C.skin)
-    p.rect(cx - 6, y + 15, 12, 3, C.black)                                  // hat brim shadow
-    p.polygon([[x + 2, y + 15], [x + 5, y + 4], [cx + 3, y + 1], [x + w - 1, y + 4], [x + w - 1, y + 21], [x + w - 6, y + 15]], C.black) // hat
-    p.line(x + 3, y + 14, x + w - 7, y + 15, C.slate); p.line(x + 6, y + 6, x + 12, y + 3, C.slate)
-    p.polygon([[x + w - 8, y + 6], [x + w - 13, y + 3], [x + w - 12, y + 9]], C.cream)        // hat bow
-    p.polygon([[x + w - 8, y + 6], [x + w - 4, y + 3], [x + w - 4, y + 9]], C.cream)
-    p.rect(x + w - 8, y + 5, 2, 3, C.paperShade); p.line(x + w - 7, y + 9, x + w - 5, y + 13, C.cream)
-    p.rect(cx - 4, y + 21, 3, 1, C.black); p.rect(cx + 1, y + 21, 3, 1, C.black)
-    p.rect(cx - 3, y + 22, 2, 1, C.ember); p.rect(cx + 2, y + 22, 2, 1, C.ember) // red eyes
-    p.line(cx - 2, y + 26, cx + 1, y + 27, C.rose); p.dot(cx + 2, y + 26, C.rose)
-    p.line(cx + 1, y + 19, cx - 6, y + 20, C.warmWood)                     // fringe
-    p.line(cx - 10, y + 38, cx + 8, y + 42, C.teal); p.line(cx + 8, y + 38, cx - 10, y + 42, C.teal) // corset lacing
-    p.polygon([[cx - 2, y + 33], [cx - 13, y + 30], [cx - 10, y + 37]], C.cream)              // big white bow tie
-    p.polygon([[cx + 2, y + 33], [cx + 11, y + 30], [cx + 10, y + 38]], C.cream)
-    p.polygon([[cx - 2, y + 35], [cx + 3, y + 35], [cx + 5, y + h - 1], [cx, y + h - 1]], C.paper)
-    p.ellipse(cx, y + 33, 2, 2, C.paperShade)
-  }
-  gilt(p, x, y, w, h)
+  const X = x * UNIT, Y = y * UNIT
+  type Pt = [number, number]
+  p.fine(() => {
+    const R = (a: number, b: number, w: number, h: number, c: string) => p.rect(X + a, Y + b, w, h, c)
+    const D = (a: number, b: number, c: string) => p.rect(X + a, Y + b, 1, 1, c)
+    const P = (pts: Pt[], c: string) => p.polygon(pts.map(([a, b]) => [X + a, Y + b] as const), c)
+    const E = (a: number, b: number, rx: number, ry: number, c: string) => p.ellipse(X + a, Y + b, rx, ry, c)
+    const L = (a0: number, b0: number, a1: number, b1: number, c: string) => p.line(X + a0, Y + b0, X + a1, Y + b1, c)
+    if (who === 'count') {
+      // Red velvet drapery behind her.
+      R(0, 0, 56, 88, C.velvet)
+      for (const [fx, fw] of [[0, 5], [15, 4], [38, 5], [51, 5]]) { R(fx, 0, fw, 88, C.velvetDark); R(fx + fw, 0, 1, 88, C.velvetLight) }
+      p.texture(X, Y, 56, 88, C.velvetLight, .05, 41)
+      // Long hair, the mass behind the shoulders.
+      P([[14, 20], [20, 10], [28, 7], [37, 10], [43, 20], [46, 40], [48, 66], [50, 88], [6, 88], [8, 66], [10, 40]], C.hairDark)
+      // Dark plaid cloak.
+      P([[0, 88], [0, 74], [8, 66], [19, 61], [37, 61], [48, 66], [56, 74], [56, 88]], C.plaid)
+      for (let gx = 3; gx < 56; gx += 7) R(gx, 72, 1, 16, C.plaidLight)
+      R(0, 79, 56, 1, C.plaidLight); R(0, 85, 56, 1, C.plaidLight)
+      L(10, 70, 6, 88, C.charcoal); L(46, 70, 50, 88, C.charcoal)
+      // Front locks falling over the cloak.
+      P([[9, 40], [15, 46], [17, 70], [15, 88], [7, 88], [5, 72]], C.hair)
+      P([[41, 46], [47, 40], [51, 72], [49, 88], [41, 88], [39, 70]], C.hair)
+      L(10, 48, 8, 80, C.hairLight); L(14, 54, 13, 86, C.hairShine); L(46, 50, 48, 82, C.hairLight); L(43, 58, 44, 86, C.hairShine)
+      // Neck, high navy collar with two gold buttons, lilac jabot.
+      R(24, 50, 8, 12, C.pale); R(24, 50, 8, 3, C.paleShade)
+      P([[19, 57], [37, 57], [39, 68], [17, 68]], C.navy)
+      R(19, 57, 18, 1, C.lilac); L(17, 67, 19, 58, C.lilac)
+      R(30, 60, 2, 2, C.gold); R(30, 64, 2, 2, C.gold); D(30, 60, C.cream); D(30, 64, C.cream)
+      P([[21, 68], [35, 68], [37, 74], [19, 74]], C.lilac)
+      P([[20, 74], [36, 74], [38, 80], [18, 80]], C.lilac)
+      P([[19, 80], [37, 80], [38, 88], [18, 88]], C.lilac)
+      for (const yy of [73, 79, 86]) for (let xx = 19; xx < 37; xx += 3) R(xx, yy, 2, 1, C.lilacLight)
+      R(27, 69, 1, 19, C.navy)
+      // Face: pale, long and narrow.
+      E(28, 36, 10, 13, C.pale)
+      P([[18, 38], [38, 38], [35, 46], [28, 52], [21, 46]], C.pale)
+      L(37, 31, 36, 44, C.paleShade); L(36, 44, 29, 52, C.paleShade)
+      // Hair swept back off the forehead, with a few loose strands.
+      P([[16, 34], [17, 20], [22, 12], [28, 10], [35, 12], [40, 20], [40, 32], [37, 24], [30, 20], [24, 21], [19, 26]], C.hair)
+      L(19, 24, 24, 14, C.hairLight); L(24, 20, 30, 12, C.hairLight); L(31, 19, 37, 14, C.hairShine); L(35, 22, 39, 29, C.hairLight)
+      P([[16, 26], [20, 28], [19, 42], [17, 54], [14, 48]], C.hair)
+      P([[36, 26], [40, 24], [42, 48], [39, 54], [37, 40]], C.hair)
+      L(17, 30, 16, 48, C.hairLight); L(40, 30, 41, 46, C.hairLight); L(22, 22, 20, 34, C.hairDark)
+      // Heavy-lidded grey eyes with winged liner, thin brows, a faint smile, gold earring.
+      R(21, 31, 5, 1, C.hair); R(30, 31, 5, 1, C.hair)
+      R(20, 35, 7, 1, C.lash); D(19, 34, C.lash); R(29, 35, 7, 1, C.lash); D(36, 34, C.lash)
+      R(22, 36, 3, 2, C.steel); R(23, 36, 1, 2, C.navy); R(30, 36, 3, 2, C.steel); R(31, 36, 1, 2, C.navy)
+      R(21, 38, 5, 1, C.paleShade); R(30, 38, 5, 1, C.paleShade)
+      D(28, 41, C.paleShade); D(29, 42, C.paleShade)
+      R(26, 46, 4, 1, C.rose); D(30, 45, C.rose)
+      D(40, 43, C.gold); D(40, 44, C.cream); D(40, 45, C.gold)
+    } else {
+      R(0, 0, 56, 88, C.charcoal)
+      // Brown hair behind, black cape with sheen, lace and jet beads.
+      P([[14, 34], [18, 26], [38, 26], [42, 34], [44, 62], [36, 64], [20, 64], [12, 60]], C.bangs)
+      L(15, 40, 14, 58, C.bangsLight); L(41, 40, 42, 60, C.bangsLight)
+      P([[0, 88], [0, 72], [10, 64], [22, 61], [34, 61], [46, 65], [56, 72], [56, 88]], C.hat)
+      P([[2, 76], [10, 68], [16, 66], [8, 80]], C.hatSheen); P([[44, 68], [52, 74], [50, 80], [42, 72]], C.hatSheen)
+      for (let xx = 0; xx < 56; xx += 3) { D(xx, 84, C.plaidLight); D(xx + 1, 85, C.plaidLight) }
+      for (const xx of [6, 12, 44, 50]) D(xx, 78, C.silver)
+      // Neck and face.
+      R(24, 52, 8, 10, C.peach); R(24, 52, 8, 2, C.skin)
+      E(28, 41, 10, 12, C.peach)
+      P([[18, 41], [38, 41], [35, 49], [28, 53], [21, 49]], C.peach)
+      L(37, 38, 36, 47, C.skin); L(36, 47, 30, 53, C.skin)
+      // White blouse strip and crossed teal lacing.
+      R(21, 66, 14, 22, C.bow)
+      for (let k = 0; k < 4; k++) { L(19, 68 + k * 5, 36, 72 + k * 5, C.teal); L(36, 68 + k * 5, 19, 72 + k * 5, C.tealLight) }
+      // Side hair and bangs.
+      P([[16, 36], [20, 38], [20, 58], [15, 62], [13, 48]], C.bangs)
+      P([[37, 38], [41, 35], [43, 48], [42, 62], [37, 58]], C.bangs)
+      P([[17, 40], [18, 31], [24, 27], [34, 27], [39, 31], [40, 42], [37, 36], [33, 39], [30, 34], [26, 38], [22, 35], [20, 39]], C.bangs)
+      L(22, 30, 20, 38, C.bangsLight); L(30, 29, 31, 36, C.bangsLight); L(38, 36, 40, 50, C.bangsLight)
+      // The big white cravat bow.
+      P([[26, 64], [31, 64], [35, 86], [28, 83], [24, 86]], C.bow); L(29, 66, 30, 83, C.bowShade)
+      P([[28, 63], [16, 57], [5, 59], [3, 64], [12, 68]], C.bow); P([[28, 63], [12, 68], [7, 66]], C.bowShade)
+      P([[28, 63], [40, 58], [47, 61], [45, 67], [36, 67]], C.bow); L(45, 63, 31, 64, C.bowShade)
+      E(28, 63, 3, 3, C.bowShade); E(28, 62, 2, 2, C.bow)
+      // Tilted wide-brimmed hat drooping to her left, lace band and white bow.
+      P([[13, 12], [17, 5], [27, 1], [38, 3], [46, 11], [47, 21], [13, 22]], C.hat)
+      P([[2, 24], [14, 19], [30, 18], [44, 20], [52, 28], [55, 46], [50, 44], [44, 34], [34, 30], [18, 30], [6, 30]], C.hat)
+      L(17, 8, 25, 3, C.hatSheen); L(16, 12, 17, 19, C.hatSheen); L(4, 26, 14, 21, C.hatSheen); L(44, 22, 52, 30, C.hatSheen); L(52, 31, 54, 44, C.hatSheen)
+      for (let xx = 15; xx < 45; xx += 2) { D(xx, 21, C.plaidLight); D(xx + 1, 22, C.charcoal) }
+      P([[40, 9], [33, 4], [32, 12]], C.bow); P([[40, 9], [48, 5], [48, 13]], C.bow); R(39, 8, 3, 3, C.bowShade)
+      L(40, 11, 43, 20, C.bow); L(41, 11, 45, 19, C.bowShade)
+      // Smiling red eyes and a small smile.
+      R(20, 40, 6, 1, C.lash); R(30, 40, 6, 1, C.lash); D(19, 41, C.lash); D(36, 41, C.lash)
+      R(21, 41, 4, 2, C.eyeRed); R(31, 41, 4, 2, C.eyeRed); R(22, 42, 2, 1, C.velvetDark); R(32, 42, 2, 1, C.velvetDark)
+      D(22, 41, C.bow); D(32, 41, C.bow)
+      R(21, 43, 4, 1, C.skin); R(31, 43, 4, 1, C.skin)
+      R(26, 48, 4, 1, C.rose); D(25, 47, C.rose); D(30, 47, C.rose)
+    }
+  })
+  gilt(p, x, y, 28, 44)
 }
 
 function sconce(p: Pixels, x: number, y: number) {
@@ -540,8 +651,8 @@ function libraryRoom(p: Pixels, state: RoomState) {
     p.rect(x, 69, 4, 96, C.copper)
     for (let y = 75; y < 163; y += 13) p.rect(x, y, 4, 1, C.darkWood)
   }
-  shelf(p, 116, 43, 76, 118, 24)
-  shelf(p, 291, 40, 148, 123, 64)
+  tagged(p, 'shelfLadder', () => shelf(p, 116, 43, 76, 118, 24))
+  tagged(p, 'shelfBack', () => shelf(p, 291, 40, 148, 123, 64))
   // Low, lateral moonlight; no central picture window.
   cityWindow(p, 25, 43, 64, 65)
   p.rect(28, 120, 56, 4, C.copper)
@@ -559,10 +670,8 @@ function libraryRoom(p: Pixels, state: RoomState) {
     p.line(x, y + 1, x + 14, y + 1, C.warmWood)
   }
   // Foreground stacks overlap the back wall and frame the aisle.
-  p.polygon([[107, 123], [124, 114], [124, 228], [107, 250]], C.black)
-  shelf(p, 9, 128, 99, 123, 41)
-  p.polygon([[382, 107], [405, 91], [405, 261], [382, 227]], C.black)
-  shelf(p, 404, 93, 72, 170, 74)
+  tagged(p, 'shelfLeft', () => { p.polygon([[107, 123], [124, 114], [124, 228], [107, 250]], C.black); shelf(p, 9, 128, 99, 123, 41) })
+  tagged(p, 'shelfRight', () => { p.polygon([[382, 107], [405, 91], [405, 261], [382, 227]], C.black); shelf(p, 404, 93, 72, 170, 74) })
   // Chairs sit on both long sides of a shared reading table.
   for (const [x, y] of [[210, 170], [184, 204], [307, 172], [330, 210]]) {
     p.rect(x, y, 19, 24, C.darkWood)
@@ -571,6 +680,7 @@ function libraryRoom(p: Pixels, state: RoomState) {
     p.rect(x + 1, y + 28, 3, 15, C.black)
     p.rect(x + 16, y + 28, 3, 15, C.black)
   }
+  p.tag = OBJECTS.indexOf('table') + 1
   p.polygon([[219, 170], [301, 170], [353, 241], [185, 241]], C.black)
   for (const x of [193, 337]) {
     p.rect(x, 238, 7, 30, C.darkWood)
@@ -587,12 +697,14 @@ function libraryRoom(p: Pixels, state: RoomState) {
   journal(p, 231, 188); journal(p, 266, 217)
   teacup(p, 214, 217)
   // New releases occupy a separate display stand, empty until publication.
+  p.tag = OBJECTS.indexOf('display') + 1
   p.rect(314, 154, 61, 29, C.darkWood)
   p.frame(317, 158, 55, 21, C.grain)
   p.rect(310, 150, 69, 5, C.copper)
   bookRow(p, 314, 150, 61, 77, Math.min(state.books, 12))
   p.rect(334, 163, 21, 7, C.paperShade)
   p.line(338, 166, 350, 166, C.warmWood)
+  p.tag = 0
   // Hanging amber reading light keeps the table free of office equipment.
   p.line(260, 20, 260, 137, C.black)
   p.line(261, 20, 261, 137, C.copper)
@@ -688,12 +800,14 @@ function otherRoom(p: Pixels, room: Exclude<RoomKind, 'desk' | 'shelf'>, state: 
     plant(p, 115, 20, 78, 1); plant(p, 336, 20, 72, 4)
     for (let i = 0; i < 4; i++) {
       const x = 22 + i * 104, on = i < state.departments
+      p.tag = OBJECTS.indexOf(`dept${i}` as ObjectKey) + 1
       banner(p, x + 22, 78, on, i)
       workDesk(p, x, 150, 83)
       if (on) typewriter(p, x + 11, 111, true)
       else dustCover(p, x + 11, 111)
       p.rect(x + 66, 142, 13, 2, C.paperShade); p.rect(x + 66, 140, 13, 2, on ? C.paper : C.paperShade)
     }
+    p.tag = OBJECTS.indexOf('tearoom') + 1
     // Notice board and tea counter.
     p.rect(414, 80, 54, 50, C.black); p.rect(416, 82, 50, 46, C.grain)
     p.texture(416, 82, 50, 46, C.warmWood, .2, 4)
@@ -709,34 +823,37 @@ function otherRoom(p: Pixels, room: Exclude<RoomKind, 'desk' | 'shelf'>, state: 
     p.rect(403, 158, 3, 12, C.honey); p.line(419, 162, 425, 160, C.copper)
     teacup(p, 434, 163); teacup(p, 449, 163)
     // Emblem inlaid in the rug: moon over a closed book.
+    p.tag = OBJECTS.indexOf('settings') + 1
     p.ellipse(240, 244, 40, 14, C.copper); p.ellipse(240, 244, 37, 12, C.redDark)
     p.ellipse(240, 244, 30, 9, C.rose); p.ellipse(240, 244, 28, 8, C.redDark)
     p.ellipse(240, 241, 8, 8, C.gold); p.ellipse(244, 239, 7, 7, C.redDark)
     p.polygon([[228, 249], [240, 246], [252, 249], [240, 253]], C.paper)
     p.line(240, 246, 240, 253, C.paperShade)
     for (const [sx, sy] of [[230, 237], [252, 238], [226, 243], [255, 246]]) p.dot(sx, sy, C.gold)
+    p.tag = 0
   } else if (room === 'authors') {
-    for (let i = 0; i < 4; i++) portrait(p, 53 + i * 108, 55, 53, 64, i, i < state.authors, true)
+    tagged(p, 'portraits', () => { for (let i = 0; i < 4; i++) portrait(p, 53 + i * 108, 55, 53, 64, i, i < state.authors, true) })
     for (const x of [26, 133, 241, 349, 456]) sconce(p, x, 78)
     armchair(p, 34, 150, 78, C.red, C.redDark, C.rose)
     armchair(p, 368, 150, 78, C.teal, C.greenDark, C.green)
+    p.tag = OBJECTS.indexOf('roundtable') + 1
     p.rect(222, 196, 36, 44, C.darkWood); p.rect(222, 196, 3, 44, C.warmWood)
     p.ellipse(240, 240, 26, 4, C.black); p.ellipse(240, 238, 22, 3, C.warmWood)
     p.ellipse(240, 199, 72, 20, C.black); p.ellipse(240, 193, 72, 20, C.copper); p.ellipse(240, 191, 70, 19, C.warmWood)
     p.ellipse(240, 190, 56, 14, C.grain)
     journal(p, 208, 183); teacup(p, 277, 184); candle(p, 247, 165)
     p.rect(300, 185, 22, 4, C.red); p.rect(302, 181, 18, 4, C.bookBlue)
+    p.tag = 0
   } else if (room === 'study') {
     cityWindow(p, 27, 39, 116, 88)
-    fireplace(p, 197, HEARTH_Y)
-    namedPortrait(p, 208, 26, 'count'); namedPortrait(p, 244, 26, 'editor')
-    shelf(p, 366, 126, 96, 110, 55)
+    tagged(p, 'hearth', () => { fireplace(p, 197, HEARTH_Y); namedPortrait(p, 208, 26, 'count'); namedPortrait(p, 244, 26, 'editor') })
+    tagged(p, 'bookcase', () => shelf(p, 366, 126, 96, 110, 55))
     plant(p, 344, 32, 117, 8)
-    armchair(p, 64, 158, 90, C.plum, C.redDark, C.rose)
-    journal(p, 88, 178)
+    tagged(p, 'armchair', () => { armchair(p, 64, 158, 90, C.plum, C.redDark, C.rose); journal(p, 88, 178) })
     desk(p, 250, 214, 83); teacup(p, 281, 199); lamp(p, 176, 154)
   } else {
     // Card-index wall: brass labels, worn drawers and one left open.
+    p.tag = OBJECTS.indexOf('cabinet') + 1
     p.rect(18, 19, 236, 4, C.warmWood); p.rect(18, 19, 236, 1, C.honey)
     p.rect(20, 23, 232, 168, C.black)
     for (let row = 0; row < 5; row++) for (let col = 0; col < 5; col++) {
@@ -753,19 +870,23 @@ function otherRoom(p: Pixels, room: Exclude<RoomKind, 'desk' | 'shelf'>, state: 
       p.rect(x + 16, y + 10, 12, 1, C.paperShade); p.rect(x + 16, y + 12, 8, 1, C.paperShade)
       p.rect(x + 16, y + 20, 11, 3, C.honey); p.rect(x + 17, y + 21, 9, 1, C.black)
     }
-    shelf(p, 279, 29, 121, 164, 44)
-    awardsCase(p, 421, 88)
+    tagged(p, 'logs', () => shelf(p, 279, 29, 121, 164, 44))
+    tagged(p, 'awards', () => awardsCase(p, 421, 88))
+    p.tag = 0
     // Reading lamp over the ledger desk.
     p.line(265, 20, 265, 150, C.black); p.line(266, 20, 266, 150, C.copper)
     p.polygon([[258, 150], [274, 150], [286, 161], [246, 161]], C.greenDark)
     p.line(252, 156, 280, 156, C.green); p.rect(246, 161, 40, 2, C.honey); p.rect(255, 163, 22, 2, C.cream)
-    desk(p, 148, 205, 187); journal(p, 214, 189); candle(p, 316, 176)
-    p.rect(160, 192, 26, 4, C.red); p.rect(162, 188, 22, 4, C.bookBlue); p.rect(164, 184, 18, 4, C.plum)
+    tagged(p, 'ledger', () => {
+      desk(p, 148, 205, 187); journal(p, 214, 189); candle(p, 316, 176)
+      p.rect(160, 192, 26, 4, C.red); p.rect(162, 188, 22, 4, C.bookBlue); p.rect(164, 184, 18, 4, C.plum)
+    })
   }
 }
 
 export function renderRoom(room: RoomKind, state: RoomState = EMPTY_ROOM, includeLiveObjects = true) {
-  const p = new Pixels()
+  const p = new Pixels(FINE_W, FINE_H, undefined, true)
+  p.s = UNIT
   if (room === 'desk') deskRoom(p, state, includeLiveObjects)
   else if (room === 'shelf') libraryRoom(p, state)
   else otherRoom(p, room, state)
@@ -776,12 +897,13 @@ export function renderRoom(room: RoomKind, state: RoomState = EMPTY_ROOM, includ
 function flashMask(room: RoomKind, level: 1 | 2) {
   const mask = lightMask(room).slice(), win = WINDOWS[room]
   for (let i = 0; i < mask.length; i++) mask[i] = Math.min(4, mask[i] + 1)
-  if (win) for (let y = win[1]; y < win[1] + win[3]; y++) mask.fill(level === 2 ? 5 : 4, y * WIDTH + win[0], y * WIDTH + win[0] + win[2])
+  if (win) for (let y = win[1] * UNIT; y < (win[1] + win[3]) * UNIT; y++) mask.fill(level === 2 ? 5 : 4, y * FINE_W + win[0] * UNIT, y * FINE_W + (win[0] + win[2]) * UNIT)
   return mask
 }
 
 export function animateRoom(base: Pixels, room: RoomKind, state: RoomState, tick: number, weather: Weather = 'clear', ramp = 1) {
-  const p = new Pixels(WIDTH, HEIGHT, base.data)
+  const p = new Pixels(FINE_W, FINE_H, base.data)
+  p.s = UNIT
   const win = WINDOWS[room]
   if (win) drawWeather(p, win, weather, tick, ramp, base.data)
   if (room === 'desk') {

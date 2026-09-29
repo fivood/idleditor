@@ -25,12 +25,14 @@ export function AuthorsRoom() {
       {/* 肖像墙（后墙 4 幅）→ 作者面板 */}
       <Hotspot
         label={`✒️ 肖像墙 · ${signed} 位签约作家`}
+        object="portraits"
         style={{ left: '8%', top: '18%', width: '84%', height: '32%' }}
         onClick={() => setOpenPanel('roster')}
       />
       {/* 圆桌 → 作者面板（同一入口）*/}
       <Hotspot
         label="🪑 圆桌会议（接待作者）"
+        object="roundtable"
         style={{ left: '36%', top: '64%', width: '28%', height: '18%' }}
         onClick={() => setOpenPanel('roster')}
       />

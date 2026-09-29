@@ -6,6 +6,7 @@ import { ScenePanel } from '@/components/scene/ScenePanel'
 import { CorridorDoor } from '@/components/scene/CorridorDoor'
 import { OfficeView } from '@/components/office/OfficeView'
 import type { DepartmentType } from '@/core/types'
+import type { ObjectKey } from '@/art/rooms'
 
 type PanelKey = null | 'departments' | 'tearoom' | 'settings'
 
@@ -43,6 +44,7 @@ export function OfficeRoom() {
       {DEPT_KEYS.map((dept, i) => (
         <Hotspot
           key={dept}
+          object={`dept${i}` as ObjectKey}
           label={DEPT_LABELS[dept] + (Array.from(departments.values()).some(d => d.type === dept) ? ' (已雇佣)' : ' (未雇佣)')}
           style={{ left: `${4.5 + i * 21.7}%`, top: '28%', width: '16%', height: '44%' }}
           onClick={() => setOpenPanel('departments')}
@@ -52,6 +54,7 @@ export function OfficeRoom() {
       {/* 茶水间热区 */}
       <Hotspot
         label="🍷 茶水间 · 版税消费"
+        object="tearoom"
         style={{ right: '2%', bottom: '8%', width: '20%', height: '58%' }}
         onClick={() => setOpenPanel('tearoom')}
       />
@@ -59,6 +62,7 @@ export function OfficeRoom() {
       {/* 中央徽标 → 设置 panel */}
       <Hotspot
         label="⚙️ 设置 · 偏好领域 / 凡间专栏 / 黑名单"
+        object="settings"
         style={{ left: '32%', top: '78%', width: '36%', height: '18%' }}
         onClick={() => setOpenPanel('settings')}
       />

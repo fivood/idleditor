@@ -31,24 +31,28 @@ export function ArchiveRoom() {
       {/* 文件柜墙 */}
       <Hotspot
         label="🗄️ 出版档案柜"
+        object="cabinet"
         style={{ left: '4%', top: '6%', width: '50%', height: '72%' }}
         onClick={() => setOpenPanel('ledger')}
       />
       {/* 装订日志册 */}
       <Hotspot
         label={`📚 出版日志档案${archivedYearCount > 0 ? `（${archivedYearCount} 卷）` : ''}`}
+        object="logs"
         style={{ left: '56%', top: '6%', width: '30%', height: '72%' }}
         onClick={() => setOpenPanel('logs')}
       />
       {/* 中央账本桌 */}
       <Hotspot
         label="📒 翻阅账本"
+        object="ledger"
         style={{ left: '30%', top: '70%', width: '40%', height: '18%' }}
         onClick={() => setOpenPanel('ledger')}
       />
       {/* 蜡封卷轴 → 文学奖名录（v2.4 接管此热点） */}
       <Hotspot
         label={`🏆 永夜文学奖${awardCount > 0 ? `（${awardCount} 项）` : ''}`}
+        object="awards"
         style={{ right: '2%', top: '28%', width: '10%', height: '36%' }}
         onClick={() => setOpenPanel('awards')}
       />

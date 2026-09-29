@@ -1,4 +1,5 @@
 import type { ReactNode, CSSProperties } from 'react'
+import type { ObjectKey } from '@/art/rooms'
 
 /**
  * 场景内可点击的透明热区。
@@ -18,14 +19,17 @@ interface HotspotProps {
   onClick: () => void
   /** 可选：未交互过时显示闪烁星标 */
   unseen?: boolean
+  /** 场景里画出的物件：悬停描出物件轮廓，点击按真实形状判定（矩形只留给键盘和读屏）。 */
+  object?: ObjectKey
   children?: ReactNode
 }
 
-export function Hotspot({ label, style, onClick, unseen, children }: HotspotProps) {
+export function Hotspot({ label, style, onClick, unseen, object, children }: HotspotProps) {
   return (
     <button
       onClick={onClick}
       aria-label={label}
+      data-object={object}
       className="group absolute z-20 cursor-pointer bg-transparent focus:outline-none hover:bg-[#f5d87815] active:bg-[#f5d87830] transition-all duration-150"
       style={{
         ...style,
