@@ -63,6 +63,9 @@ export class Pixels {
   tag = 0
   /** Record tags only, leave colours alone (for objects that are painted later, every frame). */
   ghost = false
+  /** Where the 960×540 core room sits on a larger (or smaller) canvas, in native pixels. */
+  OX = 0
+  OY = 0
   constructor(width = WIDTH, height = HEIGHT, source?: Uint32Array, tagged = false) {
     this.width = width
     this.height = height
@@ -86,8 +89,8 @@ export class Pixels {
   dot(x: number, y: number, c: string) { this.rect(x, y, 1, 1, c) }
   rect(x: number, y: number, w: number, h: number, c: string) {
     const k = this.s
-    const x0 = Math.round(x * k), y0 = Math.max(0, Math.round(y * k))
-    const x1 = Math.round((x + w) * k), y1 = Math.min(this.height, Math.round((y + h) * k))
+    const x0 = Math.round(x * k) + this.OX, y0 = Math.max(0, Math.round(y * k) + this.OY)
+    const x1 = Math.round((x + w) * k) + this.OX, y1 = Math.min(this.height, Math.round((y + h) * k) + this.OY)
     if (x1 <= x0 || y1 <= y0) return
     const rgba = color(c)
     for (let j = y0; j < y1; j++) this.span(x0, x1, j, rgba)
@@ -95,7 +98,7 @@ export class Pixels {
   line(x0: number, y0: number, x1: number, y1: number, c: string) {
     const k = this.s
     // Stepped at native resolution with a unit-wide brush: diagonals stay smooth, weight stays the same.
-    x0 = Math.round(x0 * k); y0 = Math.round(y0 * k); x1 = Math.round(x1 * k); y1 = Math.round(y1 * k)
+    x0 = Math.round(x0 * k) + this.OX; y0 = Math.round(y0 * k) + this.OY; x1 = Math.round(x1 * k) + this.OX; y1 = Math.round(y1 * k) + this.OY
     const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1
     const rgba = color(c)
     let error = dx + dy
@@ -112,11 +115,11 @@ export class Pixels {
     if (this.s === 1) {
       for (let y = Math.ceil(cy - ry); y <= Math.floor(cy + ry); y++) {
         const dx = Math.floor(rx * Math.sqrt(Math.max(0, 1 - ((y - cy) / ry) ** 2)))
-        this.span(Math.round(cx - dx), Math.round(cx + dx) + 1, y, rgba)
+        this.span(Math.round(cx - dx) + this.OX, Math.round(cx + dx) + 1 + this.OX, y + this.OY, rgba)
       }
       return
     }
-    const k = this.s, Cx = (cx + .5) * k, Cy = (cy + .5) * k, Rx = (rx + .5) * k, Ry = (ry + .5) * k
+    const k = this.s, Cx = (cx + .5) * k + this.OX, Cy = (cy + .5) * k + this.OY, Rx = (rx + .5) * k, Ry = (ry + .5) * k
     for (let y = Math.ceil(Cy - Ry - .5); y <= Math.floor(Cy + Ry - .5); y++) {
       const t = (y + .5 - Cy) / Ry, dx = Rx * Math.sqrt(Math.max(0, 1 - t * t))
       this.span(Math.ceil(Cx - dx - .5), Math.floor(Cx + dx - .5) + 1, y, rgba)
@@ -125,7 +128,7 @@ export class Pixels {
   polygon(points: readonly (readonly [number, number])[], c: string) {
     // Vertices sit on layout-pixel centres; h widens edges by half a layout pixel so polygons meet rects flush.
     const k = this.s, h = (k - 1) / 2, rgba = color(c)
-    const pts = points.map(([x, y]) => [(x + .5) * k, (y + .5) * k] as const)
+    const pts = points.map(([x, y]) => [(x + .5) * k + this.OX, (y + .5) * k + this.OY] as const)
     const top = Math.min(...pts.map(p => p[1])), bottom = Math.max(...pts.map(p => p[1]))
     const low = Math.max(0, Math.ceil(top - .5 - h)), high = Math.min(this.height - 1, Math.floor(bottom + h - .5))
     for (let y = low; y <= high; y++) {
@@ -147,13 +150,13 @@ export class Pixels {
   texture(x: number, y: number, w: number, h: number, c: string, density: number, seed = 0) {
     const k = this.s, rgba = color(c)
     for (let j = Math.round(y * k); j < Math.round((y + h) * k); j++) for (let i = Math.round(x * k); i < Math.round((x + w) * k); i++) {
-      if (noise(i, j, seed) < density) this.span(i, i + 1, j, rgba)
+      if (noise(i, j, seed) < density) this.span(i + this.OX, i + 1 + this.OX, j + this.OY, rgba)
     }
   }
   /** Ordered, palette-only shading. It never introduces interpolated colours. */
   glow(cx: number, cy: number, rx: number, ry: number, c: string, density = 0.2) {
     const threshold = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
-    const k = this.s, Cx = (cx + .5) * k, Cy = (cy + .5) * k, Rx = rx * k, Ry = ry * k, rgba = color(c)
+    const k = this.s, Cx = (cx + .5) * k + this.OX, Cy = (cy + .5) * k + this.OY, Rx = rx * k, Ry = ry * k, rgba = color(c)
     for (let y = Math.max(0, Math.floor(Cy - Ry)); y <= Math.min(this.height - 1, Math.ceil(Cy + Ry)); y++) {
       for (let x = Math.max(0, Math.floor(Cx - Rx)); x <= Math.min(this.width - 1, Math.ceil(Cx + Rx)); x++) {
         const d = ((x + .5 - Cx) / Rx) ** 2 + ((y + .5 - Cy) / Ry) ** 2

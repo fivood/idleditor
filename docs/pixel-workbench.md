@@ -1,6 +1,6 @@
 # 永夜出版社 · 代码绘制场景
 
-更新：2026-09-29（v2.10）。
+更新：2026-09-29（v2.11）。
 
 ## 当前实现
 
@@ -29,7 +29,7 @@
 | `src/components/scene/PixelRoomCanvas.tsx` | 静态图层缓存、Canvas 输出、动画与音频生命周期 |
 | `src/components/scene/PixelStage.tsx` | 让画面和点击区域使用同一坐标空间，并读取天气 |
 
-桌面采用整数物理像素倍数填满并裁切，手机按宽度选择整数倍。Canvas 关闭平滑，CSS 使用 `image-rendering: pixelated`。文字和面板使用正常 DOM。
+画布铺满视口：先取能让核心房间（960×540）至少 88% 可见的最大整数倍（手机保证完整宽度），再按视口大小扩展画布（每轴最多到核心的两倍），多出的区域由各房间向外延伸墙壁、地板；主编室的窗户随画布向上长高。`src/art/layout.ts` 计算画布与核心位置，`Frame` 描述核心在画布上的偏移，热区仍按核心百分比定位。Canvas 关闭平滑，CSS 使用 `image-rendering: pixelated`。文字和面板使用正常 DOM。
 
 ## 物件轮廓与点击
 
