@@ -1,5 +1,10 @@
 import { HEIGHT as FINE_H, INK as C, noise, Pixels, UNIT, WIDTH as FINE_W } from './pixels'
 import { drawWeather, lightning, WINDOWS, windowBars } from './weather'
+import {
+  bats, brickWall, brush, candelabra, candelabraFlames, castlePainting, clockPendulum, clothDesk, deskBars, deskFloor, deskWindow,
+  inkAndQuill, inTray, letterRack, openJournal, pottedPlant, refPortrait, sleepingCat, teacupFine, teaSteam, typewriterFine,
+  wallCandle, wallCandleFlame, wallClock,
+} from './editorRoom'
 import type { Weather } from '@/core/weather'
 
 /** Layout grid: rooms are composed on 480×270 and rasterised at UNIT× so shapes and portraits get finer detail. */
@@ -9,12 +14,12 @@ export type RoomKind = 'desk' | 'office' | 'shelf' | 'authors' | 'study' | 'stat
 export interface RoomState { submitted: number; working: number; hasCat: boolean; books: number; authors: number; departments: number }
 export const EMPTY_ROOM: RoomState = { submitted: 0, working: 0, hasCat: false, books: 0, authors: 0, departments: 0 }
 export const DESK_OBJECTS = [
-  { key: 'solicit', label: '征稿信箱', x: 90, y: 80, w: 40, h: 59 },
-  { key: 'submissions', label: '待审稿件', x: 103, y: 165, w: 48, h: 38 },
-  { key: 'pipeline', label: '编辑流水线', x: 205, y: 163, w: 62, h: 40 },
-  { key: 'log', label: '出版日志', x: 282, y: 184, w: 49, h: 20 },
-  { key: 'dream', label: '梦境创作', x: 347, y: 183, w: 24, h: 22 },
-  { key: 'cat', label: '黑猫', x: 384, y: 151, w: 61, h: 25 },
+  { key: 'solicit', label: '征稿信箱', x: 26, y: 106, w: 50, h: 49 },
+  { key: 'submissions', label: '待审稿件', x: 116, y: 175, w: 49, h: 22 },
+  { key: 'pipeline', label: '编辑流水线', x: 198, y: 157, w: 66, h: 42 },
+  { key: 'log', label: '出版日志', x: 274, y: 183, w: 52, h: 24 },
+  { key: 'dream', label: '梦境创作', x: 364, y: 182, w: 24, h: 17 },
+  { key: 'cat', label: '黑猫', x: 350, y: 122, w: 50, h: 26 },
 ] as const
 
 /** Clickable things in the rooms. A pixel's tag is the index + 1, so outlines and clicks follow real shapes. */
@@ -191,14 +196,6 @@ function cityWindow(p: Pixels, x: number, y: number, w: number, h: number) {
   p.line(x - 4, y - 4, x + w + 3, y - 4, C.paperShade)
 }
 
-function curtain(p: Pixels, x: number, y: number, w: number, h: number) {
-  const tie = y + Math.floor(h * .62)
-  for (let i = 0; i < w; i++) p.rect(x + i, y, 1, h, [C.redDark, C.red, C.rose, C.red][Math.floor(i / 4) % 4])
-  p.rect(x, tie, w, 5, C.redDark); p.rect(x, tie + 1, w, 2, C.gold); p.rect(x, tie + 1, w, 1, C.cream)
-  p.rect(x + w - 1, y, 1, h, C.black)
-  p.rect(x, y, w, 3, C.black); p.rect(x, y + 1, w, 1, C.copper)
-}
-
 function candle(p: Pixels, x: number, y: number) {
   p.ellipse(x, y + 14, 8, 2, C.black)
   p.rect(x - 6, y + 11, 12, 2, C.copper)
@@ -252,18 +249,6 @@ function teacup(p: Pixels, x: number, y: number) {
   p.rect(x + 5, y + 6, 3, 3, C.rose)
 }
 
-function inbox(p: Pixels, count: number) {
-  p.rect(102, 194, 49, 9, C.darkWood); p.rect(103, 192, 47, 2, C.copper)
-  const pages = Math.min(10, Math.max(0, count))
-  for (let i = 0; i < pages; i++) {
-    const x = 107 + (i % 3), y = 192 - i * 2
-    p.rect(x, y, 37, 2, i % 2 ? C.paper : C.paperShade)
-    p.rect(x + 1, y, 35, 1, C.cream)
-  }
-  p.rect(104, 197, 46, 5, C.warmWood)
-  p.rect(122, 198, 12, 2, C.gold); p.rect(125, 198, 6, 1, C.black)
-}
-
 function typewriter(p: Pixels, x: number, y: number, working: boolean, tick = 0) {
   p.ellipse(x + 29, y + 36, 33, 4, C.black)
   p.rect(x + 13, y + 1, 34, 19, C.paperShade)
@@ -285,82 +270,58 @@ function typewriter(p: Pixels, x: number, y: number, working: boolean, tick = 0)
   p.rect(x + 27, y + 17, 8, 2, C.red)
 }
 
-function cat(p: Pixels, tick: number) {
-  const breath = Math.floor(tick / 18) % 2
-  p.ellipse(411, 169, 26, 4, C.redDark)
-  p.ellipse(413, 161 - breath, 18, 8, C.black)
-  p.ellipse(414, 158 - breath, 14, 5, C.shadow)
-  p.ellipse(431, 163, 8, 7, C.black)
-  p.polygon([[424, 162], [425, 153], [430, 158]], C.black)
-  p.polygon([[432, 158], [438, 153], [438, 164]], C.black)
-  p.line(425, 163, 428, 164, C.paperShade); p.line(433, 164, 436, 163, C.paperShade)
-  p.rect(430, 167, 2, 1, C.rose)
-  p.line(393, 165, 389, 161 + breath, C.shadow)
-  p.line(389, 161 + breath, 390, 158 + breath, C.shadow)
-}
-
+/** The editor's room: see editorRoom.ts. Positions are on the layout grid. */
+const DESK_WINDOW = WINDOWS.desk!
 function deskRoom(p: Pixels, state: RoomState, includeLiveObjects: boolean) {
-  shell(p)
-  cityWindow(p, 147, 29, 199, 123)
-  shelf(p, 10, 40, 58, 168, 11)
-  tagged(p, 'solicit', () => {
-    p.rect(88, 78, 44, 64, C.black); p.rect(91, 81, 38, 58, C.grain)
-    p.texture(94, 84, 32, 51, C.warmWood, .18, 6)
-    for (let i = 0; i < 3; i++) {
-      const xx = 96 + i % 2 * 3, yy = 87 + i * 16
-      p.rect(xx, yy, 23, 13, C.paperShade); p.polygon([[xx, yy], [xx + 12, yy + 8], [xx + 23, yy]], C.paper)
-      p.rect(xx + 11, yy + 7, 3, 3, C.red)
-    }
-  })
-  plant(p, 77, 20, 103, 2); plant(p, 358, 17, 96, 5)
-  curtain(p, 445, 13, 32, 170)
-  tagged(p, 'cat', () => {
-    p.rect(386, 169, 67, 12, C.warmWood); p.rect(390, 175, 5, 34, C.black); p.rect(444, 175, 5, 34, C.black)
-    p.rect(385, 169, 69, 5, C.red); p.frame(386, 168, 67, 7, C.rose)
-    p.rect(417, 135, 31, 33, C.redDark); p.frame(419, 137, 27, 28, C.rose)
-    p.polygon([[430, 142], [439, 151], [430, 161], [422, 151]], C.warmWood)
-  })
-  p.rect(380, 123, 50, 4, C.grain); bookRow(p, 399, 123, 29, 8, 3); candle(p, 388, 109)
-  rug(p, 81, 230, 340, 39)
-  desk(p, 83, 199, 304)
-  // Discrete amber pools on wood; all pixels remain in the fixed palette.
-  p.glow(321, 195, 41, 8, C.honey, .34)
-  p.rect(168, 184, 10, 15, C.black); p.rect(169, 184, 8, 2, C.gold)
-  p.line(174, 184, 177, 164, C.copper); p.line(174, 184, 169, 169, C.paperShade)
-  p.rect(184, 191, 7, 8, C.greenDark); p.rect(185, 188, 5, 4, C.gold)
-  tagged(p, 'log', () => journal(p, 282, 184))
-  tagged(p, 'dream', () => teacup(p, 349, 186))
-  lamp(p, 328, 158)
-  candle(p, 79, 131)
-  namedPortrait(p, 372, 40, 'count'); namedPortrait(p, 410, 40, 'editor')
-  // An editor's seal, closed reference volumes and brass corner pieces.
-  p.rect(151, 193, 13, 5, C.redDark); p.rect(151, 192, 13, 1, C.gold)
-  p.rect(267, 196, 11, 3, C.darkWood); p.rect(270, 190, 5, 6, C.copper)
-  for (const xx of [89, 374]) p.rect(xx, 204, 6, 2, C.honey)
+  brickWall(p, 0, 12, WIDTH, 188)
+  // Ceiling beam and a dark frieze.
+  const top = brush(p, 0, 0)
+  top.r(0, 0, FINE_W, 24, C.black); top.r(0, 24, FINE_W, 6, C.darkWood); top.r(0, 24, FINE_W, 1, C.wood); top.r(0, 30, FINE_W, 2, C.black)
+  for (let x = 60; x < FINE_W; x += 220) { top.r(x, 0, 18, 24, C.darkWood); top.r(x, 0, 1, 24, C.wood) }
+  deskFloor(p, 200)
+  deskWindow(p, ...DESK_WINDOW)
+  castlePainting(p, 30, 32)
+  refPortrait(p, 84, 32, 'count'); refPortrait(p, 84, 72, 'editor')
+  wallClock(p, 352, 30)
+  wallCandle(p)
+  shelf(p, 406, 28, 70, 88, 11)
+  shelf(p, 344, 150, 132, 58, 27)
+  tagged(p, 'solicit', () => letterRack(p, 26, 112))
+  pottedPlant(p, 4, 170)
+  clothDesk(p)
+  inkAndQuill(p, 172, 168)
+  candelabra(p)
+  tagged(p, 'log', () => openJournal(p))
+  tagged(p, 'dream', () => teacupFine(p))
   // Painted every frame by animateRoom; here they only need to claim their pixels.
   p.ghost = !includeLiveObjects
-  tagged(p, 'submissions', () => inbox(p, state.submitted))
-  tagged(p, 'pipeline', () => typewriter(p, 205, 165, state.working > 0))
-  if (state.hasCat) tagged(p, 'cat', () => cat(p, 0))
+  tagged(p, 'submissions', () => inTray(p, state.submitted))
+  tagged(p, 'pipeline', () => typewriterFine(p, state.working > 0))
+  if (state.hasCat) tagged(p, 'cat', () => sleepingCat(p, 0))
   p.ghost = false
 }
 
 const lighting = new Map<RoomKind, Uint8Array>()
 /** Painted faces take one flat light level: dithering across them reads as a screen door. */
 const FLAT_LIGHT: Partial<Record<RoomKind, [number, number, number, number][]>> = {
-  desk: [[367, 35, 76, 55]],
-  study: [[203, 21, 78, 55]],
+  desk: [[79, 27, 32, 76]],
+  study: [[207, 41, 70, 32]],
   authors: [0, 1, 2, 3].map(i => [49 + i * 108, 51, 62, 73]),
 }
 function lightMask(room: RoomKind) {
   const cached = lighting.get(room)
   if (cached) return cached
   const mask = new Uint8Array(FINE_W * FINE_H)
-  const source = room === 'desk' ? [318, 188] : room === 'study' ? [240, 127 + HEARTH_DY] : room === 'shelf' ? [260, 181] : [240, 186]
+  const source = room === 'desk' ? [349, 152] : room === 'study' ? [240, 127 + HEARTH_DY] : room === 'shelf' ? [260, 181] : [240, 186]
   const win = WINDOWS[room], flat = FLAT_LIGHT[room] ?? []
   const light = (x: number, y: number) => {
     const pool = Math.max(0, 1 - Math.hypot((x - source[0]) / 135, (y - source[1]) / 110))
     const edge = Math.max(0, (Math.abs(x - 240) - 125) / 180) + Math.max(0, (y - 226) / 140)
+    if (room === 'desk') {
+      // Candlelit: dark brick, a warm pool round the candelabra, a smaller one at the wall candle.
+      const wall = Math.max(0, 1 - Math.hypot((x - 396) / 60, (y - 112) / 50))
+      return Math.max(0, Math.min(4, 1.35 + Math.max(0, 1 - Math.hypot((x - source[0]) / 135, (y - source[1]) / 100)) * 1.9 + wall * .9 - edge * 1.2))
+    }
     return Math.max(0, Math.min(4, 2 + pool * 1.5 - edge * 1.1))
   }
   const inside = (r: readonly number[], lx: number, ly: number) => lx >= r[0] && lx < r[0] + r[2] && ly >= r[1] && ly < r[1] + r[3]
@@ -373,7 +334,9 @@ function lightMask(room: RoomKind) {
     if (win && inside(win, lx, ly)) value = 2
     const level = Math.floor(value), fraction = value - level
     // 2x2 ordered dither at native resolution: gradients read as texture, not bands.
-    mask[fy * FINE_W + fx] = Math.min(4, level + (fraction > [.125, .625, .875, .375][(fy & 1) * 2 + (fx & 1)] ? 1 : 0))
+    // The candlelit room keeps surfaces clean: dither only in a narrow band where levels meet.
+    const t = room === 'desk' ? (fraction < .38 ? 0 : fraction > .62 ? 1 : (fraction - .38) / .24) : fraction
+    mask[fy * FINE_W + fx] = Math.min(4, level + (t > [.125, .625, .875, .375][(fy & 1) * 2 + (fx & 1)] ? 1 : 0))
   }
   lighting.set(room, mask)
   return mask
@@ -429,108 +392,6 @@ function portrait(p: Pixels, x: number, y: number, w: number, h: number, seed: n
   if (plate && occupied) { p.rect(cx - 11, y + h + 7, 22, 6, C.black); p.rect(cx - 10, y + h + 8, 20, 4, C.honey); p.rect(cx - 7, y + h + 9, 14, 1, C.warmWood); p.rect(cx - 5, y + h + 11, 10, 1, C.warmWood) }
 }
 
-
-/**
- * The Countess (founder) and the Editor-in-Chief, painted in native pixels on a 56×88 canvas
- * (a 28×44 frame on the layout grid), after the reference portraits.
- */
-function namedPortrait(p: Pixels, x: number, y: number, who: 'count' | 'editor') {
-  const X = x * UNIT, Y = y * UNIT
-  type Pt = [number, number]
-  p.fine(() => {
-    const R = (a: number, b: number, w: number, h: number, c: string) => p.rect(X + a, Y + b, w, h, c)
-    const D = (a: number, b: number, c: string) => p.rect(X + a, Y + b, 1, 1, c)
-    const P = (pts: Pt[], c: string) => p.polygon(pts.map(([a, b]) => [X + a, Y + b] as const), c)
-    const E = (a: number, b: number, rx: number, ry: number, c: string) => p.ellipse(X + a, Y + b, rx, ry, c)
-    const L = (a0: number, b0: number, a1: number, b1: number, c: string) => p.line(X + a0, Y + b0, X + a1, Y + b1, c)
-    if (who === 'count') {
-      // Red velvet drapery behind her.
-      R(0, 0, 56, 88, C.velvet)
-      for (const [fx, fw] of [[0, 5], [15, 4], [38, 5], [51, 5]]) { R(fx, 0, fw, 88, C.velvetDark); R(fx + fw, 0, 1, 88, C.velvetLight) }
-      p.texture(X, Y, 56, 88, C.velvetLight, .05, 41)
-      // Long hair, the mass behind the shoulders.
-      P([[14, 20], [20, 10], [28, 7], [37, 10], [43, 20], [46, 40], [48, 66], [50, 88], [6, 88], [8, 66], [10, 40]], C.hairDark)
-      // Dark plaid cloak.
-      P([[0, 88], [0, 74], [8, 66], [19, 61], [37, 61], [48, 66], [56, 74], [56, 88]], C.plaid)
-      for (let gx = 3; gx < 56; gx += 7) R(gx, 72, 1, 16, C.plaidLight)
-      R(0, 79, 56, 1, C.plaidLight); R(0, 85, 56, 1, C.plaidLight)
-      L(10, 70, 6, 88, C.charcoal); L(46, 70, 50, 88, C.charcoal)
-      // Front locks falling over the cloak.
-      P([[9, 40], [15, 46], [17, 70], [15, 88], [7, 88], [5, 72]], C.hair)
-      P([[41, 46], [47, 40], [51, 72], [49, 88], [41, 88], [39, 70]], C.hair)
-      L(10, 48, 8, 80, C.hairLight); L(14, 54, 13, 86, C.hairShine); L(46, 50, 48, 82, C.hairLight); L(43, 58, 44, 86, C.hairShine)
-      // Neck, high navy collar with two gold buttons, lilac jabot.
-      R(24, 50, 8, 12, C.pale); R(24, 50, 8, 3, C.paleShade)
-      P([[19, 57], [37, 57], [39, 68], [17, 68]], C.navy)
-      R(19, 57, 18, 1, C.lilac); L(17, 67, 19, 58, C.lilac)
-      R(30, 60, 2, 2, C.gold); R(30, 64, 2, 2, C.gold); D(30, 60, C.cream); D(30, 64, C.cream)
-      P([[21, 68], [35, 68], [37, 74], [19, 74]], C.lilac)
-      P([[20, 74], [36, 74], [38, 80], [18, 80]], C.lilac)
-      P([[19, 80], [37, 80], [38, 88], [18, 88]], C.lilac)
-      for (const yy of [73, 79, 86]) for (let xx = 19; xx < 37; xx += 3) R(xx, yy, 2, 1, C.lilacLight)
-      R(27, 69, 1, 19, C.navy)
-      // Face: pale, long and narrow.
-      E(28, 36, 10, 13, C.pale)
-      P([[18, 38], [38, 38], [35, 46], [28, 52], [21, 46]], C.pale)
-      L(37, 31, 36, 44, C.paleShade); L(36, 44, 29, 52, C.paleShade)
-      // Hair swept back off the forehead, with a few loose strands.
-      P([[16, 34], [17, 20], [22, 12], [28, 10], [35, 12], [40, 20], [40, 32], [37, 24], [30, 20], [24, 21], [19, 26]], C.hair)
-      L(19, 24, 24, 14, C.hairLight); L(24, 20, 30, 12, C.hairLight); L(31, 19, 37, 14, C.hairShine); L(35, 22, 39, 29, C.hairLight)
-      P([[16, 26], [20, 28], [19, 42], [17, 54], [14, 48]], C.hair)
-      P([[36, 26], [40, 24], [42, 48], [39, 54], [37, 40]], C.hair)
-      L(17, 30, 16, 48, C.hairLight); L(40, 30, 41, 46, C.hairLight); L(22, 22, 20, 34, C.hairDark)
-      // Heavy-lidded grey eyes with winged liner, thin brows, a faint smile, gold earring.
-      R(21, 31, 5, 1, C.hair); R(30, 31, 5, 1, C.hair)
-      R(20, 35, 7, 1, C.lash); D(19, 34, C.lash); R(29, 35, 7, 1, C.lash); D(36, 34, C.lash)
-      R(22, 36, 3, 2, C.steel); R(23, 36, 1, 2, C.navy); R(30, 36, 3, 2, C.steel); R(31, 36, 1, 2, C.navy)
-      R(21, 38, 5, 1, C.paleShade); R(30, 38, 5, 1, C.paleShade)
-      D(28, 41, C.paleShade); D(29, 42, C.paleShade)
-      R(26, 46, 4, 1, C.rose); D(30, 45, C.rose)
-      D(40, 43, C.gold); D(40, 44, C.cream); D(40, 45, C.gold)
-    } else {
-      R(0, 0, 56, 88, C.charcoal)
-      // Brown hair behind, black cape with sheen, lace and jet beads.
-      P([[14, 34], [18, 26], [38, 26], [42, 34], [44, 62], [36, 64], [20, 64], [12, 60]], C.bangs)
-      L(15, 40, 14, 58, C.bangsLight); L(41, 40, 42, 60, C.bangsLight)
-      P([[0, 88], [0, 72], [10, 64], [22, 61], [34, 61], [46, 65], [56, 72], [56, 88]], C.hat)
-      P([[2, 76], [10, 68], [16, 66], [8, 80]], C.hatSheen); P([[44, 68], [52, 74], [50, 80], [42, 72]], C.hatSheen)
-      for (let xx = 0; xx < 56; xx += 3) { D(xx, 84, C.plaidLight); D(xx + 1, 85, C.plaidLight) }
-      for (const xx of [6, 12, 44, 50]) D(xx, 78, C.silver)
-      // Neck and face.
-      R(24, 52, 8, 10, C.peach); R(24, 52, 8, 2, C.skin)
-      E(28, 41, 10, 12, C.peach)
-      P([[18, 41], [38, 41], [35, 49], [28, 53], [21, 49]], C.peach)
-      L(37, 38, 36, 47, C.skin); L(36, 47, 30, 53, C.skin)
-      // White blouse strip and crossed teal lacing.
-      R(21, 66, 14, 22, C.bow)
-      for (let k = 0; k < 4; k++) { L(19, 68 + k * 5, 36, 72 + k * 5, C.teal); L(36, 68 + k * 5, 19, 72 + k * 5, C.tealLight) }
-      // Side hair and bangs.
-      P([[16, 36], [20, 38], [20, 58], [15, 62], [13, 48]], C.bangs)
-      P([[37, 38], [41, 35], [43, 48], [42, 62], [37, 58]], C.bangs)
-      P([[17, 40], [18, 31], [24, 27], [34, 27], [39, 31], [40, 42], [37, 36], [33, 39], [30, 34], [26, 38], [22, 35], [20, 39]], C.bangs)
-      L(22, 30, 20, 38, C.bangsLight); L(30, 29, 31, 36, C.bangsLight); L(38, 36, 40, 50, C.bangsLight)
-      // The big white cravat bow.
-      P([[26, 64], [31, 64], [35, 86], [28, 83], [24, 86]], C.bow); L(29, 66, 30, 83, C.bowShade)
-      P([[28, 63], [16, 57], [5, 59], [3, 64], [12, 68]], C.bow); P([[28, 63], [12, 68], [7, 66]], C.bowShade)
-      P([[28, 63], [40, 58], [47, 61], [45, 67], [36, 67]], C.bow); L(45, 63, 31, 64, C.bowShade)
-      E(28, 63, 3, 3, C.bowShade); E(28, 62, 2, 2, C.bow)
-      // Tilted wide-brimmed hat drooping to her left, lace band and white bow.
-      P([[13, 12], [17, 5], [27, 1], [38, 3], [46, 11], [47, 21], [13, 22]], C.hat)
-      P([[2, 24], [14, 19], [30, 18], [44, 20], [52, 28], [55, 46], [50, 44], [44, 34], [34, 30], [18, 30], [6, 30]], C.hat)
-      L(17, 8, 25, 3, C.hatSheen); L(16, 12, 17, 19, C.hatSheen); L(4, 26, 14, 21, C.hatSheen); L(44, 22, 52, 30, C.hatSheen); L(52, 31, 54, 44, C.hatSheen)
-      for (let xx = 15; xx < 45; xx += 2) { D(xx, 21, C.plaidLight); D(xx + 1, 22, C.charcoal) }
-      P([[40, 9], [33, 4], [32, 12]], C.bow); P([[40, 9], [48, 5], [48, 13]], C.bow); R(39, 8, 3, 3, C.bowShade)
-      L(40, 11, 43, 20, C.bow); L(41, 11, 45, 19, C.bowShade)
-      // Smiling red eyes and a small smile.
-      R(20, 40, 6, 1, C.lash); R(30, 40, 6, 1, C.lash); D(19, 41, C.lash); D(36, 41, C.lash)
-      R(21, 41, 4, 2, C.eyeRed); R(31, 41, 4, 2, C.eyeRed); R(22, 42, 2, 1, C.velvetDark); R(32, 42, 2, 1, C.velvetDark)
-      D(22, 41, C.bow); D(32, 41, C.bow)
-      R(21, 43, 4, 1, C.skin); R(31, 43, 4, 1, C.skin)
-      R(26, 48, 4, 1, C.rose); D(25, 47, C.rose); D(30, 47, C.rose)
-    }
-  })
-  gilt(p, x, y, 28, 44)
-}
 
 function sconce(p: Pixels, x: number, y: number) {
   p.glow(x, y - 4, 17, 15, C.warmWood, .95)
@@ -846,7 +707,7 @@ function otherRoom(p: Pixels, room: Exclude<RoomKind, 'desk' | 'shelf'>, state: 
     p.tag = 0
   } else if (room === 'study') {
     cityWindow(p, 27, 39, 116, 88)
-    tagged(p, 'hearth', () => { fireplace(p, 197, HEARTH_Y); namedPortrait(p, 208, 26, 'count'); namedPortrait(p, 244, 26, 'editor') })
+    tagged(p, 'hearth', () => { fireplace(p, 197, HEARTH_Y); refPortrait(p, 212, 44, 'count'); refPortrait(p, 246, 45, 'editor') })
     tagged(p, 'bookcase', () => shelf(p, 366, 126, 96, 110, 55))
     plant(p, 344, 32, 117, 8)
     tagged(p, 'armchair', () => { armchair(p, 64, 158, 90, C.plum, C.redDark, C.rose); journal(p, 88, 178) })
@@ -905,15 +766,15 @@ export function animateRoom(base: Pixels, room: RoomKind, state: RoomState, tick
   const p = new Pixels(FINE_W, FINE_H, base.data)
   p.s = UNIT
   const win = WINDOWS[room]
-  if (win) drawWeather(p, win, weather, tick, ramp, base.data)
+  if (room === 'desk') bats(p, ...DESK_WINDOW, tick)
+  if (win) drawWeather(p, win, weather, tick, ramp, base.data, room === 'desk' ? deskBars : windowBars)
   if (room === 'desk') {
-    inbox(p, state.submitted)
-    typewriter(p, 205, 165, state.working > 0, tick)
-    if (state.hasCat) cat(p, tick)
-    for (let i = 0; i < 3; i++) {
-      const age = (tick + i * 9) % 30
-      if (age < 21) p.rect(354 + i * 3 + Math.floor(age / 10), 184 - Math.floor(age / 3), 1, 2, C.paperShade)
-    }
+    clockPendulum(p, 352, 30, tick)
+    candelabraFlames(p, tick); wallCandleFlame(p, tick)
+    inTray(p, state.submitted)
+    typewriterFine(p, state.working > 0, tick)
+    if (state.hasCat) sleepingCat(p, tick)
+    teaSteam(p, tick)
   } else if (room === 'study') {
     flames(p, tick)
   }

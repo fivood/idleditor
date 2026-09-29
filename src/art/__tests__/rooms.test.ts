@@ -3,6 +3,7 @@ import { animateRoom, DESK_OBJECTS, EMPTY_ROOM, objectAt, OBJECTS, renderRoom } 
 import type { RoomKind } from '../rooms'
 import { HEIGHT, INK, Pixels, UNIT, WIDTH } from '../pixels'
 import { silhouette } from '../outline'
+import { PORTRAITS } from '../portraitData'
 import { pixelLayout } from '../layout'
 
 const kinds: RoomKind[] = ['desk', 'office', 'shelf', 'authors', 'study', 'stats']
@@ -20,7 +21,8 @@ describe('procedural rooms', () => {
       expect(one.data.length).toBe(WIDTH * HEIGHT)
       expect(checksum(one.data)).toBe(checksum(two.data))
       expect(new Set(one.data).size).toBeGreaterThan(10)
-      expect(new Set(one.data).size).toBeLessThanOrEqual(Object.keys(INK).length)
+      // Fixed palette plus the two embedded portraits and a few literal highlights.
+      expect(new Set(one.data).size).toBeLessThanOrEqual(Object.keys(INK).length + PORTRAITS.count.palette.length + PORTRAITS.editor.palette.length + 4)
       return checksum(one.data)
     })
     expect(new Set(hashes).size).toBe(6)
@@ -47,7 +49,7 @@ describe('procedural rooms', () => {
     const a = animateRoom(base, kind, state, 0), b = animateRoom(base, kind, state, 19)
     expect(checksum(base.data)).toBe(original)
     expect(checksum(a.data)).not.toBe(checksum(b.data))
-    expect(new Set(b.data).size).toBeLessThanOrEqual(Object.keys(INK).length * 5)
+    expect(new Set(b.data).size).toBeLessThanOrEqual((Object.keys(INK).length + PORTRAITS.count.palette.length + PORTRAITS.editor.palette.length + 4) * 6)
   })
 
   it('does not animate the typewriter when the publishing queue is empty', () => {
