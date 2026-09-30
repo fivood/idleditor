@@ -332,7 +332,7 @@ function BookDetailModal({ book, onClose }: { book: Manuscript; onClose: () => v
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4 pb-20 md:pb-24 overflow-y-auto">
-      <div className="bg-cream border-2 border-border-dark w-full max-w-[420px] max-h-[90vh] overflow-y-auto shadow-[6px_6px_0_#4a3728]">
+      <div className="px-panel bg-cream w-full max-w-[420px] max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-3 md:p-4 border-b-2 border-border-dark">
           <h2 className="text-sm md:text-base font-bold text-ink font-mono truncate">{book.title}</h2>
           <button onClick={onClose} className="text-xs md:text-xs px-2 py-1 border-2 border-border-dark text-muted font-mono cursor-pointer bg-cream">X</button>

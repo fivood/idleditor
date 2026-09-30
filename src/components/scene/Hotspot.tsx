@@ -42,7 +42,7 @@ export function Hotspot({ label, style, onClick, unseen, object, children }: Hot
     >
       {/* hover 标签 */}
       <span
-        className="absolute left-1/2 -translate-x-1/2 -top-7 opacity-0 group-hover:opacity-100 bg-[#f5d878] text-[#1a1410] px-2 py-0.5 text-xs font-bold font-mono border-2 border-[#4a3728] whitespace-nowrap pointer-events-none transition-opacity duration-100"
+        className="px-plaque absolute left-1/2 -translate-x-1/2 -top-9 opacity-0 group-hover:opacity-100 px-1.5 text-xs font-bold font-mono whitespace-nowrap pointer-events-none transition-opacity duration-100"
         style={{ zIndex: 100 }}
       >
         {label}

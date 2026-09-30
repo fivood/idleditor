@@ -1,7 +1,7 @@
 {
   "name": "idleditor",
   "private": true,
-  "version": "2.11.0",
+  "version": "2.12.0",
   "type": "module",
   "scripts": {
     "dev": "concurrently \"vite\" \"node server/index.js\"",
@@ -10,7 +10,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "art:render": "node scripts/render-pixel-rooms.mjs"
+    "art:render": "node scripts/render-pixel-rooms.mjs",
+    "art:bake": "node scripts/bake/serve.mjs"
   },
   "dependencies": {
     "cors": "^2.8.6",
@@ -41,6 +42,7 @@
     "globals": "^17.6.0",
     "jsdom": "^29.1.1",
     "tailwindcss": "^4.3.0",
+    "three": "^0.185.1",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
     "vite": "^8.0.12",

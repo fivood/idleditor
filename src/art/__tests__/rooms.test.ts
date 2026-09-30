@@ -4,6 +4,11 @@ import type { RoomKind } from '../rooms'
 import { HEIGHT, INK, Pixels, UNIT, WIDTH } from '../pixels'
 import { silhouette } from '../outline'
 import { PORTRAITS } from '../portraitData'
+import type { BakedSprite } from '../sprite'
+
+// Fixed palette, the two embedded portraits, every baked sprite, and a few literal highlights.
+const baked = Object.values(import.meta.glob<Record<string, BakedSprite>>('../baked/*.ts', { eager: true })).flatMap(m => Object.values(m))
+const PALETTE_BOUND = Object.keys(INK).length + PORTRAITS.count.palette.length + PORTRAITS.editor.palette.length + baked.reduce((n, s) => n + s.palette.length, 0) + 4
 import { pixelLayout } from '../layout'
 
 const kinds: RoomKind[] = ['desk', 'office', 'shelf', 'authors', 'study', 'stats']
@@ -21,8 +26,7 @@ describe('procedural rooms', () => {
       expect(one.data.length).toBe(WIDTH * HEIGHT)
       expect(checksum(one.data)).toBe(checksum(two.data))
       expect(new Set(one.data).size).toBeGreaterThan(10)
-      // Fixed palette plus the two embedded portraits and a few literal highlights.
-      expect(new Set(one.data).size).toBeLessThanOrEqual(Object.keys(INK).length + PORTRAITS.count.palette.length + PORTRAITS.editor.palette.length + 4)
+      expect(new Set(one.data).size).toBeLessThanOrEqual(PALETTE_BOUND)
       return checksum(one.data)
     })
     expect(new Set(hashes).size).toBe(6)
@@ -49,7 +53,7 @@ describe('procedural rooms', () => {
     const a = animateRoom(base, kind, state, 0), b = animateRoom(base, kind, state, 19)
     expect(checksum(base.data)).toBe(original)
     expect(checksum(a.data)).not.toBe(checksum(b.data))
-    expect(new Set(b.data).size).toBeLessThanOrEqual((Object.keys(INK).length + PORTRAITS.count.palette.length + PORTRAITS.editor.palette.length + 4) * 6)
+    expect(new Set(b.data).size).toBeLessThanOrEqual(PALETTE_BOUND * 6)
   })
 
   it('does not animate the typewriter when the publishing queue is empty', () => {

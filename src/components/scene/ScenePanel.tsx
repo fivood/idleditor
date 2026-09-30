@@ -77,26 +77,16 @@ function PanelFrame({
   }
 }
 
-function CloseBtn({ onClose, variant = 'dark' }: { onClose: () => void; variant?: 'dark' | 'light' }) {
-  return (
-    <button
-      onClick={onClose}
-      aria-label="关闭"
-      className={`text-lg leading-none cursor-pointer ml-2 transition-colors ${
-        variant === 'dark' ? 'text-[#8a7a5a] hover:text-[#4a3728]' : 'text-[#b8a48a] hover:text-[#f5d878]'
-      }`}
-    >
-      ✕
-    </button>
-  )
+function CloseBtn({ onClose }: { onClose: () => void; variant?: 'dark' | 'light' }) {
+  return <button onClick={onClose} aria-label="关闭" title="关闭（Esc）" className="px-close ml-2" />
 }
 
 // ── 1. 通用纸张面板（暗色）──
 function PaperFrame({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   return (
     <div
-      className="border-2 shadow-[4px_4px_0_#0a0806] p-3 md:p-4 font-mono"
-      style={{ ...PAPER_STYLES.dark, borderColor: '#0a0806', color: '#ede0c8', maxHeight: '70vh', overflowY: 'auto' }}
+      className="px-panel p-3 md:p-4 font-mono"
+      style={{ ...PAPER_STYLES.dark, color: '#ede0c8', maxHeight: '70vh', overflowY: 'auto' }}
     >
       <div className="flex items-center justify-between border-b border-[#5c3a1f] pb-2 mb-3">
         <h3 className="text-base font-bold" style={{ color: '#f5d878' }}>{title}</h3>
@@ -111,8 +101,8 @@ function PaperFrame({ title, onClose, children }: { title: string; onClose: () =
 function InboxFrame({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   return (
     <div
-      className="border-2 shadow-[4px_4px_0_#0a0806] font-mono"
-      style={{ background: '#4a2f18', borderColor: '#0a0806', maxHeight: '72vh' }}
+      className="px-panel font-mono"
+      style={{ background: '#4a2f18', maxHeight: '72vh' }}
     >
       {/* 木质托盘顶部边沿（带钉子）*/}
       <div
@@ -140,8 +130,8 @@ function InboxFrame({ title, onClose, children }: { title: string; onClose: () =
 function BeltFrame({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   return (
     <div
-      className="border-2 shadow-[4px_4px_0_#0a0806] font-mono"
-      style={{ background: '#3d2614', borderColor: '#0a0806', maxHeight: '70vh' }}
+      className="px-panel font-mono"
+      style={{ background: '#3d2614', maxHeight: '70vh' }}
     >
       {/* 铁质顶梁（带螺丝钉）*/}
       <div
@@ -172,8 +162,8 @@ function BeltFrame({ title, onClose, children }: { title: string; onClose: () =>
 function JournalFrame({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   return (
     <div
-      className="border-2 shadow-[4px_4px_0_#0a0806] font-mono"
-      style={{ background: '#4a2f18', borderColor: '#0a0806', maxHeight: '72vh', padding: 6 }}
+      className="px-panel font-mono"
+      style={{ background: '#4a2f18', maxHeight: '72vh', padding: 6 }}
     >
       <div className="relative" style={{ ...PAPER_STYLES.darkParchment, color: '#ede0c8', padding: '10px 14px' }}>
         <div className="flex items-center justify-between border-b border-[#5c3a1f] pb-1 mb-2">
@@ -191,7 +181,7 @@ function JournalFrame({ title, onClose, children }: { title: string; onClose: ()
 // ── 5. 展开的卷轴（猫详情）──
 function ScrollFrame({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   return (
-    <div className="font-mono">
+    <div className="px-panel font-mono" style={{ background: '#4a2f18' }}>
       {/* 上轴 */}
       <div
         className="h-2 mx-2"
@@ -241,8 +231,8 @@ function ScrollFrame({ title, onClose, children }: { title: string; onClose: () 
 function NoticeFrame({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   return (
     <div
-      className="border-2 shadow-[4px_4px_0_#0a0806] font-mono p-2"
-      style={{ background: '#8b6b3e', borderColor: '#0a0806', maxHeight: '70vh' }}
+      className="px-panel font-mono p-2"
+      style={{ background: '#8b6b3e', maxHeight: '70vh' }}
     >
       {/* 公告板顶部红色横栏 */}
       <div

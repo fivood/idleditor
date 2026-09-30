@@ -1,7 +1,7 @@
 import { HEIGHT as FINE_H, INK as C, noise, Pixels, UNIT, WIDTH as FINE_W } from './pixels'
 import { drawWeather, lightning, WINDOWS, windowBars } from './weather'
 import {
-  bats, brickWall, brush, candelabra, candelabraFlames, castlePainting, clockPendulum, clothDesk, deskBars, deskFloor, deskWindow,
+  bats, bookcases, brickWall, brush, candelabra, candelabraFlames, castlePainting, clockPendulum, clothDesk, deskBars, deskFloor, deskWindow,
   inkAndQuill, inTray, letterRack, openJournal, pottedPlant, refPortrait, sleepingCat, teacupFine, teaSteam, typewriterFine,
   wallCandle, wallCandleFlame, wallClock,
 } from './editorRoom'
@@ -26,11 +26,11 @@ export type RoomKind = 'desk' | 'office' | 'shelf' | 'authors' | 'study' | 'stat
 export interface RoomState { submitted: number; working: number; hasCat: boolean; books: number; authors: number; departments: number }
 export const EMPTY_ROOM: RoomState = { submitted: 0, working: 0, hasCat: false, books: 0, authors: 0, departments: 0 }
 export const DESK_OBJECTS = [
-  { key: 'solicit', label: '征稿信箱', x: 26, y: 106, w: 50, h: 49 },
-  { key: 'submissions', label: '待审稿件', x: 116, y: 175, w: 49, h: 22 },
-  { key: 'pipeline', label: '编辑流水线', x: 198, y: 157, w: 66, h: 42 },
-  { key: 'log', label: '出版日志', x: 274, y: 183, w: 52, h: 24 },
-  { key: 'dream', label: '梦境创作', x: 364, y: 182, w: 24, h: 17 },
+  { key: 'solicit', label: '征稿信箱', x: 23, y: 104, w: 53, h: 50 },
+  { key: 'submissions', label: '待审稿件', x: 116, y: 168, w: 48, h: 28 },
+  { key: 'pipeline', label: '编辑流水线', x: 199, y: 157, w: 63, h: 47 },
+  { key: 'log', label: '出版日志', x: 273, y: 179, w: 52, h: 28 },
+  { key: 'dream', label: '梦境创作', x: 363, y: 181, w: 23, h: 18 },
   { key: 'cat', label: '黑猫', x: 350, y: 122, w: 50, h: 26 },
 ] as const
 
@@ -298,14 +298,13 @@ function deskRoom(p: Pixels, state: RoomState, includeLiveObjects: boolean, e: E
   deskWindow(p, ...deskGlass(e.T))
   castlePainting(p, 30, 32)
   refPortrait(p, 84, 32, 'count'); refPortrait(p, 84, 72, 'editor')
-  wallClock(p, 352, 30)
+  wallClock(p)
   wallCandle(p)
-  shelf(p, 406, 28, 70, 88, 11)
-  shelf(p, 344, 150, 132, 58, 27)
-  tagged(p, 'solicit', () => letterRack(p, 26, 112))
-  pottedPlant(p, 4, 170)
+  bookcases(p)
+  tagged(p, 'solicit', () => letterRack(p))
+  pottedPlant(p)
   clothDesk(p)
-  inkAndQuill(p, 172, 168)
+  inkAndQuill(p)
   candelabra(p)
   tagged(p, 'log', () => openJournal(p))
   tagged(p, 'dream', () => teacupFine(p))
@@ -785,6 +784,21 @@ export function renderRoom(room: RoomKind, state: RoomState = EMPTY_ROOM, includ
   return p
 }
 
+/** Baked sprites carry their own shading: each takes one light level, so the room's dither doesn't streak across it. */
+const flattened = new WeakMap<Pixels, Uint8Array>()
+function bakedLight(base: Pixels, room: RoomKind, f: Frame) {
+  if (!base.baked || !base.bakedCount) return lightMask(room, f)
+  let mask = flattened.get(base)
+  if (!mask) {
+    mask = lightMask(room, f).slice()
+    const sum = new Float64Array(base.bakedCount + 1), n = new Uint32Array(base.bakedCount + 1)
+    for (let i = 0; i < mask.length; i++) { const id = base.baked[i]; if (id) { sum[id] += mask[i]; n[id]++ } }
+    for (let i = 0; i < mask.length; i++) { const id = base.baked[i]; if (id) mask[i] = Math.round(sum[id] / n[id]) }
+    flattened.set(base, mask)
+  }
+  return mask
+}
+
 /** Lightning: the room jumps one grade brighter and the glass goes to the flash grade. */
 function flashMask(room: RoomKind, level: 1 | 2, f: Frame) {
   const mask = lightMask(room, f).slice(), win = windowFor(room, f)
@@ -803,7 +817,7 @@ export function animateRoom(base: Pixels, room: RoomKind, state: RoomState, tick
   if (room === 'desk' && win) bats(p, ...win, tick)
   if (win) drawWeather(p, win, weather, tick, ramp, base.data, room === 'desk' ? deskBars : windowBars)
   if (room === 'desk') {
-    clockPendulum(p, 352, 30, tick)
+    clockPendulum(p, tick)
     candelabraFlames(p, tick); wallCandleFlame(p, tick)
     inTray(p, state.submitted)
     typewriterFine(p, state.working > 0, tick)
@@ -813,6 +827,6 @@ export function animateRoom(base: Pixels, room: RoomKind, state: RoomState, tick
     flames(p, tick)
   }
   const flash = win && weather === 'storm' ? lightning(tick).level : 0
-  p.shade(flash ? flashMask(room, flash as 1 | 2, f) : lightMask(room, f))
+  p.shade(flash ? flashMask(room, flash as 1 | 2, f) : bakedLight(base, room, f))
   return p
 }

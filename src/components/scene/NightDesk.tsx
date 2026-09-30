@@ -36,7 +36,7 @@ export function NightDesk({ submitted, working, catName, activePanel, onSelect }
             aria-label={label(object.key, object.label)}
             aria-pressed={activePanel === object.key}
             onClick={() => onSelect(object.key)}
-          ><span>{label(object.key, object.label)}</span><b aria-hidden="true">+</b></button>)}
+          ><span className="px-plaque">{label(object.key, object.label)}</span><b aria-hidden="true">+</b></button>)}
       </PixelStage>
       <div className="night-desk-heading">
         <span>ETERNAL NIGHT · EDITOR'S ROOM</span>
@@ -44,11 +44,11 @@ export function NightDesk({ submitted, working, catName, activePanel, onSelect }
         <p>{submitted ? `${submitted} 份来稿等你拆阅` : '暂时没有新来稿，夜还很长。'}<span> · </span>{working ? `${working} 本书正在诞生` : '灯亮着，故事就还没结束。'}</p>
       </div>
       <div className="night-desk-controls" aria-label="场景设置">
-        <button onClick={() => setShowHints(value => !value)} aria-pressed={showHints}>物件提示 {showHints ? '开' : '关'}</button>
-        <button onClick={() => setMotion(value => !value)} aria-pressed={motion}>动态效果 {motion ? '开' : '关'}</button>
+        <button className="px-btn px-btn--wood" onClick={() => setShowHints(value => !value)} aria-pressed={showHints}>物件提示 {showHints ? '开' : '关'}</button>
+        <button className="px-btn px-btn--wood" onClick={() => setMotion(value => !value)} aria-pressed={motion}>动态效果 {motion ? '开' : '关'}</button>
       </div>
       <nav className="night-desk-actions" aria-label="工作台操作">
-        {objects.map(object => <button key={object.key} onClick={() => onSelect(object.key)} aria-pressed={activePanel === object.key}>
+        {objects.map(object => <button className="px-tab" key={object.key} onClick={() => onSelect(object.key)} aria-pressed={activePanel === object.key}>
           {object.label}{object.key === 'submissions' && <small>{submitted}</small>}{object.key === 'pipeline' && <small>{working}</small>}
         </button>)}
       </nav>

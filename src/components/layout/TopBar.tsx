@@ -38,8 +38,7 @@ export function TopBar() {
 
   return (
     <header
-      className="border-b-2 border-[#0a0806] shrink-0 relative"
-      style={{ background: '#1a0e08' }}
+      className="px-beam border-b-2 border-[#0a0806] shrink-0 relative"
     >
       <div className="flex items-center justify-between px-3 md:px-4 h-8 md:h-12 relative z-10">
         <div className="flex items-center gap-2 md:gap-3">
@@ -138,12 +137,8 @@ function WoodPlaque({ children, title, accent, icon }: { children: React.ReactNo
   return (
     <span
       title={title}
-      className="hidden md:inline-flex items-center gap-1 px-1.5 py-0.5 text-[11px] font-mono border-2 whitespace-nowrap"
-      style={{
-        background: accent ? '#3d2614' : '#2a1810',
-        borderColor: accent ? '#b8763b' : '#5c3a1f',
-        color: accent ? '#f5d878' : '#d4a85a',
-      }}
+      className={`${accent ? 'px-plaque' : 'px-well'} hidden md:inline-flex items-center gap-1 px-1 text-[11px] font-mono whitespace-nowrap`}
+      style={{ color: accent ? '#f5d878' : '#d4a85a' }}
     >
       {icon}
       {children}
@@ -157,9 +152,8 @@ function WoodPlaque({ children, title, accent, icon }: { children: React.ReactNo
 function CurrencyBadge({ Icon, label, value }: { Icon: FC<PixelIconProps>; label: string; value: number }) {
   return (
     <span
-      className="flex items-center gap-1 px-1.5 py-0.5 text-[11px] font-mono border-2"
+      className="px-well flex items-center gap-1 px-1 text-[11px] font-mono"
       title={label}
-      style={{ background: '#2a1810', borderColor: '#5c3a1f' }}
     >
       <Icon />
       <span className="tabular-nums font-bold" style={{ color: '#f5d878' }}>
@@ -176,9 +170,9 @@ function StatueDisplay({ count }: { count: number }) {
   if (count === 0) return null
   return (
     <span
-      className="flex items-center gap-1 px-1.5 py-0.5 text-[11px] font-mono border-2"
+      className="px-plaque flex items-center gap-1 px-1 text-[11px] font-mono"
       title={`${count} 座铜像`}
-      style={{ background: '#3d2614', borderColor: '#b8763b', color: '#f5d878' }}
+      style={{ color: '#f5d878' }}
     >
       <IconStatue />
       <span className="tabular-nums font-bold">{count}</span>
@@ -201,7 +195,7 @@ function RebirthModal({ onConfirm, onCancel, bonuses, statues, trait, stats, onS
   const nextBossYears = Math.max(0, bonuses.bossYears - 1)
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4 pb-20 md:pb-24 overflow-y-auto">
-      <div className="bg-cream border-2 border-border-dark w-full max-w-[380px] p-4 md:p-6 shadow-[6px_6px_0_#4a3728] max-h-[90vh] overflow-y-auto">
+      <div className="px-panel bg-cream w-full max-w-[380px] p-4 md:p-6 max-h-[90vh] overflow-y-auto">
         <h2 className="text-sm md:text-base font-bold text-ink mb-1 font-mono">铸造铜像 · 新纪元</h2>
         <p className="text-[15px] md:text-[16px] text-muted mb-3 md:mb-4 font-mono">
           你的功绩将被铸成铜像，陈列在永夜出版社的大厅里。一切将从头开始——但你的经验将永存。

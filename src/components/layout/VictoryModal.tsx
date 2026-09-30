@@ -13,7 +13,7 @@ export function VictoryModal({ ending, onDismiss }: Props) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 pb-20 md:pb-24 overflow-y-auto">
-      <div className="bg-cream border-2 border-border-dark w-full max-w-[480px] max-h-[90vh] overflow-y-auto shadow-[6px_6px_0_#4a3728]">
+      <div className="px-panel bg-cream w-full max-w-[480px] max-h-[90vh] overflow-y-auto">
         <div className="bg-copper text-white p-5 md:p-6 text-center">
           <p className="text-xs text-copper-light font-mono mb-1">第 {currencies.statues} 座铜像</p>
           <h1 className="text-lg md:text-xl font-bold font-mono">{scene.title}</h1>
