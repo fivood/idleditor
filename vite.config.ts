@@ -31,6 +31,8 @@ export default defineConfig({
       },
     }),
   ],
+  // Only the game entry; scripts/bake/index.html is a separate tool with its own server.
+  optimizeDeps: { entries: ['index.html'] },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

@@ -10,7 +10,7 @@
 }
 .pixel-audio { position: absolute; top: 8px; right: 8px; z-index: 35; display: flex; align-items: center; gap: 6px; opacity: .55; transition: opacity .2s; }
 .pixel-audio:hover, .pixel-audio:focus-within { opacity: 1; }
-.pixel-audio button { background: #1a0e08; border: 2px solid #0a0806; color: #f5deb0; font-size: 14px; line-height: 1; padding: 3px 5px; cursor: pointer; }
+.pixel-audio button { font-size: 13px; line-height: 1; padding: 1px 3px; }
 .pixel-audio input { width: 64px; accent-color: #e1b772; }
 /* Objects drawn in the scene: the stage hit-tests their silhouette, so the box itself is invisible and inert. */
 .pixel-room-stage [data-object] { pointer-events: none; outline: none !important; border-color: transparent !important; background: transparent !important; }

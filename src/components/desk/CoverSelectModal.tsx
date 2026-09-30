@@ -39,8 +39,8 @@ export function CoverSelectModal({ manuscript, onConfirm, onReject, onCancel }: 
     // z-[100] 高于 Minimap z-50，避免 modal 底部按钮被桌沿菜单遮挡
     // 容器加 pb-20 给 Minimap 让出空间，让 modal 内容滚动时也不会卡在菜单后面
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 pb-20 md:pb-24 overflow-y-auto">
-      <div className="border-2 w-full max-w-[640px] max-h-[88vh] overflow-y-auto shadow-[4px_4px_0_#0a0806] my-auto"
-        style={{ background: '#2a1810', borderColor: '#0a0806', color: '#ede0c8' }}>
+      <div className="px-panel w-full max-w-[640px] max-h-[88vh] overflow-y-auto my-auto"
+        style={{ background: '#2a1810', color: '#ede0c8' }}>
         <div className="p-4 md:p-5 border-b-2 border-border-dark">
           <h2 className="text-sm md:text-base font-bold text-ink font-mono">确认封面 · 准备付印</h2>
           <p className="text-[13px] md:text-xs text-muted mt-0.5 font-mono">

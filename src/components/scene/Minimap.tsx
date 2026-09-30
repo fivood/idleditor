@@ -12,13 +12,13 @@ const ROOMS = [
 export function Minimap() {
   const activeTab = useGameStore(s => s.activeTab)
   const setActiveTab = useGameStore(s => s.setActiveTab)
-  return <nav aria-label="出版社房间" className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex border border-[#a9987644] bg-[#14121ae8] px-2 py-1">
+  return <nav aria-label="出版社房间" className="px-panel px-beam absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex gap-1 p-1">
     {ROOMS.map(room => <button
       key={room.key}
       onClick={() => setActiveTab(room.key)}
       aria-current={activeTab === room.key ? 'page' : undefined}
       title={`${room.label}（按 ${room.hotkey}）`}
-      className={`px-4 py-2 text-xs cursor-pointer whitespace-nowrap focus-visible:outline-2 focus-visible:outline-[#edca86] ${activeTab === room.key ? 'text-[#edca86] border-b border-[#edca86]' : 'text-[#b7aba0] hover:text-[#fff0cd]'}`}
+      className="px-tab px-3 py-1 text-xs whitespace-nowrap font-mono"
     >{room.label}</button>)}
   </nav>
 }

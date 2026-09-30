@@ -63,6 +63,11 @@ export class Pixels {
   tag = 0
   /** Record tags only, leave colours alone (for objects that are painted later, every frame). */
   ghost = false
+  /** Which baked sprite owns each pixel (0 = none); lets lighting treat a sprite as one surface. */
+  readonly baked: Uint8Array | null
+  /** Sprite id stamped by draw calls while set; see drawSprite. */
+  mark = 0
+  bakedCount = 0
   /** Where the 960×540 core room sits on a larger (or smaller) canvas, in native pixels. */
   OX = 0
   OY = 0
@@ -71,6 +76,7 @@ export class Pixels {
     this.height = height
     this.data = source ? source.slice() : new Uint32Array(width * height).fill(color(INK.void))
     this.tags = tagged ? new Uint8Array(width * height) : null
+    this.baked = tagged ? new Uint8Array(width * height) : null
   }
   private span(x0: number, x1: number, y: number, rgba: number) {
     if (y < 0 || y >= this.height) return
@@ -79,6 +85,7 @@ export class Pixels {
     const row = y * this.width
     if (!this.ghost) this.data.fill(rgba, row + x0, row + x1)
     if (this.tags) this.tags.fill(this.tag, row + x0, row + x1)
+    if (this.baked) this.baked.fill(this.mark, row + x0, row + x1)
   }
   /** Draw in native pixels regardless of the current unit. */
   fine(draw: () => void) {

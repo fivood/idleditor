@@ -89,7 +89,7 @@ export function Shell() {
         </main>
 
         {/* 移动端始终显示 Tab 栏；桌面端只有在非场景房间时显示 */}
-        <nav className={`h-11 md:h-12 border-t-2 border-border-dark bg-cream-dark items-center shrink-0 flex ${
+        <nav className={`px-beam h-11 md:h-12 border-t-2 border-[#0a0806] items-center shrink-0 flex gap-1 px-1 ${
           isInSceneRoom ? 'md:hidden' : ''
         }`}>
           {[
@@ -103,11 +103,8 @@ export function Shell() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab as typeof activeTab)}
-              className={`flex-1 h-full text-[13px] md:text-xs font-medium transition-all cursor-pointer border-r-2 border-border-dark last:border-r-0 ${
-                activeTab === tab
-                  ? 'bg-copper text-white border-b-0'
-                  : 'bg-cream-dark text-ink-light hover:bg-cream'
-              }`}
+              aria-current={activeTab === tab ? 'page' : undefined}
+              className="px-tab flex-1 text-[13px] md:text-xs font-medium font-mono"
             >
               {label}
             </button>

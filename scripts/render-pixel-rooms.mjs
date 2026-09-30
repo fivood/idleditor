@@ -11,10 +11,15 @@ const output = path.join(root, '.dream-loop', 'procedural')
 const runtime = path.join(output, 'runtime')
 fs.mkdirSync(runtime, { recursive: true })
 fs.writeFileSync(path.join(runtime, 'package.json'), '{"type":"commonjs"}')
-for (const file of ['pixels', 'portraitData', 'typewriterSprite', 'weather', 'editorRoom', 'rooms']) {
-  const source = fs.readFileSync(path.join(root, 'src', 'art', `${file}.ts`), 'utf8')
-  const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2023 } })
-  fs.writeFileSync(path.join(runtime, `${file}.js`), compiled.outputText)
+// Every art module (and the baked sprites) is transpiled; tests and types are left out.
+for (const dir of ['', 'baked']) {
+  fs.mkdirSync(path.join(runtime, dir), { recursive: true })
+  for (const name of fs.readdirSync(path.join(root, 'src', 'art', dir))) {
+    if (!name.endsWith('.ts') || name.endsWith('.test.ts')) continue
+    const source = fs.readFileSync(path.join(root, 'src', 'art', dir, name), 'utf8')
+    const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2023 } })
+    fs.writeFileSync(path.join(runtime, dir, name.replace(/\.ts$/, '.js')), compiled.outputText)
+  }
 }
 const require = createRequire(import.meta.url)
 const { renderRoom, animateRoom, EMPTY_ROOM } = require(path.join(runtime, 'rooms.js'))

@@ -4,11 +4,10 @@
 .night-desk-heading h2 { margin: 8px 0; font-size: 20px; font-weight: normal; letter-spacing: 3px; }
 .night-desk-heading p { margin: 0; font-size: 12px; color: #d0c5b1; }
 .night-desk-controls { position: absolute; right: 24px; top: 24px; display: flex; gap: 8px; }
-.night-desk-controls button, .night-desk-actions button { cursor: pointer; border: 1px solid #a9987638; background: #14121acc; color: #d9cbb4; font-size: 12px; padding: 8px 12px; transition: background .15s, color .15s; }
-.night-desk-controls button:hover, .night-desk-actions button:hover, .night-desk-actions button[aria-pressed=true] { background: #57432a; color: #fff0cd; border-color: #b79558; }
+.night-desk-controls button, .night-desk-actions button { font-size: 12px; padding: 3px 8px; }
 .night-desk button:focus-visible { outline: 2px solid #e2bf78; outline-offset: 4px; }
 .night-desk-object { position: absolute; border: 1px solid transparent; background: transparent; cursor: pointer; }
-.night-desk-object span { position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: #131119eb; color: #ffe8b4; border: 1px solid #af8b55; padding: 5px 10px; white-space: nowrap; font-size: 12px; opacity: 0; pointer-events: none; }
+.night-desk-object span { position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); padding: 1px 6px; white-space: nowrap; font-size: 12px; opacity: 0; pointer-events: none; }
 .night-desk-object b { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: #ffebb3; background: #16121ab8; font: 18px monospace; width: 24px; height: 24px; border: 1px solid #cab08088; opacity: 0; pointer-events: none; }
 .night-desk-object:hover, .night-desk-object:focus-visible, .night-desk-object[aria-pressed=true] { border-color: #f4d69b77; background: #eecb7c0c; }
 .night-desk-object:hover span, .night-desk-object:focus-visible span, .night-desk--hints .night-desk-object b { opacity: 1; }

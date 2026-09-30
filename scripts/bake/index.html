@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><title>永夜出版社 · 像素烘焙</title>
+<style>
+  body { margin: 0; background: #1a1115; color: #ddd; font: 12px monospace; }
+  nav { display: flex; gap: 8px; align-items: center; padding: 8px; }
+  canvas { image-rendering: pixelated; display: block; margin: 8px; }
+</style>
+<nav><button id="all">全部烘焙</button><select id="one"></select><button id="bake-one">烘焙所选</button><output id="status">loading…</output></nav>
+<canvas id="view"></canvas>
+<script type="module" src="./main.js"></script>
+</html>

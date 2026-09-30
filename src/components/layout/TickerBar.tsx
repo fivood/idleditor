@@ -28,8 +28,8 @@ export function TickerBar() {
   if (!latest) {
     return (
       <div
-        className="shrink-0 px-3 md:px-4 h-[22px] flex items-center text-[12px] md:text-[12px] font-mono border-b-2 border-[#0a0806]"
-        style={{ background: '#0f0805', color: '#6a553a' }}
+        className="px-well shrink-0 px-2 h-[26px] flex items-center text-[12px] font-mono"
+        style={{ color: '#6a553a' }}
       >
         <span className="opacity-60">夜色未起，编辑部一片寂静……</span>
       </div>
@@ -38,11 +38,10 @@ export function TickerBar() {
 
   return (
     <div
-      className="shrink-0 px-3 md:px-4 h-[22px] md:h-[24px] flex items-center gap-2 text-[12px] md:text-[12px] font-mono border-b-2 border-[#0a0806] overflow-hidden whitespace-nowrap"
+      className="px-well shrink-0 px-2 h-[26px] md:h-[28px] flex items-center gap-2 text-[12px] font-mono overflow-hidden whitespace-nowrap"
       style={{
-        background: pulse ? '#2a1810' : '#15090a',
         color: pulse ? '#f5d878' : '#d4a85a',
-        transition: 'background-color 1.6s linear, color 1.6s linear',
+        transition: 'color 1.6s linear',
       }}
       title={latest.text}
       role="status"

@@ -1,6 +1,6 @@
 # 永夜出版社 · 代码绘制场景
 
-更新：2026-09-29（v2.12）。
+更新：2026-09-30（v2.12）。
 
 ## 当前实现
 
@@ -30,6 +30,16 @@
 | `src/components/scene/PixelStage.tsx` | 让画面和点击区域使用同一坐标空间，并读取天气 |
 
 画布铺满视口：先取能让核心房间（960×540）至少 88% 可见的最大整数倍（手机保证完整宽度），再按视口大小扩展画布（每轴最多到核心的两倍），多出的区域由各房间向外延伸墙壁、地板；主编室的窗户随画布向上长高。`src/art/layout.ts` 计算画布与核心位置，`Frame` 描述核心在画布上的偏移，热区仍按核心百分比定位。Canvas 关闭平滑，CSS 使用 `image-rendering: pixelated`。文字和面板使用正常 DOM。
+
+## 三维烘焙物件
+
+主编室的物件由 `scripts/bake/` 从三维模型烘焙：`props.js` 是 Three.js 模型（打字机取自 kinotype），`engine.js` 统一光照（右上暖色主光、正面补光、左后月光）、4 级色阶着色、3×3 块多数取色、1 像素描边和游程编码，输出到 `src/art/baked/*.ts`，预览图在 `.dream-loop/bake/`。
+
+重新烘焙：`npm run art:bake`，打开打印出的地址，点“全部烘焙”（或只选一个）。three.js 只是开发依赖，不进游戏包。游戏里用 `src/art/sprite.ts` 的 `drawSprite` 绘制，锚点（烛芯、茶杯口）用于叠加火焰和蒸汽；小尺寸精灵整体取一个光照等级，避免房间抖色划过。
+
+## 像素界面
+
+面板、按钮、标牌、数值槽、木梁由 `src/art/ui.ts` 用同一套绘制器画成九宫格小图，启动时写入 CSS 变量 `--ui-*`，`index.css` 的 `.px-panel` `.px-btn(--iron/--lacquer/--wood)` `.px-tab` `.px-plaque` `.px-well` `.px-beam` `.px-close` 通过 `border-image` 按整数倍放大。
 
 ## 物件轮廓与点击
 
